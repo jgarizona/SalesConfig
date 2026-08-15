@@ -111,6 +111,7 @@ Git/
     ├── quotes.json
     ├── customers.json
     ├── sales_reps.json
+    ├── site_access.json      # Site PIN + Flask session secret key - GITIGNORED, never commit (repo is public)
     └── reports/              # Generated CSV reports land here (created on demand, gitignore candidate)
 ```
 
@@ -321,6 +322,13 @@ needed; ingestion is the actual bottleneck.
 - **Sales Rep verification is bookkeeping, not security.** A 4-digit code with no lockout,
   no hashing (stored plaintext in `sales_reps.json`), 10,000 possible combinations. It exists
   purely so a quote records who touched it. Don't let anyone mistake it for access control.
+- **Site Access PIN is a soft gate, also not real security.** A single shared 4-8 digit PIN
+  (`before_request` hook in `app.py`, checked against `data/site_access.json`) protects every
+  page and every `/api/*` route from casual access — meant for "don't let a random person who
+  finds a shared tunnel link poke around," not real auth. `data/site_access.json` holds both
+  the PIN and the Flask session secret key, is auto-generated on first run, and is **gitignored
+  on purpose — this repo is public on GitHub, so that file must never be committed.** If you
+  ever regenerate `.gitignore` or restructure `data/`, keep that entry.
 - **Quote lock/rev rules:** a quote gets its Quote# the first time it's saved (Rev 0).
   Locking (manual toggle, or automatically on Print) "fixes" it — further edits are blocked
   until Unlock. Editing-then-saving a quote that has *ever* been locked bumps Rev by 1.

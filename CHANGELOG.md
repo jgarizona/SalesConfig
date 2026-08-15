@@ -16,6 +16,20 @@
 
 ## 2026-08-15
 
+- Added a **site-wide access PIN** (4-8 digits) gating every page and API endpoint on the whole
+  app, not just Sales — anyone loading any URL (local or via a temporary tunnel) hits a login
+  page first. Auto-generated on first run into `data/site_access.json` (gitignored — this repo
+  is public, so the PIN and Flask session secret key must never be committed) along with a
+  random session secret key. Managed from Admin: view the current PIN, set a new one. Existing
+  logged-in sessions stay valid after a PIN change; only new logins need the new one. A "Log
+  out" link was added to the nav. Same **not real security** caveat as Sales Rep codes — short,
+  no lockout, meant to keep a shared demo link from being casually poked at, not to be relied
+  on as real access control. Verified: wrong PIN rejected, correct PIN redirects to the
+  originally-requested page, static assets stay reachable (so the login page itself renders),
+  both page routes and `/api/*` routes are gated, PIN change takes effect for new logins
+  immediately, logout clears the session, and `data/site_access.json` is confirmed excluded
+  from git via `git check-ignore`.
+
 - **Fixed:** long option descriptions (the norm in this catalog) overflowed/got clipped in the category dropdowns and the Search modal's requirement dropdowns. Root cause: native `<select>` renders its open option list as OS-level browser chrome that page CSS cannot style or wrap on any browser — not something fixable with CSS alone. Replaced with a custom dropdown widget (`createWrappingSelect()` in `sales.html`) built from plain styled `<div>`s: a single-line truncated trigger button plus a panel of full-width rows that wrap normally, same visual pattern as the existing Customer/Quote Lookup panels. Applied to both the category-option dropdowns and the Search modal's requirement dropdowns. Verified: text wraps correctly, selecting an option updates price totals and the draft part number, opening one widget closes any other open one, clicking outside closes it, and — most importantly — loading a previously-saved quote correctly pre-selects the widget to its saved value (not the default option).
 - **Major: Brand is now a first-class field across the whole system**, not just JLT. This was a real data-model change, not cosmetic:
   - Every part record, approval, and quote now carries a `brand` field. Existing JLT data was migrated in place (`brand: "JLT"` added to all 499 parts and 44 approvals).

@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 data/reports/*.csv
 data/reports/*.xlsx
+
+# Site access PIN + Flask session secret key - this repo is PUBLIC on GitHub,
+# so these must never be committed. See data/site_access.json.
+data/site_access.json

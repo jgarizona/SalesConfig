@@ -27,12 +27,13 @@ Quote ID/lock rules (first draft - flag if this isn't quite right):
 import csv
 import io
 import json
+import secrets
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 from pathlib import Path
 
-from flask import Flask, jsonify, redirect, render_template, request, send_file, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
 import openpyxl
 from openpyxl.styles import Font
 
@@ -48,7 +49,64 @@ APPROVALS_FILE = DATA_DIR / "approvals.json"
 QUOTES_FILE = DATA_DIR / "quotes.json"
 CUSTOMERS_FILE = DATA_DIR / "customers.json"
 SALES_REPS_FILE = DATA_DIR / "sales_reps.json"
+SITE_ACCESS_FILE = DATA_DIR / "site_access.json"
 REPORTS_DIR = DATA_DIR / "reports"
+
+# --------------------------------------------------------------- site access
+# A single shared PIN gating every page/API on the whole app - not per-user,
+# just a soft "don't let a random person who finds the tunnel link poke
+# around" gate. Same "not real security" caveat as the sales-rep codes: a
+# short PIN with no lockout. Lives in a gitignored file (never committed -
+# this repo is PUBLIC on GitHub) that's auto-created with a fresh random PIN
+# and session secret key the first time the app runs.
+
+def load_or_create_site_access():
+    if SITE_ACCESS_FILE.exists():
+        return json.loads(SITE_ACCESS_FILE.read_text(encoding="utf-8"))
+    data = {
+        "pin": "".join(secrets.choice("0123456789") for _ in range(4)),
+        "secret_key": secrets.token_hex(32),
+    }
+    SITE_ACCESS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    return data
+
+
+def save_site_access(data):
+    SITE_ACCESS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+_site_access = load_or_create_site_access()
+app.secret_key = _site_access["secret_key"]
+app.permanent_session_lifetime = timedelta(days=7)
+
+
+@app.before_request
+def require_site_pin():
+    if request.endpoint in ("login", "static"):
+        return
+    if not session.get("authenticated"):
+        return redirect(url_for("login", next=request.path))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    next_url = request.values.get("next") or url_for("sales")
+    if request.method == "POST":
+        entered = request.form.get("pin", "").strip()
+        current = load_or_create_site_access()["pin"]
+        if entered and entered == current:
+            session.permanent = True
+            session["authenticated"] = True
+            return redirect(request.form.get("next") or url_for("sales"))
+        error = "Incorrect PIN."
+    return render_template("login.html", error=error, next=next_url)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 CATEGORY_ORDER = [
     "Base Unit:",
@@ -662,6 +720,16 @@ def admin():
         reps = [r for r in load_sales_reps() if r["name"] != rep_name]
         save_sales_reps(reps)
 
+    pin_error = None
+    if request.method == "POST" and request.form.get("action") == "change_site_pin":
+        new_pin = request.form.get("new_pin", "").strip()
+        if not (new_pin.isdigit() and 4 <= len(new_pin) <= 8):
+            pin_error = "PIN must be 4-8 digits."
+        else:
+            access = load_or_create_site_access()
+            access["pin"] = new_pin
+            save_site_access(access)
+
     all_platforms = sorted({p["platform"] for p in parts})
 
     return render_template(
@@ -676,6 +744,8 @@ def admin():
         test_customers=test_customers,
         sales_reps=sorted(load_sales_reps(), key=lambda r: r["name"]),
         rep_error=rep_error,
+        site_pin=load_or_create_site_access()["pin"],
+        pin_error=pin_error,
     )
 
 

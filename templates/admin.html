@@ -22,6 +22,32 @@
     </div>
   </div>
 
+  <h2>Site Access PIN</h2>
+  <p class="muted">
+    Whoever's using this app &mdash; locally or via a temporary shared link &mdash; has to enter this
+    PIN once before seeing any page. <strong>Not real security</strong> (same caveat as Sales Rep
+    codes: short, no lockout) &mdash; it's a soft gate to keep a shared demo link from being casually
+    poked at by anyone who stumbles onto it, not a substitute for real access control.
+  </p>
+
+  {% if pin_error %}
+    <div class="banner error">{{ pin_error }}</div>
+  {% endif %}
+
+  <div class="qh-idbar" style="margin-bottom: 16px;">
+    <div class="qh-id-box"><label>Current PIN</label><div class="qh-id-value">{{ site_pin }}</div></div>
+  </div>
+
+  <form method="post" style="display:flex; gap:10px; align-items:flex-end;">
+    <input type="hidden" name="action" value="change_site_pin">
+    <div>
+      <label class="muted" style="display:block;">New PIN (4-8 digits)</label>
+      <input type="text" name="new_pin" pattern="[0-9]{4,8}" maxlength="8" required
+             style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:120px;">
+    </div>
+    <button type="submit">Change PIN</button>
+  </form>
+
   <h2>Base models not yet reviewed/approved</h2>
   <p class="muted">
     These platforms' Base Unit option hasn't been checked off on the

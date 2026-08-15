@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sign in — JLT Inside-Sales Configurator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: white;
+      border: 1px solid #dfe3ea;
+      border-radius: 10px;
+      padding: 32px 36px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .login-card h1 {
+      font-size: 18px;
+      color: #0b2545;
+      margin: 0 0 4px;
+    }
+    .login-card p.sub {
+      color: #6b7688;
+      font-size: 13px;
+      margin: 0 0 20px;
+    }
+    .login-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      color: #33415c;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+    }
+    .login-card input[type="text"], .login-card input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      border: 1px solid #ccd2dc;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      box-sizing: border-box;
+    }
+    .login-card button {
+      width: 100%;
+      background: #0b2545;
+      color: white;
+      border: none;
+      padding: 11px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .login-card button:hover { background: #143a6b; }
+    .login-error {
+      background: #fdeceb;
+      border: 1px solid #f1b0aa;
+      color: #a3271e;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>JLT Inside-Sales Configurator</h1>
+    <p class="sub">Enter the access PIN to continue.</p>
+    {% if error %}
+      <div class="login-error">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label for="pin">PIN</label>
+      <input type="password" id="pin" name="pin" inputmode="numeric" autofocus autocomplete="off">
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+</body>
+</html>
