@@ -1,0 +1,1012 @@
+{% extends "base.html" %}
+{% block title %}Sales Configurator{% endblock %}
+{% block content %}
+  <h1>Build a Configuration</h1>
+
+  {% if not brands_with_data %}
+    <p class="empty-state">
+      No options have been approved yet. Go to the <a href="{{ url_for('technical') }}">Technical</a> screen
+      and check off which options are valid, then come back here.
+    </p>
+  {% else %}
+    <div class="quote-header">
+      <p class="muted" style="margin-top:0;">
+        Customer and Opportunity are manually entered/looked-up for now &mdash; this will come from
+        HubSpot once that connector is in place.
+      </p>
+
+      <div class="qh-row">
+        <div class="qh-field">
+          <label>Sales Rep</label>
+          <select id="sales-rep-select">
+            <option value="">Select your name…</option>
+          </select>
+        </div>
+        <div class="qh-field" style="max-width:110px;">
+          <label>Code</label>
+          <input type="text" id="sales-rep-code" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
+        </div>
+        <div class="qh-buttons">
+          <span id="rep-verify-status" class="muted">Not verified</span>
+        </div>
+      </div>
+
+      <div class="qh-row">
+        <div class="qh-field">
+          <label>Customer <span id="customer-source-badge" class="source-badge"></span></label>
+          <input type="text" id="customer-name" placeholder="No customer selected">
+        </div>
+        <div class="qh-buttons">
+          <button type="button" id="btn-customer-accept" class="btn accept-btn" disabled>Accept</button>
+          <button type="button" id="btn-customer-lookup" class="btn">Customer Lookup</button>
+          <button type="button" id="btn-customer-new" class="btn">Manual Customer</button>
+        </div>
+      </div>
+      <div id="customer-panel" class="lookup-panel" style="display:none;"></div>
+
+      <div class="qh-row">
+        <div class="qh-field wide">
+          <label>Opportunity ID <span id="opportunity-hint-badge" class="source-badge hint"></span></label>
+          <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
+        </div>
+        <div class="qh-buttons">
+          <button type="button" id="btn-populate-opp" class="btn" style="display:none;">Populate</button>
+          <button type="button" id="btn-quote-lookup" class="btn">Lookup Saved Quote</button>
+        </div>
+      </div>
+      <div id="quote-lookup-panel" class="lookup-panel" style="display:none;"></div>
+      <div id="existing-quotes"></div>
+
+      <div class="qh-idbar">
+        <div class="qh-id-box"><label>Quote #</label><div class="qh-id-value" id="quote-number-readout">—</div></div>
+        <div class="qh-id-box"><label>Rev #</label><div class="qh-id-value" id="rev-number-readout">—</div></div>
+        <button type="button" id="btn-copy" class="btn" disabled>Copy to New Opportunity</button>
+      </div>
+      <div id="copy-panel" class="lookup-panel" style="display:none;"></div>
+
+      <div class="quote-actions">
+        <button type="button" id="btn-save">Save</button>
+        <button type="button" id="btn-lock">Lock</button>
+        <button type="button" id="btn-print" disabled>Print (PDF)</button>
+        <button type="button" id="btn-upload" disabled>Upload</button>
+        <button type="button" id="btn-email" disabled>Email</button>
+      </div>
+      <div id="quote-status" class="quote-status">Not saved yet.</div>
+      <div id="action-message" class="action-message"></div>
+    </div>
+
+    <div class="platform-picker-row">
+      <div class="platform-picker">
+        <label for="brand-select"><strong>Brand</strong></label>
+        <select id="brand-select">
+          {% for b in all_brands %}
+            <option value="{{ b }}" {% if b not in brands_with_data %}disabled{% endif %}>
+              {{ b }}{% if b not in brands_with_data %} (no data ingested){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="platform-picker">
+        <label for="platform-select"><strong>Platform</strong></label>
+        <select id="platform-select"></select>
+      </div>
+      <div class="platform-picker search-link">
+        <label>&nbsp;</label>
+        <button type="button" id="btn-open-search" class="btn">Search by Requirements</button>
+      </div>
+    </div>
+
+    <div id="category-selects"></div>
+
+    <div class="price-panel">
+      <div class="line"><span>Floor Price (rep minimum)</span><span id="floor-total">$0</span></div>
+      <div class="line"><span>MSRP (customer price)</span><span id="msrp-total">$0</span></div>
+      <div class="line total"><span>Margin to floor</span><span id="margin-total">$0</span></div>
+      <div class="part-number" id="part-number">Part number: -</div>
+
+      <div class="config-accept-row">
+        <button type="button" id="btn-accept-config" class="btn accept-btn" disabled>Accept Configuration</button>
+        <span id="config-accept-status" class="config-accept-status">Review your selections above, then Accept to enable Save.</span>
+      </div>
+    </div>
+
+    <div id="search-overlay" class="search-overlay" style="display:none;">
+      <div class="search-modal">
+        <div class="search-modal-header">
+          <h2 style="margin:0;">Search by Requirements</h2>
+          <button type="button" id="btn-close-search" class="btn">Close</button>
+        </div>
+        <p class="muted">
+          Pick as many or as few requirements as you need &mdash; nothing here is required. Search
+          finds every base unit (across brands, unless you narrow it below) whose approved options
+          include everything you selected.
+        </p>
+
+        <div class="search-field">
+          <label>Brand</label>
+          <select id="search-brand-select">
+            <option value="">Any brand</option>
+            {% for b in brands_with_data %}
+              <option value="{{ b }}">{{ b }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div id="search-criteria-fields"></div>
+
+        <div class="search-actions">
+          <button type="button" id="btn-run-search" class="btn accept-btn">Search</button>
+        </div>
+
+        <div id="search-results"></div>
+      </div>
+    </div>
+  {% endif %}
+
+  <script>
+    // {brand: {platform: {category: [options]}}}
+    const brandsData = {{ brands_json | safe }};
+    const categoryOrder = {{ category_order | tojson }};
+
+    // loadedQuote: the quote record as last returned by the server (null if this
+    // configuration has never been saved). It stays set across edits so Save
+    // knows which quote_number to revise - only `dirty` tracks whether the
+    // on-screen config still matches what's actually saved.
+    let loadedQuote = null;
+    let dirty = false;
+    // Requires an explicit "Accept Configuration" click before Save is usable
+    // - resets to false on any platform/option change (onUserChange) and
+    // after every successful save, so each save is a deliberate confirmation,
+    // not just whatever the dropdowns happened to default to.
+    let configAccepted = false;
+    let selectedCustomer = "";
+    // Tracks how the current customer was set: "manual" (typed + Accept, no
+    // existing HubSpot/CRM record to draw an Opportunity ID from) vs "lookup"
+    // (picked an existing customer). Only "manual" shows the Populate button.
+    let customerSource = "";
+
+    function normCategory(c) { return c.trim().replace(/:$/, ""); }
+    function categorySortIndex(c) {
+      const norm = normCategory(c);
+      const idx = categoryOrder.findIndex(x => normCategory(x) === norm);
+      return idx === -1 ? categoryOrder.length : idx;
+    }
+    function moneyValue(v) {
+      if (v === null || v === undefined) return 0;
+      if (typeof v === "number") return v;
+      const s = String(v).trim().toUpperCase();
+      if (s === "INCL" || s === "NC" || s === "") return 0;
+      const n = parseFloat(s.replace(/[^0-9.\-]/g, ""));
+      return isNaN(n) ? 0 : n;
+    }
+    function formatMoney(n) {
+      return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    const brandSelect = document.getElementById("brand-select");
+    const platformSelect = document.getElementById("platform-select");
+    const categoryContainer = document.getElementById("category-selects");
+    const oppInput = document.getElementById("opportunity-id");
+    const customerInput = document.getElementById("customer-name");
+    const existingQuotesDiv = document.getElementById("existing-quotes");
+    const customerPanel = document.getElementById("customer-panel");
+    const quoteLookupPanel = document.getElementById("quote-lookup-panel");
+    const copyPanel = document.getElementById("copy-panel");
+    const quoteStatus = document.getElementById("quote-status");
+    const actionMessage = document.getElementById("action-message");
+    const quoteNumberReadout = document.getElementById("quote-number-readout");
+    const revNumberReadout = document.getElementById("rev-number-readout");
+
+    const btnSave = document.getElementById("btn-save");
+    const btnLock = document.getElementById("btn-lock");
+    const btnPrint = document.getElementById("btn-print");
+    const btnUpload = document.getElementById("btn-upload");
+    const btnEmail = document.getElementById("btn-email");
+    const btnCopy = document.getElementById("btn-copy");
+    const btnCustomerLookup = document.getElementById("btn-customer-lookup");
+    const btnCustomerNew = document.getElementById("btn-customer-new");
+    const btnCustomerAccept = document.getElementById("btn-customer-accept");
+    const btnQuoteLookup = document.getElementById("btn-quote-lookup");
+    const btnPopulateOpp = document.getElementById("btn-populate-opp");
+    const customerSourceBadge = document.getElementById("customer-source-badge");
+    const opportunityHintBadge = document.getElementById("opportunity-hint-badge");
+    const btnAcceptConfig = document.getElementById("btn-accept-config");
+    const configAcceptStatus = document.getElementById("config-accept-status");
+    const repSelect = document.getElementById("sales-rep-select");
+    const repCodeInput = document.getElementById("sales-rep-code");
+    const repVerifyStatus = document.getElementById("rep-verify-status");
+
+    let repVerified = false;
+
+    async function loadSalesReps() {
+      const res = await fetch("/api/sales_reps");
+      const names = await res.json();
+      const current = repSelect.value;
+      repSelect.innerHTML = '<option value="">Select your name…</option>';
+      names.forEach(n => {
+        const o = document.createElement("option");
+        o.value = n; o.textContent = n;
+        repSelect.appendChild(o);
+      });
+      repSelect.value = current;
+    }
+
+    function updateRepStatus() {
+      if (repVerified) {
+        repVerifyStatus.textContent = "✓ Verified";
+        repVerifyStatus.style.color = "#1e5631";
+      } else if (repSelect.value) {
+        repVerifyStatus.textContent = "Enter your 4-digit code";
+        repVerifyStatus.style.color = "";
+      } else {
+        repVerifyStatus.textContent = "Not verified";
+        repVerifyStatus.style.color = "";
+      }
+    }
+
+    async function tryVerifyRep() {
+      repVerified = false;
+      updateRepStatus();
+      setButtonStates();
+      const name = repSelect.value;
+      const code = repCodeInput.value.trim();
+      if (!name || code.length !== 4) return;
+      const res = await fetch("/api/sales_reps/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, code }),
+      });
+      const data = await res.json();
+      repVerified = res.ok && data.ok;
+      updateRepStatus();
+      setButtonStates();
+      if (!repVerified) showMessage(data.error || "Code doesn't match.", true);
+    }
+
+    // Platform options are scoped to whichever Brand is currently selected -
+    // picking a brand with no data (Winmate/Getac/CyberLabs today) just
+    // empties this dropdown rather than erroring.
+    function buildPlatformOptions() {
+      if (!platformSelect) return;
+      platformSelect.innerHTML = "";
+      const brand = brandSelect.value;
+      const platformsForBrand = brandsData[brand] || {};
+      Object.keys(platformsForBrand).sort().forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p; opt.textContent = p;
+        platformSelect.appendChild(opt);
+      });
+    }
+
+    // Native <select> can't have its open dropdown list styled or wrapped -
+    // that popup is OS-rendered chrome, not page content, on every browser.
+    // Long option descriptions (the norm here) just get clipped with no way
+    // to fix it via CSS. This is a from-scratch replacement: a button that
+    // shows the current choice (truncated, single line, like a normal closed
+    // select) plus a styled panel of full-width rows that DO wrap, built the
+    // same way as the Customer/Quote Lookup panels elsewhere on this page.
+    function createWrappingSelect({ options, getLabel, onSelect, presetMatch }) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "wselect";
+
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "wselect-trigger";
+
+      const panel = document.createElement("div");
+      panel.className = "wselect-panel";
+      panel.style.display = "none";
+
+      let selected = (presetMatch && options.find(presetMatch)) || options[0];
+
+      function renderTrigger() {
+        trigger.textContent = selected !== undefined ? getLabel(selected) : "";
+      }
+
+      options.forEach(opt => {
+        const row = document.createElement("div");
+        row.className = "wselect-option";
+        row.textContent = getLabel(opt);
+        row.addEventListener("click", () => {
+          selected = opt;
+          renderTrigger();
+          panel.style.display = "none";
+          onSelect(opt);
+        });
+        panel.appendChild(row);
+      });
+
+      trigger.addEventListener("click", () => {
+        const isOpen = panel.style.display !== "none";
+        document.querySelectorAll(".wselect-panel").forEach(p => { p.style.display = "none"; });
+        panel.style.display = isOpen ? "none" : "block";
+      });
+
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(panel);
+      renderTrigger();
+
+      wrapper._getSelected = () => selected;
+      wrapper._setDisabled = (d) => { trigger.disabled = d; };
+      return wrapper;
+    }
+
+    function buildCategorySelects(platform, presetSelections) {
+      categoryContainer.innerHTML = "";
+      const platformsForBrand = brandsData[brandSelect.value] || {};
+      const cats = platformsForBrand[platform];
+      if (!cats) return;
+      const catNames = Object.keys(cats).sort((a, b) => categorySortIndex(a) - categorySortIndex(b));
+
+      catNames.forEach(cat => {
+        const block = document.createElement("div");
+        block.className = "category-block";
+
+        const title = document.createElement("div");
+        title.className = "category-title";
+        title.textContent = cat;
+        block.appendChild(title);
+
+        const widget = createWrappingSelect({
+          options: cats[cat],
+          getLabel: opt => `${opt.code} — ${opt.description}`,
+          presetMatch: opt => presetSelections && presetSelections[cat] === opt.code,
+          onSelect: () => onUserChange(),
+        });
+        widget.dataset.category = cat;
+        block.appendChild(widget);
+
+        categoryContainer.appendChild(block);
+      });
+
+      recalcDisplay();
+    }
+
+    // Used by loadQuote/confirmCopy/search-select - anywhere a brand+platform
+    // arrives together as data rather than through the dropdowns themselves.
+    function selectBrandAndPlatform(brand, platform, presetSelections) {
+      brandSelect.value = brand;
+      buildPlatformOptions();
+      platformSelect.value = platform;
+      buildCategorySelects(platform, presetSelections);
+    }
+
+    function currentSelections() {
+      const widgets = categoryContainer.querySelectorAll(".wselect");
+      const sel = {};
+      widgets.forEach(w => {
+        sel[w.dataset.category] = w._getSelected().code;
+      });
+      return sel;
+    }
+
+    // Pure display math - price totals and the draft part number. Never
+    // touches currentQuote, so it's safe to call while populating a form
+    // from a loaded/saved quote.
+    function recalcDisplay() {
+      const widgets = categoryContainer.querySelectorAll(".wselect");
+      let floorTotal = 0, msrpTotal = 0;
+      const codes = [platformSelect.value];
+
+      widgets.forEach(w => {
+        const opt = w._getSelected();
+        floorTotal += moneyValue(opt["Floor Price"]);
+        msrpTotal += moneyValue(opt["MSRP"]);
+        codes.push(opt.code);
+      });
+
+      document.getElementById("floor-total").textContent = formatMoney(floorTotal);
+      document.getElementById("msrp-total").textContent = formatMoney(msrpTotal);
+      document.getElementById("margin-total").textContent = formatMoney(msrpTotal - floorTotal);
+      document.getElementById("part-number").textContent = "Part number (draft): " + codes.join("-");
+    }
+
+    // Fires on a real user edit to a dropdown/platform - recompute the display
+    // and mark whatever's loaded as out of sync with the screen. Does NOT
+    // forget which quote we're editing (that's a bug this replaced: losing
+    // the quote_number on edit caused Save to create a duplicate instead of
+    // revising the original).
+    function onUserChange() {
+      recalcDisplay();
+      configAccepted = false;
+      updateConfigAcceptState();
+      markDirty();
+    }
+
+    function markDirty() {
+      dirty = true;
+      if (loadedQuote) {
+        const lockedTxt = loadedQuote.locked ? " (LOCKED)" : "";
+        quoteStatus.textContent = `Unsaved changes to Quote ${loadedQuote.display_id}${lockedTxt} — click Save.`;
+      } else {
+        quoteStatus.textContent = "Not saved yet.";
+      }
+      quoteStatus.className = "quote-status";
+      setButtonStates();
+    }
+
+    // Nothing on this page except the Sales Rep row itself is usable until a
+    // rep is verified - every control below gets a `!repVerified` disable on
+    // top of whatever its own state (locked quote, no quote loaded, etc) would
+    // otherwise dictate.
+    function setButtonStates() {
+      const repOk = repVerified;
+      const hasQuote = !!loadedQuote;
+      const locked = hasQuote && loadedQuote.locked;
+
+      customerInput.disabled = !repOk;
+      btnCustomerLookup.disabled = !repOk;
+      btnCustomerNew.disabled = !repOk;
+      oppInput.disabled = !repOk;
+      btnQuoteLookup.disabled = !repOk;
+
+      // Locked quotes can't be edited in place - selects are disabled until unlocked.
+      categoryContainer.querySelectorAll(".wselect").forEach(w => w._setDisabled(!repOk || locked));
+      if (platformSelect) platformSelect.disabled = !repOk || locked;
+      if (brandSelect) brandSelect.disabled = !repOk || locked;
+      if (btnOpenSearch) btnOpenSearch.disabled = !repOk;
+
+      // Save additionally requires a fresh "Accept Configuration" click -
+      // reviewing the actual selections is a deliberate step, not implied by
+      // just leaving the dropdowns at whatever they defaulted to.
+      btnSave.disabled = !repOk || locked || !configAccepted;
+      btnLock.disabled = !repOk || !hasQuote || dirty;
+      btnLock.textContent = locked ? "Unlock" : "Lock";
+      // Print/Upload/Email/Copy act on the saved record, so require a clean save first.
+      btnPrint.disabled = !repOk || !hasQuote || dirty;
+      btnUpload.disabled = !repOk || !hasQuote || dirty;
+      btnEmail.disabled = !repOk || !hasQuote || dirty;
+      btnCopy.disabled = !repOk || !hasQuote || dirty;
+
+      quoteNumberReadout.textContent = hasQuote ? String(loadedQuote.quote_number).padStart(4, "0") : "—";
+      revNumberReadout.textContent = hasQuote ? String(loadedQuote.rev_number).padStart(3, "0") : "—";
+
+      updateConfigAcceptState();
+
+      updateCustomerAcceptVisibility();
+      updatePopulateVisibility();
+      updateOpportunityHint();
+    }
+
+    // Nudges the rep toward the next step once a customer is picked but
+    // there's no Opportunity ID yet - same "small badge" treatment as the
+    // Customer source badge, so it reads as part of the same guided flow.
+    function updateOpportunityHint() {
+      const needsHint = !!selectedCustomer && !oppInput.value.trim() && !loadedQuote;
+      opportunityHintBadge.textContent = needsHint ? "Select one →" : "";
+      opportunityHintBadge.className = "source-badge hint" + (needsHint ? " show" : "");
+    }
+
+    function updateConfigAcceptState() {
+      btnAcceptConfig.disabled = !repVerified || configAccepted;
+      btnAcceptConfig.classList.toggle("flash", repVerified && !configAccepted);
+      if (configAccepted) {
+        configAcceptStatus.textContent = "✓ Configuration accepted — Save is enabled.";
+        configAcceptStatus.style.color = "#1e5631";
+      } else {
+        configAcceptStatus.textContent = "Review your selections above, then Accept to enable Save.";
+        configAcceptStatus.style.color = "";
+      }
+    }
+
+    function acceptConfiguration() {
+      if (!repVerified) return;
+      configAccepted = true;
+      setButtonStates();
+    }
+
+    function setCustomer(name) {
+      selectedCustomer = name || "";
+      customerInput.value = selectedCustomer;
+      updateCustomerAcceptVisibility();
+      updateOpportunityHint();
+    }
+
+    // Accept is always visible so it's obvious the control exists - only its
+    // enabled/flashing state changes, whenever the field's text doesn't match
+    // the last confirmed customer. (It used to be fully hidden until pending,
+    // which looked like the button was missing entirely after a page refresh.)
+    function updateCustomerAcceptVisibility() {
+      const pending = customerInput.value.trim() !== selectedCustomer;
+      btnCustomerAccept.disabled = !pending || !repVerified;
+      btnCustomerAccept.classList.toggle("flash", pending && repVerified);
+    }
+
+    // Populate only makes sense for a manually-typed customer - there's no
+    // HubSpot deal behind it to pull a real Opportunity ID from, so this is a
+    // stand-in until that connector exists. The badge is the visual cue for
+    // the same underlying state: is this customer a real looked-up record,
+    // or just typed in and not yet tied to anything in HubSpot?
+    // customerSource now holds the customer record's REAL source ("manual",
+    // "test", or in future "hubspot"), not "how it was picked this session" -
+    // an existing manual/test customer selected via Lookup is still not a
+    // real HubSpot record, so it still needs the Manual badge and Populate.
+    // Only source:"hubspot" (once that connector exists) counts as "existing".
+    function updatePopulateVisibility() {
+      const isHubspot = customerSource === "hubspot";
+      const needsManualTreatment = !!customerSource && !isHubspot;
+
+      btnPopulateOpp.style.display = needsManualTreatment ? "inline-block" : "none";
+      btnPopulateOpp.disabled = !repVerified;
+
+      if (needsManualTreatment) {
+        customerSourceBadge.textContent = "Manual — not in HubSpot";
+        customerSourceBadge.className = "source-badge manual";
+      } else if (isHubspot) {
+        customerSourceBadge.textContent = "Existing customer";
+        customerSourceBadge.className = "source-badge lookup";
+      } else {
+        customerSourceBadge.textContent = "";
+        customerSourceBadge.className = "source-badge";
+      }
+    }
+
+    function showQuote(q) {
+      loadedQuote = q;
+      dirty = false;
+      // Every save (including this one that just succeeded) needs a fresh
+      // Accept Configuration click before the *next* save is allowed.
+      configAccepted = false;
+      customerSource = "";
+      updatePopulateVisibility();
+      setCustomer(q.customer || "");
+      const lockedTxt = q.locked ? " (LOCKED)" : "";
+      quoteStatus.textContent = `Quote ${q.display_id}${lockedTxt} — saved ${q.updated_at}`;
+      quoteStatus.className = "quote-status " + (q.locked ? "locked" : "saved");
+      setButtonStates();
+    }
+
+    // Changing the Opportunity ID text means we might be talking about a
+    // completely different quote lineage, so (unlike an ordinary edit) this
+    // fully drops the loaded quote rather than just marking it dirty.
+    function clearQuote() {
+      loadedQuote = null;
+      dirty = false;
+      quoteStatus.textContent = "Not saved yet.";
+      quoteStatus.className = "quote-status";
+      setButtonStates();
+    }
+
+    function showMessage(msg, isError) {
+      actionMessage.textContent = msg;
+      actionMessage.className = "action-message " + (isError ? "error" : "");
+    }
+
+    function closePanels(except) {
+      [customerPanel, quoteLookupPanel, copyPanel].forEach(p => { if (p !== except) p.style.display = "none"; });
+    }
+
+    // ---------------------------------------------------------- Customer UI
+
+    // The Customer field itself is the filter - no separate search box, since
+    // that duplicated what's already being typed right above the results.
+    async function refreshCustomerLookupResults() {
+      if (customerPanel.style.display === "none") return;
+      const resultsDiv = customerPanel.querySelector(".lookup-results");
+      if (!resultsDiv) return;
+
+      const q = customerInput.value.trim();
+      const res = await fetch(`/api/customers?q=${encodeURIComponent(q)}`);
+      const customers = await res.json();
+      resultsDiv.innerHTML = "";
+      if (customers.length === 0) {
+        resultsDiv.innerHTML = '<span class="muted">No customers yet — use "Manual Customer" to add one.</span>';
+        return;
+      }
+      customers.forEach(c => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn quote-chip";
+        btn.textContent = c.name;
+        btn.addEventListener("click", () => {
+          // Use the record's real source, not "however it was found this
+          // session" - picking an existing manual/test customer from the
+          // list is still not a real HubSpot record, so it still needs the
+          // Manual badge and Populate button. Only a genuine source:"hubspot"
+          // record (once that connector exists) counts as "existing".
+          customerSource = c.source;
+          updatePopulateVisibility();
+          setCustomer(c.name);
+          customerPanel.style.display = "none";
+        });
+        resultsDiv.appendChild(btn);
+      });
+    }
+
+    async function openCustomerLookup() {
+      closePanels(customerPanel);
+      customerPanel.style.display = "block";
+      customerPanel.innerHTML = '<div class="lookup-results">Loading…</div>';
+      customerInput.focus();
+      refreshCustomerLookupResults();
+    }
+
+    // Customer field is always directly typeable (no window.prompt() - those
+    // are increasingly blocked/suppressed by browsers, which silently does
+    // nothing when it happens). Typing anything different from the last
+    // confirmed value flashes the Accept button; nothing is saved until
+    // that's clicked (or Enter is pressed as a shortcut for the same thing).
+    async function acceptCustomer() {
+      const name = customerInput.value.trim();
+      if (!name) { customerSource = ""; updatePopulateVisibility(); setCustomer(""); return; }
+      if (name === selectedCustomer) { updateCustomerAcceptVisibility(); return; }
+
+      const res = await fetch("/api/customers", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showMessage(data.error || "Could not create customer.", true); return; }
+      customerSource = "manual";
+      updatePopulateVisibility();
+      setCustomer(data.name);
+      showMessage("Added customer " + data.name + ".", false);
+    }
+
+    function populateOpportunityId() {
+      if (!selectedCustomer) return;
+      oppInput.value = selectedCustomer;
+      clearQuote();
+      refreshExistingQuotes();
+    }
+
+    function focusManualCustomer() {
+      closePanels();
+      customerInput.focus();
+      customerInput.select();
+    }
+
+    // ------------------------------------------------------ Requirements search
+    // Pick some (optional) desired specs, search across every approved base
+    // unit for ones that have all of them, then hand the chosen brand+platform
+    // back to the normal configurator to finish and save.
+
+    const searchOverlay = document.getElementById("search-overlay");
+    const searchBrandSelect = document.getElementById("search-brand-select");
+    const searchCriteriaFields = document.getElementById("search-criteria-fields");
+    const searchResultsDiv = document.getElementById("search-results");
+    const btnOpenSearch = document.getElementById("btn-open-search");
+    const btnCloseSearch = document.getElementById("btn-close-search");
+    const btnRunSearch = document.getElementById("btn-run-search");
+
+    async function openSearchModal() {
+      if (!repVerified) return;
+      searchOverlay.style.display = "flex";
+      searchResultsDiv.innerHTML = "";
+      await loadSearchCriteriaFields();
+    }
+
+    function closeSearchModal() {
+      searchOverlay.style.display = "none";
+    }
+
+    async function loadSearchCriteriaFields() {
+      const brand = searchBrandSelect.value;
+      const url = brand ? `/api/search_options?brand=${encodeURIComponent(brand)}` : "/api/search_options";
+      const res = await fetch(url);
+      const byCategory = await res.json();
+
+      searchCriteriaFields.innerHTML = "";
+      categoryOrder.forEach(cat => {
+        const descs = byCategory[cat];
+        if (!descs || descs.length === 0) return;
+
+        const field = document.createElement("div");
+        field.className = "search-field";
+        const label = document.createElement("label");
+        label.textContent = cat.replace(/:$/, "");
+        field.appendChild(label);
+
+        const widget = createWrappingSelect({
+          options: ["", ...descs],
+          getLabel: d => d === "" ? "Any" : d,
+          presetMatch: d => d === "",
+          onSelect: () => {},
+        });
+        widget.dataset.category = cat;
+        field.appendChild(widget);
+        searchCriteriaFields.appendChild(field);
+      });
+    }
+
+    async function runSearch() {
+      const criteria = {};
+      searchCriteriaFields.querySelectorAll(".wselect").forEach(w => {
+        const val = w._getSelected();
+        if (val) criteria[w.dataset.category] = val;
+      });
+      const res = await fetch("/api/search_base_units", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand: searchBrandSelect.value || null, criteria }),
+      });
+      const matches = await res.json();
+      renderSearchResults(matches);
+    }
+
+    function renderSearchResults(matches) {
+      searchResultsDiv.innerHTML = "";
+      if (matches.length === 0) {
+        searchResultsDiv.innerHTML = '<p class="empty-state">No base units match those requirements.</p>';
+        return;
+      }
+
+      const list = document.createElement("div");
+      list.className = "search-results-list";
+      matches.forEach((m, i) => {
+        const row = document.createElement("label");
+        row.className = "search-result-row";
+        const radio = document.createElement("input");
+        radio.type = "radio"; radio.name = "search-result"; radio.value = String(i);
+        row.appendChild(radio);
+        const text = document.createElement("span");
+        text.textContent = `${m.brand} — ${m.platform}: ${m.description} `
+          + `(Floor ${formatMoney(moneyValue(m.floor_price))} / MSRP ${formatMoney(moneyValue(m.msrp))})`;
+        row.appendChild(text);
+        list.appendChild(row);
+      });
+      searchResultsDiv.appendChild(list);
+
+      const selectBtn = document.createElement("button");
+      selectBtn.type = "button";
+      selectBtn.className = "btn accept-btn";
+      selectBtn.textContent = "Select";
+      selectBtn.style.marginTop = "12px";
+      selectBtn.addEventListener("click", () => {
+        const checked = list.querySelector('input[name="search-result"]:checked');
+        if (!checked) { showMessage("Pick a base unit first.", true); return; }
+        const m = matches[parseInt(checked.value, 10)];
+        selectBrandAndPlatform(m.brand, m.platform);
+        markDirty();
+        closeSearchModal();
+        showMessage(`Loaded ${m.brand} ${m.platform} from search — finish the configuration and Save.`, false);
+      });
+      searchResultsDiv.appendChild(selectBtn);
+    }
+
+    // ------------------------------------------------------- Quote lookup UI
+
+    async function openQuoteLookup() {
+      closePanels(quoteLookupPanel);
+      quoteLookupPanel.style.display = "block";
+      quoteLookupPanel.innerHTML = '<input type="text" placeholder="Filter by customer, opportunity, platform..." class="lookup-filter">' +
+        '<div class="lookup-results">Loading…</div>';
+      const filterInput = quoteLookupPanel.querySelector(".lookup-filter");
+      const resultsDiv = quoteLookupPanel.querySelector(".lookup-results");
+
+      const res = await fetch("/api/quotes/all");
+      const all = await res.json();
+
+      function render() {
+        const q = filterInput.value.trim().toLowerCase();
+        const filtered = !q ? all : all.filter(item =>
+          (item.customer || "").toLowerCase().includes(q) ||
+          item.opportunity_id.toLowerCase().includes(q) ||
+          item.platform.toLowerCase().includes(q) ||
+          item.display_id.toLowerCase().includes(q)
+        );
+        resultsDiv.innerHTML = "";
+        if (filtered.length === 0) {
+          resultsDiv.innerHTML = '<span class="muted">No saved quotes match.</span>';
+          return;
+        }
+        filtered.forEach(item => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn quote-chip";
+          const cust = item.customer ? item.customer + " — " : "";
+          btn.textContent = `${cust}${item.display_id}${item.locked ? " 🔒" : ""} — ${item.platform}`;
+          btn.addEventListener("click", () => {
+            loadQuote(item.opportunity_id, item.quote_number);
+            quoteLookupPanel.style.display = "none";
+          });
+          resultsDiv.appendChild(btn);
+        });
+      }
+      filterInput.addEventListener("input", render);
+      filterInput.focus();
+      render();
+    }
+
+    async function refreshExistingQuotes() {
+      const oppId = oppInput.value.trim();
+      existingQuotesDiv.innerHTML = "";
+      if (!oppId) return;
+      const res = await fetch(`/api/quotes?opportunity_id=${encodeURIComponent(oppId)}`);
+      const list = await res.json();
+      if (list.length === 0) {
+        existingQuotesDiv.innerHTML = '<span class="muted">No existing quotes yet for this Opportunity ID — saving will create the first one.</span>';
+        return;
+      }
+      const label = document.createElement("div");
+      label.className = "muted";
+      label.textContent = "Existing quotes for this Opportunity — click to load:";
+      existingQuotesDiv.appendChild(label);
+      list.forEach(q => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn quote-chip";
+        btn.textContent = q.display_id + (q.locked ? " 🔒" : "") + ` — ${q.platform}`;
+        btn.addEventListener("click", () => loadQuote(oppId, q.quote_number));
+        existingQuotesDiv.appendChild(btn);
+      });
+    }
+
+    async function loadQuote(oppId, quoteNumber) {
+      const res = await fetch(`/api/quotes/${encodeURIComponent(oppId)}/${quoteNumber}`);
+      if (!res.ok) { showMessage("Could not load that quote.", true); return; }
+      const q = await res.json();
+      oppInput.value = q.opportunity_id;
+      const preset = {};
+      q.selections.forEach(l => preset[l.category] = l.code);
+      selectBrandAndPlatform(q.brand || "JLT", q.platform, preset);
+      showQuote(q);
+      refreshExistingQuotes();
+      showMessage("Loaded " + q.display_id + ".", false);
+    }
+
+    async function saveQuote() {
+      const oppId = oppInput.value.trim();
+      if (!oppId) { showMessage("Enter an Opportunity ID first.", true); return; }
+      if (!repVerified) { showMessage("Select your name and enter your 4-digit code first.", true); return; }
+      const payload = {
+        opportunity_id: oppId,
+        customer: selectedCustomer,
+        sales_rep: repSelect.value,
+        sales_rep_code: repCodeInput.value.trim(),
+        brand: brandSelect.value,
+        platform: platformSelect.value,
+        selections: currentSelections(),
+      };
+      if (loadedQuote) payload.quote_number = loadedQuote.quote_number;
+
+      const res = await fetch("/api/quotes/save", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) { showMessage(data.error || "Save failed.", true); return; }
+      showQuote(data);
+      showMessage("Saved " + data.display_id + ".", false);
+      refreshExistingQuotes();
+    }
+
+    async function toggleLock() {
+      if (!loadedQuote || dirty) return;
+      const newLocked = !loadedQuote.locked;
+      const res = await fetch(`/api/quotes/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/lock`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locked: newLocked }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showMessage(data.error || "Lock/unlock failed.", true); return; }
+      showQuote(data);
+      showMessage(newLocked ? "Locked." : "Unlocked — editing will bump the revision on next save.", false);
+      refreshExistingQuotes();
+    }
+
+    function printQuote() {
+      if (!loadedQuote || dirty) return;
+      window.open(`/quote/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/print`, "_blank");
+      // Printing fixes/locks the quote server-side - reflect that once the new tab has time to hit the route.
+      setTimeout(() => loadQuote(loadedQuote.opportunity_id, loadedQuote.quote_number), 800);
+    }
+
+    async function uploadQuote() {
+      if (!loadedQuote || dirty) return;
+      const res = await fetch(`/api/quotes/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/upload`, { method: "POST" });
+      const data = await res.json();
+      showMessage(data.message, true);
+    }
+
+    function emailQuote() {
+      if (!loadedQuote || dirty) return;
+      showMessage("Email sending isn't connected yet — downloading the Excel file and opening the printable PDF view for you to send manually.", true);
+      window.location = `/api/quotes/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/export.xlsx`;
+      window.open(`/quote/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/print`, "_blank");
+    }
+
+    // Copy: same fix as Manual Customer - an inline panel instead of two
+    // chained window.prompt() calls, which are equally at risk of being
+    // silently blocked by the browser.
+    function openCopyPanel() {
+      if (!loadedQuote || dirty) return;
+      closePanels(copyPanel);
+      copyPanel.style.display = "block";
+      copyPanel.innerHTML =
+        '<label class="muted" style="display:block;">New Opportunity ID</label>' +
+        '<input type="text" class="lookup-filter" id="copy-new-opp" placeholder="required">' +
+        '<label class="muted" style="display:block; margin-top:8px;">New Customer (optional - leave blank to keep "' +
+          (loadedQuote.customer || "none") + '")</label>' +
+        '<input type="text" class="lookup-filter" id="copy-new-customer">' +
+        '<button type="button" class="btn" id="copy-confirm-btn" style="margin-top:8px;">Confirm Copy</button>';
+      document.getElementById("copy-confirm-btn").addEventListener("click", confirmCopy);
+      document.getElementById("copy-new-opp").focus();
+    }
+
+    async function confirmCopy() {
+      const newOpp = document.getElementById("copy-new-opp").value.trim();
+      const newCust = document.getElementById("copy-new-customer").value.trim();
+      if (!newOpp) { showMessage("New Opportunity ID is required.", true); return; }
+      if (!repVerified) { showMessage("Select your name and enter your 4-digit code first.", true); return; }
+
+      const res = await fetch(`/api/quotes/${encodeURIComponent(loadedQuote.opportunity_id)}/${loadedQuote.quote_number}/copy`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          new_opportunity_id: newOpp, new_customer: newCust,
+          sales_rep: repSelect.value, sales_rep_code: repCodeInput.value.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showMessage(data.error || "Copy failed.", true); return; }
+      copyPanel.style.display = "none";
+      oppInput.value = data.opportunity_id;
+      const preset = {};
+      data.selections.forEach(l => preset[l.category] = l.code);
+      selectBrandAndPlatform(data.brand || "JLT", data.platform, preset);
+      showQuote(data);
+      showMessage("Copied to new quote " + data.display_id + ".", false);
+      refreshExistingQuotes();
+    }
+
+    if (platformSelect) {
+      buildPlatformOptions();
+      brandSelect.addEventListener("change", () => {
+        buildPlatformOptions();
+        buildCategorySelects(platformSelect.value);
+        markDirty();
+      });
+      platformSelect.addEventListener("change", () => { buildCategorySelects(platformSelect.value); markDirty(); });
+      buildCategorySelects(platformSelect.value);
+      oppInput.addEventListener("blur", refreshExistingQuotes);
+      oppInput.addEventListener("change", clearQuote);
+      oppInput.addEventListener("input", updateOpportunityHint);
+
+      btnSave.addEventListener("click", saveQuote);
+      btnLock.addEventListener("click", toggleLock);
+      btnPrint.addEventListener("click", printQuote);
+      btnUpload.addEventListener("click", uploadQuote);
+      btnEmail.addEventListener("click", emailQuote);
+      btnCopy.addEventListener("click", openCopyPanel);
+      btnCustomerLookup.addEventListener("click", openCustomerLookup);
+      btnCustomerNew.addEventListener("click", focusManualCustomer);
+      btnCustomerAccept.addEventListener("click", acceptCustomer);
+      btnQuoteLookup.addEventListener("click", openQuoteLookup);
+      btnPopulateOpp.addEventListener("click", populateOpportunityId);
+      btnAcceptConfig.addEventListener("click", acceptConfiguration);
+      btnOpenSearch.addEventListener("click", openSearchModal);
+      btnCloseSearch.addEventListener("click", closeSearchModal);
+      btnRunSearch.addEventListener("click", runSearch);
+      searchBrandSelect.addEventListener("change", loadSearchCriteriaFields);
+
+      customerInput.addEventListener("input", () => {
+        updateCustomerAcceptVisibility();
+        refreshCustomerLookupResults();
+      });
+      customerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); acceptCustomer(); }
+        if (e.key === "Escape") { e.preventDefault(); setCustomer(selectedCustomer); }
+      });
+
+      // Re-fetch the rep list every time the dropdown is about to open, not just
+      // once at page load - otherwise a tab left open across an Admin-side
+      // rep add/remove keeps showing a stale list until manually refreshed.
+      repSelect.addEventListener("mousedown", loadSalesReps);
+      repSelect.addEventListener("focus", loadSalesReps);
+      repSelect.addEventListener("change", () => { repVerified = false; updateRepStatus(); tryVerifyRep(); });
+      repCodeInput.addEventListener("input", () => { if (repCodeInput.value.trim().length === 4) tryVerifyRep(); else { repVerified = false; updateRepStatus(); } });
+      loadSalesReps();
+      updatePopulateVisibility();
+
+      // One delegated listener for every wrapping-select widget (category
+      // dropdowns + Search modal fields), instead of one per widget - those
+      // get rebuilt on every platform/brand change and a per-widget listener
+      // would leak a stale one on the document each time.
+      document.addEventListener("click", (e) => {
+        document.querySelectorAll(".wselect-panel").forEach(panel => {
+          if (!panel.parentElement.contains(e.target)) panel.style.display = "none";
+        });
+      });
+
+      setButtonStates();
+    }
+  </script>
+{% endblock %}

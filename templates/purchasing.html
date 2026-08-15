@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Purchasing Review{% endblock %}
+{% block content %}
+  <h1>Purchasing Review</h1>
+
+  <div class="upload-box">
+    <form method="post" enctype="multipart/form-data" class="upload-form">
+      <label><strong>Upload pricing spreadsheet</strong></label>
+      <p class="muted" style="margin:4px 0 8px;">
+        Flat format, same columns as "Generate Catalog Report" below (brand, platform, category, code,
+        description, Floor Price, MSRP, Cost, Current Cost) &mdash; .xlsx or .csv. Fill in a downloaded
+        report and upload it back to bulk-apply prices instead of typing them in one by one. This only
+        updates parts that already exist; it can't create new catalog entries (that's done on Technical).
+        A blank/missing brand column defaults to JLT.
+      </p>
+      <input type="file" name="file" accept=".xlsx,.csv" required>
+      <button type="submit">Upload</button>
+    </form>
+    {% if upload_result %}
+      {% if upload_result.error %}
+        <div class="banner error">Upload failed: {{ upload_result.error }}</div>
+      {% else %}
+        <div class="banner">
+          Uploaded {{ upload_result.total }} row(s): {{ upload_result.updated }} updated,
+          {{ upload_result.skipped }} skipped (no matching part, or missing platform/category/code).
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <h2>1. Catalog pricing gaps</h2>
+  <p class="muted">
+    {{ total_parts }} total options in the price list. {{ flagged|length }} are missing at least
+    one of the 4 price fields (Floor Price, MSRP, Cost, Current Cost). Fill in what you know below
+    and Save. Cost and Current Cost are never shown to Sales or a customer.
+  </p>
+
+  {% if report_generated %}
+    <div class="banner">Report generated: data/reports/{{ report_generated }}</div>
+  {% endif %}
+
+  {% if flagged %}
+    <form method="post">
+      <input type="hidden" name="action" value="save_prices">
+      <table>
+        <thead>
+          <tr>
+            <th>Brand</th><th>Platform</th><th>Category</th><th>Code</th><th>Description</th>
+            {% for f in price_fields %}<th>{{ f }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in flagged %}
+          {% set row_key = p.brand ~ "||" ~ p.platform ~ "||" ~ p.category ~ "||" ~ p.code %}
+          <tr>
+            <td>{{ p.brand }}</td>
+            <td>{{ p.platform }}</td>
+            <td>{{ p.category }}</td>
+            <td>{{ p.code }}</td>
+            <td>{{ p.description }}</td>
+            <input type="hidden" name="row_key" value="{{ row_key }}">
+            {% for f in price_fields %}
+            <td>
+              <input type="text" name="{{ row_key }}||{{ f }}"
+                     value="{{ p[f] if p[f] is not none else '' }}"
+                     style="width: 90px; padding: 4px; {% if p[f] is none %}background:#fff3e0;{% endif %}">
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 14px; display:flex; gap: 10px;">
+        <button type="submit">Save Prices</button>
+        <button type="submit" name="action" value="generate_catalog_report">Generate Catalog Report</button>
+      </div>
+    </form>
+  {% else %}
+    <p class="empty-state">Nothing flagged — every option has full pricing.</p>
+  {% endif %}
+
+  <h2>2. What's been quoted to Sales — action items</h2>
+  <p class="muted">
+    {{ total_quotes }} saved quote(s). {{ action_items|length }} line item(s) below belong to a
+    quote sales has already built but still need Cost or Current Cost resolved before purchasing
+    can sign off.
+  </p>
+
+  {% if quotes_report_generated %}
+    <div class="banner">Report generated: data/reports/{{ quotes_report_generated }}</div>
+  {% endif %}
+
+  {% if action_items %}
+    <table>
+      <thead>
+        <tr>
+          <th>Quote</th><th>Opportunity</th><th>Locked</th><th>Brand</th><th>Platform</th>
+          <th>Category</th><th>Code</th><th>Description</th><th>Missing</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in action_items %}
+        <tr>
+          <td>{{ item.display_id }}</td>
+          <td>{{ item.opportunity_id }}</td>
+          <td>{{ "Yes" if item.locked else "No" }}</td>
+          <td>{{ item.brand }}</td>
+          <td>{{ item.platform }}</td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.code }}</td>
+          <td>{{ item.description }}</td>
+          <td><strong>{{ item.missing }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" style="margin-top: 14px;">
+      <button type="submit" name="action" value="generate_quotes_report">Generate Report</button>
+    </form>
+  {% elif total_quotes > 0 %}
+    <p class="empty-state">All quoted line items have full purchasing pricing. Nothing to act on.</p>
+  {% else %}
+    <p class="empty-state">No quotes have been saved by sales yet.</p>
+  {% endif %}
+{% endblock %}

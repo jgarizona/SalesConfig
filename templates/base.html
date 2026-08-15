@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}JLT Configurator{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">JLT Inside-Sales Configurator <span class="draft-tag">rough draft</span></div>
+    <nav>
+      <a href="{{ url_for('technical') }}" class="{{ 'active' if request.path == '/technical' else '' }}">Technical</a>
+      <a href="{{ url_for('sales') }}" class="{{ 'active' if request.path == '/sales' or request.path == '/' else '' }}">Sales</a>
+      <a href="{{ url_for('purchasing') }}" class="{{ 'active' if request.path == '/purchasing' else '' }}">Purchasing</a>
+      <a href="{{ url_for('admin') }}" class="{{ 'active' if request.path == '/admin' else '' }}">Admin</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

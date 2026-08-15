@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Quote {{ display_id }}</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #1b1f27; margin: 40px; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .meta { color: #444; font-size: 13px; margin-bottom: 24px; }
+    .meta div { margin-bottom: 2px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 13px; }
+    th { background: #f0f1f4; }
+    .totals { margin-top: 20px; width: 320px; margin-left: auto; }
+    .totals div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+    .totals .grand { font-weight: bold; border-top: 1px solid #333; padding-top: 8px; font-size: 16px; }
+    .lock-note { margin-top: 30px; font-size: 11px; color: #888; }
+    .print-btn { margin-bottom: 20px; }
+    @media print { .print-btn { display: none; } }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+
+  <h1>JLT Quote {{ display_id }}</h1>
+  <div class="meta">
+    <div><strong>Sales Rep:</strong> {{ q.sales_rep or "—" }}</div>
+    <div><strong>Customer:</strong> {{ q.customer or "—" }}</div>
+    <div><strong>Opportunity ID:</strong> {{ q.opportunity_id }}</div>
+    <div><strong>Brand:</strong> {{ q.brand or "JLT" }}</div>
+    <div><strong>Platform:</strong> {{ q.platform }}</div>
+    <div><strong>Part Number:</strong> {{ q.part_number }}</div>
+    <div><strong>Date:</strong> {{ q.updated_at }}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Code</th><th>Description</th><th>Floor Price</th><th>MSRP</th></tr>
+    </thead>
+    <tbody>
+      {% for line in q.selections %}
+      <tr>
+        <td>{{ line.category }}</td>
+        <td>{{ line.code }}</td>
+        <td>{{ line.description }}</td>
+        <td>{{ line["Floor Price"] }}</td>
+        <td>{{ line["MSRP"] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div><span>Floor Price Total</span><span>${{ "%.2f"|format(q.floor_total) }}</span></div>
+    <div class="grand"><span>MSRP Total</span><span>${{ "%.2f"|format(q.msrp_total) }}</span></div>
+  </div>
+
+  <p class="lock-note">This quote is locked as of printing (ID fixed at {{ display_id }}). Any further changes will be tracked under a new revision number.</p>
+</body>
+</html>

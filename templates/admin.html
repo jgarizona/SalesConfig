@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+  <h1>Admin Overview</h1>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_quotes }}</div>
+      <div class="stat-label">Quotes created</div>
+    </div>
+    <div class="stat-card {{ 'warn' if action_items_count > 0 else '' }}">
+      <div class="stat-number">{{ action_items_count }}</div>
+      <div class="stat-label">Purchasing action items pending</div>
+    </div>
+    <div class="stat-card {{ 'warn' if unreviewed|length > 0 else '' }}">
+      <div class="stat-number">{{ reviewed_count }} / {{ total_platforms }}</div>
+      <div class="stat-label">Platforms with base model reviewed</div>
+    </div>
+    <div class="stat-card {{ 'warn' if unlinked_customers|length > 0 else '' }}">
+      <div class="stat-number">{{ unlinked_customers|length }}</div>
+      <div class="stat-label">Customers pending HubSpot link</div>
+    </div>
+  </div>
+
+  <h2>Base models not yet reviewed/approved</h2>
+  <p class="muted">
+    These platforms' Base Unit option hasn't been checked off on the
+    <a href="{{ url_for('technical') }}">Technical</a> screen yet, so review on them hasn't started.
+  </p>
+
+  {% if unreviewed %}
+    <table>
+      <thead>
+        <tr><th>Brand</th><th>Platform</th><th>Base Unit Code</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        {% for p in unreviewed %}
+        <tr>
+          <td>{{ p.brand }}</td>
+          <td>{{ p.platform }}</td>
+          <td>{{ p.code }}</td>
+          <td>{{ p.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-state">Every platform's base model has been reviewed.</p>
+  {% endif %}
+
+  <h2>Customers pending a HubSpot link</h2>
+  <p class="muted">
+    Created via the Sales page's "Manual Customer" button before the HubSpot connector exists.
+    Nothing links these to a real HubSpot customer/deal automatically yet &mdash; this list exists so
+    none of them get lost once that connector is built and someone needs to go match them up.
+  </p>
+
+  {% if customer_report_generated %}
+    <div class="banner">Report generated: data/reports/{{ customer_report_generated }}</div>
+  {% endif %}
+
+  {% if unlinked_customers %}
+    <table>
+      <thead>
+        <tr><th>Customer</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        {% for c in unlinked_customers %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" style="margin-top: 14px;">
+      <button type="submit" name="action" value="generate_customer_report">Generate Report</button>
+    </form>
+  {% else %}
+    <p class="empty-state">No manually-created customers are pending a link.</p>
+  {% endif %}
+
+  <h2>Test customers</h2>
+  <p class="muted">
+    Fake customers for exercising Customer Lookup before the HubSpot connector exists. Tagged
+    <code>source: test</code> so they never show up in the "pending a HubSpot link" report above &mdash;
+    they're not real entries, just data to click through. Remove them all in one click once the
+    real connector is in and Customer Lookup pulls from HubSpot instead.
+  </p>
+
+  {% if test_customers %}
+    <table>
+      <thead>
+        <tr><th>Customer</th><th>Added</th></tr>
+      </thead>
+      <tbody>
+        {% for c in test_customers %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" style="margin-top: 14px;">
+      <button type="submit" name="action" value="remove_test_customers" style="background:#a3271e;">Remove All Test Customers</button>
+    </form>
+  {% else %}
+    <p class="empty-state">No test customers loaded.</p>
+    <form method="post">
+      <button type="submit" name="action" value="seed_test_customers">Add 5 Test Customers</button>
+    </form>
+  {% endif %}
+
+  <h2>Sales Reps</h2>
+  <p class="muted">
+    Reps pick their name and enter this code on the Sales page so a quote records who made it.
+    This is <strong>not real security</strong> &mdash; a 4-digit code is easy to guess and there's no
+    login system behind it. It only exists so quotes have an attributed rep; don't rely on it to
+    restrict access to anything.
+  </p>
+
+  {% if rep_error %}
+    <div class="banner error">{{ rep_error }}</div>
+  {% endif %}
+
+  {% if sales_reps %}
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Code</th><th>Added</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in sales_reps %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.code }}</td>
+          <td>{{ r.created_at }}</td>
+          <td>
+            <form method="post" style="display:inline;" onsubmit="return confirm('Remove {{ r.name }}?');">
+              <input type="hidden" name="action" value="remove_rep">
+              <input type="hidden" name="rep_name" value="{{ r.name }}">
+              <button type="submit" style="background:#a3271e; font-size:12px; padding:5px 10px;">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-state">No sales reps added yet.</p>
+  {% endif %}
+
+  <form method="post" style="margin-top: 14px; display:flex; gap:10px; align-items:flex-end;">
+    <input type="hidden" name="action" value="add_rep">
+    <div>
+      <label class="muted" style="display:block;">Name</label>
+      <input type="text" name="rep_name" required style="padding:8px; border:1px solid #ccd2dc; border-radius:6px;">
+    </div>
+    <div>
+      <label class="muted" style="display:block;">4-digit code</label>
+      <input type="text" name="rep_code" pattern="[0-9]{4}" maxlength="4" required
+             style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:80px;">
+    </div>
+    <button type="submit">Add Rep</button>
+  </form>
+
+  <p class="muted" style="margin-top: 30px;">
+    See <code>CHANGELOG.md</code> in the repo for what's shipped and what's still pending
+    (HubSpot, Jeeves, the other vendor spreadsheets, etc).
+  </p>
+{% endblock %}
