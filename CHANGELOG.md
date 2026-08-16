@@ -27,6 +27,8 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Codex]** Reworked the opening and TODO sections of `HANDOFF.md` to make `CHANGELOG.md` the canonical completed-change and `Pending / TODO` source, document the required read/log/attribute/capture/close workflow step by step, and replace the stale statement that the repository had never been committed with the current GitHub `main`/PR model.
+
 - **[Codex]** Added a mandatory unresolved-work capture rule to `AGENTS.md` and `HANDOFF.md`, then expanded `CHANGELOG.md` → `Pending / TODO` with the outstanding PR #1 merge and every unresolved spreadsheet-ingestion risk identified during the Codex review.
 
 - **[Codex]** Added `AGENTS.md` and a matching `HANDOFF.md` rule requiring every future repository change—including documentation and maintenance—to receive a dated, author-attributed `CHANGELOG.md` entry in the same branch or pull request.
