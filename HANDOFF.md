@@ -4,20 +4,37 @@ Written 2026-08-15 for handing this project to another agent/developer. Goal: ev
 needed to understand, run, extend, or fully recreate this project without access to the
 conversation that built it.
 
-**⚠️ CRITICAL — READ FIRST:** This repo has **never been committed to git**. `git log` on
-`main` returns "does not have any commits yet" — every file shown below is untracked. The
-*only* copy of this work is the local filesystem at the path in the next section (which
-happens to be inside a Box-synced folder, so it's backed up to Box, but it is **not** in
-version control and **not** on GitHub despite a remote being configured). Before doing
-anything else, commit and push, or the next agent has nothing to build on but this file
-tree as it sits on disk right now.
+## 0. Required change-log and TODO workflow — read before changing anything
 
-```bash
-cd "path/to/this/folder"
-git add -A
-git commit -m "Initial commit: JLT Inside-Sales Configurator prototype"
-git push -u origin main
-```
+`CHANGELOG.md` is the **canonical source of truth** for both completed changes and
+`Pending / TODO` work. `HANDOFF.md` explains architecture and context; it must not be used
+as a substitute for checking the live changelog.
+
+Before starting work:
+
+1. Read `AGENTS.md` for mandatory repository instructions.
+2. Read `CHANGELOG.md`, especially `Pending / TODO`, before choosing or beginning work.
+3. Check `main` and open pull requests so work already in progress is not duplicated.
+
+For every repository change:
+
+1. Add a dated `CHANGELOG.md` entry in the same branch or pull request.
+2. Attribute the entry to the person or agent that made it. OpenAI Codex uses
+   `**[Codex]**`; other contributors use their own clear attribution.
+3. Describe the concrete code, configuration, data, documentation, or workflow affected.
+4. If necessary work is identified but not completed, add it to `Pending / TODO` with its
+   source, current status, and next action. This includes a pull request still awaiting
+   merge into `main`.
+5. When a TODO is completed, close or update it with another dated, attributed entry.
+6. After the change is verified, automatically merge it into `main` without waiting for a separate merge instruction, unless the user explicitly requests a draft/unmerged branch or verification is blocked.
+7. Read `main` back after the merge and confirm the expected commit and changelog entries are present.
+
+**Standing automatic-merge instruction (added 2026-08-15 by Codex):** for this repository, a user request to update the repository authorizes Codex to merge the verified change into `main` automatically. A separate “merge it” instruction is not required. Codex must stop before merging only if the user asks to keep the work as a draft, verification fails, or an unresolved blocker requires user input.
+
+**Current git status (updated 2026-08-15 by Codex):** the repository is committed and pushed
+to GitHub. `main` is the official/default branch; active work may exist in pull-request
+branches. The earlier warning that nothing had been committed is resolved. Always verify
+the current GitHub branch and PR state rather than relying on the historical local state.
 
 ---
 
@@ -32,7 +49,7 @@ problems, one tool:
 
 **The bigger goal:** this is not just a JLT configurator. It's meant to become a
 configurator *engine* that also handles 3 other vendors JLT resells (Winmate, Getac,
-CyberLabs), none of which have a configurator of their own today. See §7 for how far that
+CipherLab), none of which have a configurator of their own today. See §7 for how far that
 part actually got.
 
 **Long-term integration target (not built yet):** HubSpot is the front door. A sales
@@ -50,8 +67,8 @@ noted below.
 | What | Path |
 |---|---|
 | **This repo** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git\` |
-| **GitHub remote (configured, nothing pushed)** | `https://github.com/jgarizona/SalesConfig.git` |
-| **Source vendor spreadsheets (Box, human-edited)** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\` (one level up from the repo) — contains `JLT VMT Q1 2026 Updated final 02192026 Release.xlsx`, `JLT Winmate Master Price Book 03062026.xlsx`, `GetacSelectMSRP_2026-01-20.xlsx` |
+| **GitHub repository (main + PR branches)** | `https://github.com/jgarizona/SalesConfig.git` |
+| **Source vendor spreadsheets (Box, human-edited)** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\` (one level up from the repo) — contains `JLT VMT Q1 2026 Updated final 02192026 Release.xlsx`, `JLT Winmate Master Price Book 03062026.xlsx`, `GetacSelectMSRP_2026-01-20.xlsx`, `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` |
 | **Runtime data (JSON, working state)** | `Git\data\*.json` — see §6 |
 
 Run it with:
@@ -89,6 +106,7 @@ Git/
 ├── requirements.txt          # flask, openpyxl
 ├── CHANGELOG.md              # Dated changelog + "Pending / TODO" section — READ THIS TOO
 ├── HANDOFF.md                # This file
+├── AGENTS.md                 # Mandatory repository instructions for AI/coding agents
 ├── .claude/
 │   └── launch.json           # Dev-server launch config for the Claude Code browser preview tool
 ├── ingest/
@@ -291,7 +309,7 @@ phone numbers). **This is not authentication** — see §8.
 
 ## 7. Multi-brand: what's built vs what's real data
 
-`BRANDS = ["JLT", "Winmate", "Getac", "CyberLabs"]` (constant in `app.py`) is the fixed
+`BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
 roster shown in every Brand dropdown, **independent of whether that brand has any ingested
 data** — this was a deliberate choice so the dropdown reflects the intended future scope, not
 just what happens to exist today.
@@ -307,8 +325,9 @@ just what happens to exist today.
   uploading a Winmate/Getac file through the existing uploader will "tag whatever it happens
   to extract" with the chosen brand — described this way explicitly in the Technical page's
   own UI copy, so nobody's surprised by garbage output.
-- **CyberLabs**: no source file exists at all. Name only came up once, in passing, as a
-  brand JLT resells. Zero data, zero parser, nothing ingested.
+- **CipherLab**: `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` exists
+  in Box (see §2), but its layout differs from JLT's. No parser has been built and nothing is
+  ingested yet.
 
 Everything downstream of ingestion — approvals, Sales dropdowns, Search by Requirements,
 Purchasing pricing, quote records — is brand-agnostic and will "just work" for a new brand
@@ -319,6 +338,11 @@ needed; ingestion is the actual bottleneck.
 
 ## 8. Non-obvious rules worth knowing before you touch this
 
+- **Every change must be logged with author attribution.** Read `AGENTS.md` before making
+  changes. Update `CHANGELOG.md` in the same branch or pull request for every code,
+  configuration, data, or documentation modification. Changes made by OpenAI Codex use
+  `**[Codex]**`; other people or agents must use their own clear attribution.
+  Any necessary work identified but not completed—including an open PR still awaiting merge—must also be added to `CHANGELOG.md` under `Pending / TODO` and cleared with a dated, attributed entry when completed.
 - **Sales Rep verification is bookkeeping, not security.** A 4-digit code with no lockout,
   no hashing (stored plaintext in `sales_reps.json`), 10,000 possible combinations. It exists
   purely so a quote records who touched it. Don't let anyone mistake it for access control.
@@ -395,23 +419,22 @@ placeholder, not a silent gap:
 
 ---
 
-## 11. Full Pending / TODO (mirrors CHANGELOG.md, kept in sync there — check CHANGELOG.md for the current live version of this list)
+## 11. Pending / TODO — canonical location and handling
 
-- HubSpot connector (see §9).
-- Jeeves connector (see §9).
-- Ingest Winmate, Getac, CyberLabs (see §7).
-- Real email sending.
-- Real HubSpot upload.
-- Quote revision history (see §8).
-- Architecture decision from the original project brief (§6 there): single-agent vs
-  multi-agent, agents vs skills — never resolved, this whole build happened as one
-  continuous single-agent session instead.
-- Move off flat JSON files if/when concurrency becomes a real problem (§10).
-- Remove the 5 seeded test customers (and the "Test" sales rep) before real go-live — via
-  Admin's "Remove All Test Customers" and the rep-removal control.
-- Rename `parts_vmt_q1_2026.json` now that it holds all brands, not just JLT (cosmetic,
-  noted in §6).
-- Decide whether `data/*.json` belongs in git history at all (§10).
+The live, complete task list is the `## Pending / TODO` section at the top of
+`CHANGELOG.md`. **Read that section directly before beginning work.** Do not assume a TODO
+mentioned elsewhere in this handoff is still open, and do not maintain an independent
+"complete" list here because duplicate lists drift.
+
+At the time of this update, the changelog tracks integration work (HubSpot, Jeeves, email,
+and vendor ingestion), quote revision history, storage/concurrency and production-readiness
+work, test-data cleanup, the open PR awaiting merge, and the spreadsheet-ingestion risks
+identified by Codex. The changelog contains the authoritative status and next action for
+each item.
+
+When new work is discovered, update `CHANGELOG.md` → `Pending / TODO` immediately if it
+will not be completed in the same change. When work is completed, record the result under
+the current date with author/agent attribution and close or revise the corresponding TODO.
 
 ---
 
