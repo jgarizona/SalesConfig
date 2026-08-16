@@ -16,7 +16,7 @@
 
 ## 2026-08-15
 
-- Corrected the fourth vendor name from **CyberLabs** to **CipherLab** across the application and documentation, and recorded the existing CipherLab source workbook in Box.
+- Corrected the fourth vendor name to **CipherLab** across the application and documentation, and recorded the existing CipherLab source workbook in Box.
 
 - Added a **site-wide access PIN** (4-8 digits) gating every page and API endpoint on the whole
   app, not just Sales — anyone loading any URL (local or via a temporary tunnel) hits a login
