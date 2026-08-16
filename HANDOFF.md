@@ -32,7 +32,7 @@ problems, one tool:
 
 **The bigger goal:** this is not just a JLT configurator. It's meant to become a
 configurator *engine* that also handles 3 other vendors JLT resells (Winmate, Getac,
-CyberLabs), none of which have a configurator of their own today. See §7 for how far that
+CipherLab), none of which have a configurator of their own today. See §7 for how far that
 part actually got.
 
 **Long-term integration target (not built yet):** HubSpot is the front door. A sales
@@ -51,7 +51,7 @@ noted below.
 |---|---|
 | **This repo** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git\` |
 | **GitHub remote (configured, nothing pushed)** | `https://github.com/jgarizona/SalesConfig.git` |
-| **Source vendor spreadsheets (Box, human-edited)** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\` (one level up from the repo) — contains `JLT VMT Q1 2026 Updated final 02192026 Release.xlsx`, `JLT Winmate Master Price Book 03062026.xlsx`, `GetacSelectMSRP_2026-01-20.xlsx` |
+| **Source vendor spreadsheets (Box, human-edited)** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\` (one level up from the repo) — contains `JLT VMT Q1 2026 Updated final 02192026 Release.xlsx`, `JLT Winmate Master Price Book 03062026.xlsx`, `GetacSelectMSRP_2026-01-20.xlsx`, `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` |
 | **Runtime data (JSON, working state)** | `Git\data\*.json` — see §6 |
 
 Run it with:
@@ -291,7 +291,7 @@ phone numbers). **This is not authentication** — see §8.
 
 ## 7. Multi-brand: what's built vs what's real data
 
-`BRANDS = ["JLT", "Winmate", "Getac", "CyberLabs"]` (constant in `app.py`) is the fixed
+`BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
 roster shown in every Brand dropdown, **independent of whether that brand has any ingested
 data** — this was a deliberate choice so the dropdown reflects the intended future scope, not
 just what happens to exist today.
@@ -307,8 +307,9 @@ just what happens to exist today.
   uploading a Winmate/Getac file through the existing uploader will "tag whatever it happens
   to extract" with the chosen brand — described this way explicitly in the Technical page's
   own UI copy, so nobody's surprised by garbage output.
-- **CyberLabs**: no source file exists at all. Name only came up once, in passing, as a
-  brand JLT resells. Zero data, zero parser, nothing ingested.
+- **CipherLab**: `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` exists
+  in Box (see §2), but its layout differs from JLT's. No parser has been built and nothing is
+  ingested yet.
 
 Everything downstream of ingestion — approvals, Sales dropdowns, Search by Requirements,
 Purchasing pricing, quote records — is brand-agnostic and will "just work" for a new brand
@@ -399,7 +400,7 @@ placeholder, not a silent gap:
 
 - HubSpot connector (see §9).
 - Jeeves connector (see §9).
-- Ingest Winmate, Getac, CyberLabs (see §7).
+- Ingest Winmate, Getac, CipherLab (see §7).
 - Real email sending.
 - Real HubSpot upload.
 - Quote revision history (see §8).
