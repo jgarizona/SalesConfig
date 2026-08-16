@@ -13,8 +13,12 @@ as a substitute for checking the live changelog.
 Before starting work:
 
 1. Read `AGENTS.md` for mandatory repository instructions.
-2. Read `CHANGELOG.md`, especially `Pending / TODO`, before choosing or beginning work.
-3. Check `main` and open pull requests so work already in progress is not duplicated.
+2. **If the acting agent is OpenAI Codex, read `CODEX.md` next and follow its complete
+   Box-backed project, Windows identity, Git/GitHub, automatic-merge, and three-way
+   verification procedure.** Codex must work from the Box repository project itself, not a
+   projectless task under `Documents\Codex`.
+3. Read `CHANGELOG.md`, especially `Pending / TODO`, before choosing or beginning work.
+4. Check `main` and open pull requests so work already in progress is not duplicated.
 
 For every repository change:
 
@@ -32,6 +36,13 @@ For every repository change:
 **Standing automatic-merge instruction (added 2026-08-15 by Codex):** for this repository, a user request to update the repository authorizes Codex to merge the verified change into `main` automatically. A separate “merge it” instruction is not required. Codex must stop before merging only if the user asks to keep the work as a draft, verification fails, or an unresolved blocker requires user input.
 
 **Standing post-merge Box synchronization instruction (added 2026-08-15 by Codex):** after every successful merge into `main`, confirm the Box worktree at `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git` is clean, fast-forward it with `git pull --ff-only origin main`, verify its `HEAD` and expected files match GitHub `main`, and wait for Box Desktop to synchronize the changes to Box cloud. Never overwrite a dirty or diverged worktree or bypass Git by uploading over tracked files. If permissions, network access, Git state, or Box synchronization blocks the update, leave Box unchanged and record the exact blocker and next action in `CHANGELOG.md` → `Pending / TODO`.
+
+**Codex-specific operating guide (added 2026-08-15 by Codex):** `CODEX.md` is the
+required detailed guide for OpenAI Codex. It records the exact Box project path, the
+Windows execution context needed for Box Drive reparse points and Git Credential Manager,
+startup checks, the rule against connector-based Git bypasses, the automatic branch/PR/
+merge sequence, and the final GitHub/local Box/Box-cloud verification. `AGENTS.md` remains
+the automatic discovery entry point and explicitly requires Codex to read `CODEX.md`.
 
 **Current git status (updated 2026-08-15 by Codex):** the repository is committed and pushed
 to GitHub. `main` is the official/default branch; active work may exist in pull-request

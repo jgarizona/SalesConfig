@@ -26,6 +26,8 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Codex]** Added `CODEX.md` as the detailed OpenAI Codex operating guide for using the Box-backed repository as the working and development area. Updated `AGENTS.md` to require Codex to read it from the automatically discovered instruction entry point, and updated `HANDOFF.md` to direct Codex to the guide explicitly. The guide records the exact Box project path, required Windows user/sandbox context, startup checks, Git-only tracked-file rule, changelog/TODO accountability, automatic branch/PR/merge workflow, post-merge fast-forward, and final GitHub/local Box/Box-cloud hash verification.
+
 - **[Codex]** Verified the user-completed Box fast-forward: the clean Box-backed `main` worktree reached GitHub commit `85b3f63f33534db8a9177453833043522cfe3cc9`, and Box cloud file SHA-1 values for `AGENTS.md`, `HANDOFF.md`, and `CHANGELOG.md` matched the local synchronized files. Removed the completed Box synchronization item from `Pending / TODO`; the changelog-only merge containing this closure requires the routine final Box fast-forward.
 
 - **[Codex]** Attempted a safe post-merge Box synchronization after confirming the Box-backed `main` worktree was clean. The fast-forward pull was blocked before checkout by Windows permission denial on `.git/FETCH_HEAD`, so no Box file was changed. Added the standing post-merge Box synchronization procedure to `AGENTS.md` and `HANDOFF.md`, and recorded this unresolved synchronization in `Pending / TODO` with the exact recovery action.

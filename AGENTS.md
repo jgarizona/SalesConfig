@@ -1,5 +1,18 @@
 # Repository Agent Instructions
 
+## Required Codex startup
+
+OpenAI Codex must read `CODEX.md` immediately after this file and before reading,
+reviewing, or changing the repository. `AGENTS.md` is the automatic Codex instruction
+entry point; `CODEX.md` contains the required Windows, Box Drive, GitHub, development,
+automatic-merge, and three-way verification procedure for this repository.
+
+Codex must open and work from the Box-backed repository project at
+`C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git`.
+If the current task is rooted elsewhere, stop before making changes and direct the user to
+open that folder as the Codex project. Read access to the Box path is not sufficient;
+Codex must be able to write the worktree and Git metadata from the correctly rooted task.
+
 ## Mandatory changelog attribution
 
 Every repository change must update `CHANGELOG.md` in the same branch or pull request.
