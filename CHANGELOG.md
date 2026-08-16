@@ -27,6 +27,8 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Codex]** Added the user's standing automatic-merge instruction to `AGENTS.md` and `HANDOFF.md`: after a repository update is scoped, verified, logged, and free of blockers, Codex must merge it into `main` automatically without waiting for a separate merge request, then read `main` back to verify the result.
+
 - **[Codex]** Reworked the opening and TODO sections of `HANDOFF.md` to make `CHANGELOG.md` the canonical completed-change and `Pending / TODO` source, document the required read/log/attribute/capture/close workflow step by step, and replace the stale statement that the repository had never been committed with the current GitHub `main`/PR model.
 
 - **[Codex]** Added a mandatory unresolved-work capture rule to `AGENTS.md` and `HANDOFF.md`, then expanded `CHANGELOG.md` → `Pending / TODO` with the outstanding PR #1 merge and every unresolved spreadsheet-ingestion risk identified during the Codex review.
