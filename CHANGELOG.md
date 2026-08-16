@@ -6,7 +6,6 @@ Every repository change must be recorded under the date it was made and identify
 
 ## Pending / TODO
 
-- **Merge [PR #1](https://github.com/jgarizona/SalesConfig/pull/1) into `main`** — source: 2026-08-15 Codex repository update. Current status: draft PR open on `agent/fix-cipherlab-name`. Next action: review and merge so the CipherLab correction and mandatory changelog/TODO rules become official; then close this TODO with a dated, attributed entry.
 - **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: Technical always uses the JLT parser; wrong-vendor uploads can create unreliable data, Getac can report a misleading zero-row success, Purchasing reads only the active sheet with exact headers, and uploads have no preflight preview or size limit. Next action: add a brand-specific parser registry, reject unsupported layouts, validate schemas and brands, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
 - **Normalize and validate spreadsheet prices** — source: 2026-08-15 Codex review. Current status: currency strings containing symbols/special spaces and other unknown text can silently calculate as zero; several existing 1514N wireless prices are affected if those options are approved. Next action: normalize currency cells and explicit included/no-charge values, preserve meaningful statuses such as discontinued, and reject unknown price text instead of silently converting it to zero.
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
@@ -26,6 +25,8 @@ Every repository change must be recorded under the date it was made and identify
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-08-15
+
+- **[Codex]** Squash-merged [PR #1](https://github.com/jgarizona/SalesConfig/pull/1) into `main` at commit `62b3fabad9373c72a404bb2dd15b72610f845768`, verified that `main` contains the CipherLab correction, attributed changelog/TODO rules, and automatic-merge policy, then removed the completed PR #1 merge item from `Pending / TODO` and updated the handoff's TODO summary.
 
 - **[Codex]** Added the user's standing automatic-merge instruction to `AGENTS.md` and `HANDOFF.md`: after a repository update is scoped, verified, logged, and free of blockers, Codex must merge it into `main` automatically without waiting for a separate merge request, then read `main` back to verify the result.
 

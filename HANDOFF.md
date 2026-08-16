@@ -428,8 +428,7 @@ mentioned elsewhere in this handoff is still open, and do not maintain an indepe
 
 At the time of this update, the changelog tracks integration work (HubSpot, Jeeves, email,
 and vendor ingestion), quote revision history, storage/concurrency and production-readiness
-work, test-data cleanup, the open PR awaiting merge, and the spreadsheet-ingestion risks
-identified by Codex. The changelog contains the authoritative status and next action for
+work, test-data cleanup, and the spreadsheet-ingestion risks identified by Codex. The changelog contains the authoritative status and next action for
 each item.
 
 When new work is discovered, update `CHANGELOG.md` → `Pending / TODO` immediately if it
