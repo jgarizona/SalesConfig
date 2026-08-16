@@ -325,6 +325,7 @@ needed; ingestion is the actual bottleneck.
   changes. Update `CHANGELOG.md` in the same branch or pull request for every code,
   configuration, data, or documentation modification. Changes made by OpenAI Codex use
   `**[Codex]**`; other people or agents must use their own clear attribution.
+  Any necessary work identified but not completed—including an open PR still awaiting merge—must also be added to `CHANGELOG.md` under `Pending / TODO` and cleared with a dated, attributed entry when completed.
 - **Sales Rep verification is bookkeeping, not security.** A 4-digit code with no lockout,
   no hashing (stored plaintext in `sales_reps.json`), 10,000 possible combinations. It exists
   purely so a quote records who touched it. Don't let anyone mistake it for access control.
