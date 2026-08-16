@@ -21,3 +21,14 @@ When the user asks Codex to update this repository, Codex must automatically mer
 A change is verified only when its scope and diff are confirmed, relevant available checks pass, required `CHANGELOG.md` and `Pending / TODO` updates are present, and no unresolved review, permission, conflict, or material uncertainty remains.
 
 Do not auto-merge when the user explicitly requests a draft/unmerged branch, when verification fails, or when a blocker requires user input. After every automatic merge, read `main` back from GitHub and confirm the expected commit and changelog entries are present.
+
+## Post-merge Box synchronization
+
+After every successful merge into `main`, synchronize the Box-backed working copy at `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git`.
+
+1. Confirm the Box worktree is clean with `git status --porcelain`; do not overwrite uncommitted work.
+2. Fast-forward it with `git pull --ff-only origin main`; do not reset or force a diverged worktree.
+3. Verify its `HEAD` equals GitHub `main` and confirm the expected changed files are present.
+4. Confirm Box Desktop has synchronized the updated files to Box cloud before reporting GitHub and Box as identical.
+
+If the worktree is dirty or diverged, or a permission, network, Git, or Box synchronization error prevents completion, do not bypass Git by uploading over tracked files. Record the blocker in `CHANGELOG.md` under `Pending / TODO`, report it to the user, and leave the existing Box files unchanged.
