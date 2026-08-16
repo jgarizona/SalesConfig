@@ -6,6 +6,13 @@ Every repository change must be recorded under the date it was made and identify
 
 ## Pending / TODO
 
+- **Merge [PR #1](https://github.com/jgarizona/SalesConfig/pull/1) into `main`** — source: 2026-08-15 Codex repository update. Current status: draft PR open on `agent/fix-cipherlab-name`. Next action: review and merge so the CipherLab correction and mandatory changelog/TODO rules become official; then close this TODO with a dated, attributed entry.
+- **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: Technical always uses the JLT parser; wrong-vendor uploads can create unreliable data, Getac can report a misleading zero-row success, Purchasing reads only the active sheet with exact headers, and uploads have no preflight preview or size limit. Next action: add a brand-specific parser registry, reject unsupported layouts, validate schemas and brands, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
+- **Normalize and validate spreadsheet prices** — source: 2026-08-15 Codex review. Current status: currency strings containing symbols/special spaces and other unknown text can silently calculate as zero; several existing 1514N wireless prices are affected if those options are approved. Next action: normalize currency cells and explicit included/no-charge values, preserve meaningful statuses such as discontinued, and reject unknown price text instead of silently converting it to zero.
+- **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
+- **Make JSON catalog writes recoverable and concurrency-safe** — source: 2026-08-15 Codex review. Current status: uploads rewrite the complete catalog JSON directly with no atomic replacement, backup, or write lock. Next action: use atomic writes plus locking/backups now, then migrate to a database when concurrent usage warrants it.
+- **Add automated spreadsheet-ingestion tests** — source: 2026-08-15 Codex review and the handoff's known no-tests limitation. Current status: ingestion is verified manually. Next action: add representative JLT, Winmate, Getac, CipherLab, malformed-workbook, pricing-normalization, blank-preservation, and zero-row test fixtures.
+
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
 - **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand.
 - **Ingest Winmate, Getac, and CipherLab** — the Brand structure exists and JLT is fully wired through it, but only JLT has real data. Source spreadsheets for all three vendors sit in Box with layouts that differ from JLT's and need dedicated parsers (`ingest/parse_vmt.py` only understands JLT's format). Uploading a non-JLT-formatted file through Technical's uploader today will tag whatever it happens to extract with the chosen brand, which won't be reliable until each vendor gets its own parser.
@@ -19,6 +26,8 @@ Every repository change must be recorded under the date it was made and identify
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-08-15
+
+- **[Codex]** Added a mandatory unresolved-work capture rule to `AGENTS.md` and `HANDOFF.md`, then expanded `CHANGELOG.md` → `Pending / TODO` with the outstanding PR #1 merge and every unresolved spreadsheet-ingestion risk identified during the Codex review.
 
 - **[Codex]** Added `AGENTS.md` and a matching `HANDOFF.md` rule requiring every future repository change—including documentation and maintenance—to receive a dated, author-attributed `CHANGELOG.md` entry in the same branch or pull request.
 
