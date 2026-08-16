@@ -1,5 +1,9 @@
 # Changelog
 
+## Entry attribution
+
+Every repository change must be recorded under the date it was made and identify its author or agent. Changes made by OpenAI Codex begin with `**[Codex]**`. Other contributors and agents use their own clear attribution; existing attribution must not be rewritten.
+
 ## Pending / TODO
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
@@ -16,7 +20,9 @@
 
 ## 2026-08-15
 
-- Corrected the fourth vendor name to **CipherLab** across the application and documentation, and recorded the existing CipherLab source workbook in Box.
+- **[Codex]** Added `AGENTS.md` and a matching `HANDOFF.md` rule requiring every future repository change—including documentation and maintenance—to receive a dated, author-attributed `CHANGELOG.md` entry in the same branch or pull request.
+
+- **[Codex]** Corrected the fourth vendor name to **CipherLab** across `app.py`, `ingest/parse_vmt.py`, `templates/sales.html`, `CHANGELOG.md`, and `HANDOFF.md`; also recorded the existing CipherLab source workbook in Box.
 
 - Added a **site-wide access PIN** (4-8 digits) gating every page and API endpoint on the whole
   app, not just Sales — anyone loading any URL (local or via a temporary tunnel) hits a login
