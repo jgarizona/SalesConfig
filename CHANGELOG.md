@@ -27,6 +27,27 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Added a **Viewing brand** filter to Technical (previously all 4 brands' 119
+  platforms rendered on one continuous scroll with one combined jump-nav — confusing and
+  unwieldy now that all 4 brands have real data). Defaults to JLT, carried as `?view=` (kept
+  separate from the upload form's own `brand` field, which picks the upload *target* and is
+  independent of which brand is currently being viewed). Fixed a latent correctness bug this
+  surfaced: the approvals-save handler previously replaced the *entire* `approvals.json` with
+  whatever checkboxes were on the submitted page — harmless while every brand's checkboxes
+  were always rendered together, but would have silently wiped out every other brand's
+  approvals the moment the page only rendered one brand at a time. Now scopes the replace to
+  only the submitted brand's entries via a hidden `approvals_brand` field, leaving every other
+  brand's approvals untouched. Verified: switching the Viewing brand dropdown between JLT/
+  Winmate/Getac shows only that brand's platforms in both the jump-nav and the options list,
+  zero cross-brand leakage.
+- **[Claude]** Added a small version tag (running git commit's short hash, e.g. `5efaab0`) to
+  the nav bar, upper right, below the Admin link — useful given `main` can move independently
+  of any given running process (see `HANDOFF.md`'s review-checkpoint section); lets you glance
+  at a running instance and know exactly which commit it's on. Derived via `git rev-parse
+  --short HEAD` at app startup (`app.py`'s `APP_VERSION`), falls back to `"dev"` if git isn't
+  available. Not tied to any semver scheme — this is a live-updating build stamp, not a
+  manually-bumped release number.
+
 - **[Claude]** **Manufacturer-catalog options no longer need Technical approval** — decided
   by the user: an option from a vendor's own official price book is auto-selectable on Sales
   without a checkbox, since the vendor already publishes it as valid/sellable; Technical

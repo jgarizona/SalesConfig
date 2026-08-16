@@ -27,6 +27,8 @@ body {
   margin-left: 8px;
   vertical-align: middle;
 }
+.nav-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+
 nav a {
   color: #cdd8e8;
   text-decoration: none;
@@ -35,6 +37,13 @@ nav a {
   padding-bottom: 4px;
 }
 nav a.active, nav a:hover { color: white; border-bottom: 2px solid #4c8dff; }
+
+.version-tag {
+  font-size: 10px;
+  color: #7e94b8;
+  margin-top: 4px;
+  font-family: monospace;
+}
 
 main { max-width: 1100px; margin: 24px auto; padding: 0 20px 60px; }
 

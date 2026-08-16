@@ -59,6 +59,32 @@ PARSERS = {
 
 app = Flask(__name__)
 
+
+def _get_app_version():
+    """Short git commit hash the running app was started from - shown in the
+    nav bar so it's obvious at a glance whether this instance matches what's
+    on GitHub, given main can move independently of any given running
+    process (see HANDOFF.md's review-checkpoint section). Falls back to
+    "dev" if git isn't available (e.g. a zip export with no .git)."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=BASE_DIR, capture_output=True, text=True, timeout=5, check=True,
+        )
+        return result.stdout.strip()
+    except Exception:
+        return "dev"
+
+
+APP_VERSION = _get_app_version()
+
+
+@app.context_processor
+def inject_app_version():
+    return {"app_version": APP_VERSION}
+
+
 DATA_DIR = BASE_DIR / "data"
 PARTS_FILE = DATA_DIR / "parts_vmt_q1_2026.json"
 APPROVALS_FILE = DATA_DIR / "approvals.json"
@@ -473,6 +499,16 @@ def index():
 def technical():
     upload_result = None
 
+    # Which single brand's platforms/options are shown - the catalog is
+    # 3,551 parts across 4 brands now, too much to usefully show at once (and
+    # confusing: picking JLT should mean *only* JLT, not JLT mixed in with
+    # every other brand on the same scroll). Carried as "view" (not "brand",
+    # which the upload form below already uses for a different purpose - the
+    # upload target brand, independent of which brand is currently shown).
+    selected_brand = request.values.get("view") or "JLT"
+    if selected_brand not in BRANDS:
+        selected_brand = "JLT"
+
     if request.method == "POST":
         uploaded = request.files.get("file")
         if uploaded and uploaded.filename:
@@ -491,8 +527,15 @@ def technical():
                     save_parts(parts)
                     upload_result = {"added": added, "updated": updated, "skipped": skipped, "total": len(new_rows), "brand": brand}
         elif "approved" in request.form or request.form.get("form") == "approvals":
+            # Only this one brand's checkboxes were ever rendered (the page
+            # is filtered to one brand - see selected_brand above), so a
+            # naive "replace the whole approvals set with what was
+            # submitted" would silently wipe out every other brand's
+            # approvals. Replace only this brand's entries; leave every
+            # other brand's approvals exactly as they were.
+            approvals_brand = request.form.get("approvals_brand", selected_brand)
             selected = request.form.getlist("approved")
-            new_approvals = set()
+            new_approvals = {a for a in load_approvals() if a[0] != approvals_brand}
             for raw_key in selected:
                 brand, platform, category, code = raw_key.split("||", 3)
                 new_approvals.add((brand, platform, category, code))
@@ -517,6 +560,7 @@ def technical():
     return render_template(
         "technical.html",
         brands=brands,
+        selected_brand=selected_brand,
         all_brands=BRANDS,
         approvals=approvals,
         upload_result=upload_result,

@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `fc453ee` — by Claude Code — 2026-08-16 10:39 -0500
+**Last reviewed up to:** HEAD `5efaab0` — by Claude Code — 2026-08-16 10:49 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -219,14 +219,26 @@ Git/
 All routes live in `app.py`. Nav bar (`templates/base.html`) links all four.
 
 ### `/technical` — Technical Review
-- Checkbox-approve which vendor options are valid/buildable, **grouped by Brand → Platform
-  → Category**. Only checked options become selectable on Sales.
+- **Viewing brand** dropdown (added 2026-08-16, defaults to JLT, `?view=` query param) shows
+  one brand's platforms/options at a time - the catalog is 119 platforms across 4 brands now,
+  too much to usefully show at once. Independent of the upload form's own Brand field below
+  (that one picks the upload *target*, not which brand is currently being viewed).
+- Checkbox-approve which vendor options are valid/buildable, **grouped by Platform →
+  Category** within the selected brand. Only checked options become selectable on Sales - but
+  see §7/§8: this only matters for `requires_review: true` parts (a not-yet-built third-party
+  add-on path); every part from all 4 brands today is auto-approved and shows a checkmark
+  instead of a checkbox.
 - **Upload vendor spreadsheet** form: pick a Brand, upload that vendor's `.xlsx`. `app.py`'s
   `PARSERS` dict routes it to the matching parser (see §4) and merges the result into
   `parts_vmt_q1_2026.json`. New platforms/options land already selectable, not pending
   approval - see §7/§8 for why.
-- A sticky "Save Approvals" bar (the page has ~500 checkboxes; the button used to be
-  unreachable without scrolling — now always visible) and a jump-to-platform nav.
+- A sticky "Save Approvals" bar (the page has ~500 checkboxes per brand; the button used to be
+  unreachable without scrolling — now always visible) and a jump-to-platform nav scoped to
+  the currently-viewed brand. **The approvals-save handler only replaces the viewed brand's
+  entries in `approvals.json`, not the whole file** — added 2026-08-16 alongside the brand
+  filter, since replacing the whole file would have silently deleted every other brand's
+  approvals the moment the page stopped rendering all brands at once. If you ever change how
+  the approvals form is submitted, keep that scoping (`approvals_brand` hidden field) intact.
 
 ### `/sales` — Sales Configurator
 The big one. Top-to-bottom:
