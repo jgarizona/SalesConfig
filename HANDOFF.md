@@ -12,7 +12,9 @@ as a substitute for checking the live changelog.
 
 Before starting work:
 
-1. Read `AGENTS.md` for mandatory repository instructions.
+1. Read `AGENTS.md` for mandatory repository instructions. **Claude Code reads `CLAUDE.md`
+   automatically as its own entry point instead** — same role as `AGENTS.md`, agent-specific
+   file. A human or a third agent picking this up cold should check both.
 2. **If the acting agent is OpenAI Codex, read `CODEX.md` next and follow its complete
    Box-backed project, Windows identity, Git/GitHub, automatic-merge, and three-way
    verification procedure.** Codex must work from the Box repository project itself, not a

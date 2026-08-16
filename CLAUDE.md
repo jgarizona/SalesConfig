@@ -1,5 +1,19 @@
 # Project instructions for Claude Code
 
+## Before starting work
+
+This repo is also worked on from a separate Codex session (the user switches to Codex when
+a Claude Code session runs low on budget — see `AGENTS.md`/`CODEX.md`, which is Codex's own
+equivalent of this file). Codex pushes straight to GitHub and does not go through this local
+Box-synced working copy, so **local `main` can fall behind without any local change ever
+happening.** Concretely, before editing anything:
+
+1. `git pull --ff-only origin main` — brings in anything Codex (or anyone else) pushed
+   since this working copy was last touched. If this isn't a clean fast-forward, stop and
+   look at what diverged before doing anything else.
+2. Skim `CHANGELOG.md`'s `Pending / TODO` section — it's the canonical list of open work
+   across every agent, not just Claude sessions.
+
 ## Git
 
 You have standing authorization to **commit and push to `origin/main` without asking for
@@ -10,6 +24,11 @@ single file edit). Write clear, specific commit messages describing what changed
 This does **not** extend to destructive operations (force-push, `reset --hard`, deleting
 branches, rewriting history) — those still need to be confirmed in chat first, same as any
 other project.
+
+**Changelog attribution:** `CHANGELOG.md` requires every entry to identify its author (see
+its "Entry attribution" section). Claude Code entries begin with `**[Claude]**`, the same
+pattern Codex uses for `**[Codex]**` — this repo now has more than one agent writing to the
+same changelog, so don't drop the tag.
 
 ## Giving the user's boss temporary access to the running app
 

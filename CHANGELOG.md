@@ -26,6 +26,21 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Claude]** Closed the Claude-side gap in the handoff docs that a Codex session had
+  already found and partly fixed from its own end: `CLAUDE.md` had no equivalent of the
+  "read this before starting, pull first" checklist that `AGENTS.md`/`CODEX.md` already
+  require of Codex. Added a "Before starting work" section to `CLAUDE.md` — pull
+  `origin/main` before editing (since Codex pushes directly to GitHub without ever touching
+  this local Box-synced working copy, local `main` can silently fall behind with zero local
+  activity — confirmed live during this session: local `main` advanced from `e6c7b4d` to
+  `db5f71d` across three separate Codex-driven fast-forwards with no command run in this
+  session), and skim `CHANGELOG.md`'s `Pending / TODO` first. Established `**[Claude]**` as
+  this agent's changelog attribution tag, matching Codex's `**[Codex]**` convention now that
+  more than one agent writes to this file. Added a one-line cross-reference in `HANDOFF.md`
+  §0 noting Claude Code reads `CLAUDE.md` automatically, the same role `AGENTS.md` plays for
+  Codex, so a human or third agent reading the handoff sees both entry points. No code
+  changed; verified by re-reading `CLAUDE.md`/`HANDOFF.md` after editing.
+
 - **[Codex]** Added `CODEX.md` as the detailed OpenAI Codex operating guide for using the Box-backed repository as the working and development area. Updated `AGENTS.md` to require Codex to read it from the automatically discovered instruction entry point, and updated `HANDOFF.md` to direct Codex to the guide explicitly. The guide records the exact Box project path, required Windows user/sandbox context, startup checks, Git-only tracked-file rule, changelog/TODO accountability, automatic branch/PR/merge workflow, post-merge fast-forward, and final GitHub/local Box/Box-cloud hash verification.
 
 - **[Codex]** Verified the user-completed Box fast-forward: the clean Box-backed `main` worktree reached GitHub commit `85b3f63f33534db8a9177453833043522cfe3cc9`, and Box cloud file SHA-1 values for `AGENTS.md`, `HANDOFF.md`, and `CHANGELOG.md` matched the local synchronized files. Removed the completed Box synchronization item from `Pending / TODO`; the changelog-only merge containing this closure requires the routine final Box fast-forward.
