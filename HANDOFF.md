@@ -31,6 +31,8 @@ For every repository change:
 
 **Standing automatic-merge instruction (added 2026-08-15 by Codex):** for this repository, a user request to update the repository authorizes Codex to merge the verified change into `main` automatically. A separate “merge it” instruction is not required. Codex must stop before merging only if the user asks to keep the work as a draft, verification fails, or an unresolved blocker requires user input.
 
+**Standing post-merge Box synchronization instruction (added 2026-08-15 by Codex):** after every successful merge into `main`, confirm the Box worktree at `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git` is clean, fast-forward it with `git pull --ff-only origin main`, verify its `HEAD` and expected files match GitHub `main`, and wait for Box Desktop to synchronize the changes to Box cloud. Never overwrite a dirty or diverged worktree or bypass Git by uploading over tracked files. If permissions, network access, Git state, or Box synchronization blocks the update, leave Box unchanged and record the exact blocker and next action in `CHANGELOG.md` → `Pending / TODO`.
+
 **Current git status (updated 2026-08-15 by Codex):** the repository is committed and pushed
 to GitHub. `main` is the official/default branch; active work may exist in pull-request
 branches. The earlier warning that nothing had been committed is resolved. Always verify
