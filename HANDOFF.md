@@ -26,6 +26,10 @@ For every repository change:
    source, current status, and next action. This includes a pull request still awaiting
    merge into `main`.
 5. When a TODO is completed, close or update it with another dated, attributed entry.
+6. After the change is verified, automatically merge it into `main` without waiting for a separate merge instruction, unless the user explicitly requests a draft/unmerged branch or verification is blocked.
+7. Read `main` back after the merge and confirm the expected commit and changelog entries are present.
+
+**Standing automatic-merge instruction (added 2026-08-15 by Codex):** for this repository, a user request to update the repository authorizes Codex to merge the verified change into `main` automatically. A separate “merge it” instruction is not required. Codex must stop before merging only if the user asks to keep the work as a draft, verification fails, or an unresolved blocker requires user input.
 
 **Current git status (updated 2026-08-15 by Codex):** the repository is committed and pushed
 to GitHub. `main` is the official/default branch; active work may exist in pull-request
