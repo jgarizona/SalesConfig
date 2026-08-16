@@ -128,10 +128,10 @@ CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost neve
 # Fixed roster so the Brand dropdown shows every vendor JLT resells even
 # before that vendor's spreadsheet has been ingested - Winmate/Getac sit
 # un-ingested in Box (different sheet layout than JLT, need their own
-# parser), and CyberLabs has no source file at all yet. Selecting one with
+# parser), and CipherLab has no source file at all yet. Selecting one with
 # no data just shows an empty/not-ingested state rather than being missing
 # from the list entirely.
-BRANDS = ["JLT", "Winmate", "Getac", "CyberLabs"]
+BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]
 
 
 def category_sort_key(category):
