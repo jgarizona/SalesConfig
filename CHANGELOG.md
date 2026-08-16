@@ -26,6 +26,12 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Claude]** Synced the review-checkpoint marker in `HANDOFF.md` §0a to this commit's own
+  parent HEAD (`a31dc4f`) — the checkpoint necessarily lags by one commit right after it's
+  first added, since the commit that writes the marker moves HEAD past whatever it records.
+  This is the expected, harmless one-commit lag the checkpoint's own instructions describe,
+  not a bug; not chasing it further. Session ends here.
+
 - **[Claude]** Added a concrete "Review checkpoint" (`HANDOFF.md` §0a) implementing the
   review-on-resume policy from the governance entry below, which had stated the *requirement*
   but not the *mechanics*. A single line records the last HEAD hash, reviewing agent, and
