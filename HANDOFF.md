@@ -89,6 +89,7 @@ Git/
 ├── requirements.txt          # flask, openpyxl
 ├── CHANGELOG.md              # Dated changelog + "Pending / TODO" section — READ THIS TOO
 ├── HANDOFF.md                # This file
+├── AGENTS.md                 # Mandatory repository instructions for AI/coding agents
 ├── .claude/
 │   └── launch.json           # Dev-server launch config for the Claude Code browser preview tool
 ├── ingest/
@@ -320,6 +321,10 @@ needed; ingestion is the actual bottleneck.
 
 ## 8. Non-obvious rules worth knowing before you touch this
 
+- **Every change must be logged with author attribution.** Read `AGENTS.md` before making
+  changes. Update `CHANGELOG.md` in the same branch or pull request for every code,
+  configuration, data, or documentation modification. Changes made by OpenAI Codex use
+  `**[Codex]**`; other people or agents must use their own clear attribution.
 - **Sales Rep verification is bookkeeping, not security.** A 4-digit code with no lockout,
   no hashing (stored plaintext in `sales_reps.json`), 10,000 possible combinations. It exists
   purely so a quote records who touched it. Don't let anyone mistake it for access control.
