@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `07d4b0c` — by Claude Code — 2026-08-15 23:26 -0500
+**Last reviewed up to:** HEAD `07d4b0c` — by Claude Code — 2026-08-16 10:38 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -116,7 +116,8 @@ opportunity starts there; the configurator reads/writes back to it by deal ID. S
 what currently stands in for that.
 
 **Current status:** rough working prototype. All 4 screens (Technical, Sales, Purchasing,
-Admin) are functional against real JLT pricing data. No database, no auth, no HubSpot — all
+Admin) are functional against real pricing data for all 4 brands (JLT/Winmate/Getac/
+CipherLab, 3,551 parts total, see §7). No database, no auth, no HubSpot — all
 noted below.
 
 ---
@@ -169,9 +170,28 @@ Git/
 ├── .claude/
 │   └── launch.json           # Dev-server launch config for the Claude Code browser preview tool
 ├── ingest/
-│   └── parse_vmt.py          # Standalone script + importable module: parses JLT-format vendor
-│                              # spreadsheets into normalized JSON. Also invoked live by
-│                              # Technical's "Upload vendor spreadsheet" button.
+│   ├── parse_vmt.py          # JLT parser - one sheet per platform, category/code/description
+│   │                          # + a price-label header block. Also invoked live by Technical's
+│   │                          # "Upload vendor spreadsheet" button, via the PARSERS registry
+│   │                          # in app.py (one entry per brand).
+│   ├── parse_winmate.py      # Winmate parser - same category/code/description shape as JLT,
+│   │                          # but label-driven header/price-column detection (not position-
+│   │                          # anchored) since header row and price-label spelling/order vary
+│   │                          # sheet to sheet, plus handling for a second flat "Accessories"
+│   │                          # section some sheets have below the main matrix.
+│   ├── parse_getac.py        # Getac parser - flat, already-fixed SKU list (no per-category
+│   │                          # options at all); each row becomes one Base Unit record. Pulls a
+│   │                          # best-effort CPU/OS out of the free-text description into
+│   │                          # `attributes` purely for search (see §6).
+│   ├── parse_cipherlab.py    # CipherLab parser - same flat-SKU shape as Getac. Platform/
+│   │                          # category come from splitting "Model Code" (e.g. "1000A
+│   │                          # Product"); no CPU field exists anywhere in this vendor's data.
+│   └── category_map.py       # Shared by the Winmate/CipherLab parsers: maps each vendor's raw
+│                              # category label to app.py's canonical CATEGORY_ORDER vocabulary
+│                              # so cross-brand sort/search line up. Deliberately does NOT
+│                              # collapse categories whose raw codes aren't globally unique
+│                              # within a platform (see §6/§7 - this caused real, once-silent
+│                              # data loss during ingest before it was caught).
 ├── templates/                # Jinja2 templates, one per screen + shared partials
 │   ├── base.html             #   Nav bar, page shell
 │   ├── technical.html        #   Technical Review screen
@@ -201,9 +221,10 @@ All routes live in `app.py`. Nav bar (`templates/base.html`) links all four.
 ### `/technical` — Technical Review
 - Checkbox-approve which vendor options are valid/buildable, **grouped by Brand → Platform
   → Category**. Only checked options become selectable on Sales.
-- **Upload vendor spreadsheet** form: pick a Brand, upload an `.xlsx` in the JLT multi-tab
-  layout, parses via `ingest/parse_vmt.py`, merges into `parts_vmt_q1_2026.json`. New
-  platforms/options land unapproved. See §9 for the "only JLT's layout is understood" caveat.
+- **Upload vendor spreadsheet** form: pick a Brand, upload that vendor's `.xlsx`. `app.py`'s
+  `PARSERS` dict routes it to the matching parser (see §4) and merges the result into
+  `parts_vmt_q1_2026.json`. New platforms/options land already selectable, not pending
+  approval - see §7/§8 for why.
 - A sticky "Save Approvals" bar (the page has ~500 checkboxes; the button used to be
   unreachable without scrolling — now always visible) and a jump-to-platform nav.
 
@@ -282,7 +303,8 @@ All files are in `data/`. None are schema-validated; these shapes are enforced o
 `app.py`'s code, not by anything structural. **`brand` was retrofitted onto an
 already-running system** (2026-08-15) — every read path that keys on a part/approval/quote
 now expects `brand` to be present; if you ever hand-edit these files or write a new ingest
-path, don't forget it.
+path, don't forget it. **`requires_review` was retrofitted the same way** (2026-08-16, see
+§7/§8) — every part record needs it now too.
 
 ### `parts_vmt_q1_2026.json` — the catalog
 List of option records (**despite the filename, this now holds all brands** — it was never
@@ -295,17 +317,36 @@ in `app.py` would be a reasonable cleanup):
   "category": "Base Unit:",
   "code": "14P",
   "description": "Rugged Fixed Mount Computer, JLT1014P, ...",
+  "requires_review": false,
   "Floor Price": 2660,
   "MSRP": 5320,
   "Cost": 1700,
-  "Current Cost": 1669.71
+  "Current Cost": 1669.71,
+  "attributes": {}
 }
 ```
 `Floor Price`/`MSRP`/`Cost`/`Current Cost` are `None` when unknown, a number when known, or
 occasionally the literal strings `"Incl"` / `"NC"` (included / no charge) carried straight
 from the vendor spreadsheet — client and server both parse these specially (`moneyValue()`
-in JS, `money_value()` in Python) treating them as 0 for totals. Currently 499 rows, all
-`brand:"JLT"`.
+in JS, `money_value()` in Python) treating them as 0 for totals.
+
+`requires_review` (added 2026-08-16): `false` means the part is from a manufacturer's own
+official catalog and is selectable on Sales automatically - see `is_selectable()` in
+`app.py`. Every brand ingested today (JLT/Winmate/Getac/CipherLab) sets this `false` on every
+row. `true` is reserved for a not-yet-built third-party add-on ingestion path (RAM Mounts,
+Gamber-Johnson, etc.) that will still need the `approvals.json` checkbox flow, since a mount
+vendor's catalog doesn't self-certify fit with a specific host platform the way an OEM's own
+spec sheet does. A part missing this key entirely is treated as `true` (needs review) - the
+safe default, so nothing slips through unreviewed by accident.
+
+`attributes` (added 2026-08-16, optional - only Getac/CipherLab rows set it): a free-form
+dict of search-only metadata pulled from free text, for brands whose data doesn't decompose
+into real per-category options (see §7). Keys in use today: `cpu` (Getac only - not present
+anywhere in CipherLab's source data), `os`, `ram`. Not selectable fields, not shown on Sales -
+`app.py`'s `ATTRIBUTE_CATEGORY_MAP` is what lets Search by Requirements match against them as
+if they were real Processor/OS/RAM options.
+
+Currently 3,551 rows: 499 JLT, 1,060 Winmate, 370 Getac, 1,622 CipherLab.
 
 ### `approvals.json` — Technical sign-off
 List of 4-element arrays: `[brand, platform, category, code]`. Presence in this list is what
@@ -366,37 +407,93 @@ phone numbers). **This is not authentication** — see §8.
 
 ---
 
-## 7. Multi-brand: what's built vs what's real data
+## 7. Multi-brand: what's built and what's real data (all 4 ingested as of 2026-08-16)
 
 `BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
-roster shown in every Brand dropdown, **independent of whether that brand has any ingested
-data** — this was a deliberate choice so the dropdown reflects the intended future scope, not
-just what happens to exist today.
+roster shown in every Brand dropdown. All four now have a real parser (`app.py`'s `PARSERS`
+dict routes Technical's upload form to the right one per brand) and real ingested data - see
+`ingest/` in §4 for what each parser does. Total catalog: 3,551 parts (breakdown in §6).
 
-- **JLT**: fully populated, 499 options, `ingest/parse_vmt.py` understands its multi-tab
-  spreadsheet layout.
-- **Winmate, Getac**: real spreadsheets exist in Box (see §2) but are **not ingested**. Per
-  the user directly: *"the full input of these xlsx files will take more work and
-  understanding as the contents are different layout than the JLT and Winmate"* — i.e.
-  Winmate's own layout differs from JLT's, and presumably Getac's differs again. Each will
-  need its own `parse_*.py` (or a generalized parser with per-vendor column-mapping config)
-  before Technical's uploader will produce anything reliable for them today. Right now,
-  uploading a Winmate/Getac file through the existing uploader will "tag whatever it happens
-  to extract" with the chosen brand — described this way explicitly in the Technical page's
-  own UI copy, so nobody's surprised by garbage output.
-- **CipherLab**: `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` exists
-  in Box (see §2), but its layout differs from JLT's. No parser has been built and nothing is
-  ingested yet.
+Two genuinely different *kinds* of vendor data turned up, not just different spreadsheet
+layouts of the same kind:
 
-Everything downstream of ingestion — approvals, Sales dropdowns, Search by Requirements,
-Purchasing pricing, quote records — is brand-agnostic and will "just work" for a new brand
-the moment its data is ingested with the right `brand` tag. No further plumbing should be
-needed; ingestion is the actual bottleneck.
+- **JLT, Winmate — real configurator matrices.** One sheet per platform, category/code/
+  description rows, a rep picks one option per category and the app builds a part number.
+  Winmate's layout looks like JLT's but isn't uniform: header row position varies 3-5 sheet to
+  sheet, price-label spelling/order varies ("Floor" vs "Floor Price", Cost sometimes before
+  Floor Price, sometimes no Floor Price column at all), and some sheets have a second flat
+  "Accessories" section below the main matrix with a different column layout entirely. See
+  `ingest/parse_winmate.py`'s docstring for the specifics; it's label-driven header detection,
+  not position-anchored, because of this.
+- **Getac, CipherLab — flat catalogs of already-fixed SKUs, not configurators.** Getac: 371
+  rows, 10 platforms, each row a complete pre-built unit with one SKU and one price - no
+  category column at all. CipherLab: ~1,624 rows across 61 product families (mostly barcode
+  scanners/readers, a few Android mobile computers), same flat shape. **Decomposing either
+  into independent per-category options would be wrong**, not just extra work - their rows
+  are the *only* combinations the vendor actually sells, not one of many valid combinations
+  the way JLT/Winmate's category options are. Both are ingested as **Base Unit:-only
+  records** instead: one option per SKU, nothing else to configure. On Sales this means
+  picking a Getac or CipherLab platform shows just a Base Unit dropdown (pick the exact
+  pre-built SKU) with no category dropdowns below it - working as intended, not a missing
+  feature.
+
+**A real data-loss bug was caught and fixed during this ingest** (2026-08-16): the first pass
+at Winmate's category-mapping table collapsed distinct raw categories (e.g. "Camera" and
+"Data Collection:") onto the same canonical bucket ("Add On Options:"). Both used small reused
+codes (`X`/`A`/`0`/`1`) that were only unique *within* their own original category - merging
+the categories collided their codes on `(brand, platform, category, code)` and silently
+overwrote one option with another on merge. Caught by checking for collisions before trusting
+the parser output, not by inspection. Fixed by (1) not collapsing categories whose codes
+aren't provably unique once merged, and (2) a same-category collision guard in
+`parse_winmate.py` (`resolve_category()`) that suffixes a repeat as `"Data Collection: (2)"`
+instead of losing it - real source pattern found on Winmate's MH4005 sheet, which nests four
+independent yes/no choices (Barcode/Smart Card/Fingerprint/NFC reader) under one inherited
+"Data Collection:" label with no sub-labels, separated only by blank rows. **If you touch
+`category_map.py` or write a new vendor parser, verify zero `part_key()` collisions in the
+parsed output before merging it into the live catalog** - it's a silent failure mode
+otherwise, not one that throws an error.
+
+**CPU cataloging, brand by brand** (the original ask that drove this ingest):
+- **JLT, Winmate**: real `"Processor Options"` category, one row per selectable CPU - no
+  extra work needed, it's just a normal category like any other.
+- **Getac**: no category, but every description names a CPU (`"Intel Core Ultra 5 225H
+  Processor"`, `"AMD Ryzen AI 5 340 Processor"`, `"Qualcomm QCS6490"`) - extracted via regex
+  into `attributes.cpu` on the Base Unit record (100% hit rate, 370/370 rows). Also grabbed
+  `attributes.os` (Windows 11 Pro vs Android 15) the same way, since it was free.
+- **CipherLab**: **no CPU data exists anywhere in the source file**, including the
+  Android-based RK/RS mobile-computer families - they mention Android version + RAM, never a
+  chipset. Nothing was fabricated to fill this gap; `attributes.cpu` is simply absent for
+  CipherLab. `attributes.os`/`attributes.ram` are set where the description states them
+  (~540 of 1,624 rows).
+
+**Search by Requirements works across all 4 brands**, including the `attributes`-only ones -
+this needed explicit wiring (`app.py`'s `ATTRIBUTE_CATEGORY_MAP`), since the search endpoints
+originally skipped `Base Unit:` rows entirely (correct for JLT/Winmate, where Base Unit isn't
+a "requirement" - but wrong for Getac/CipherLab, where the Base Unit *is* the only row that
+has anything to search). A criterion on "Processor Options" or "Operating System:" now
+matches either a real option description (JLT/Winmate) or a Base Unit's `attributes` value
+(Getac/CipherLab) - verified live: searching "Processor Options" = "Intel Core Ultra 5 225H
+Processor" correctly returns both Getac platforms that use it (B360G3, V120).
+
+Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
+already brand-agnostic and needed no changes.
 
 ---
 
 ## 8. Non-obvious rules worth knowing before you touch this
 
+- **Manufacturer-catalog options don't need Technical approval; third-party add-ons will.**
+  Decided by the user 2026-08-16: an option from a vendor's own official price book
+  (`requires_review: false` - every part from all 4 brands today) is auto-selectable on Sales,
+  no checkbox needed - the vendor already publishes it as valid and sellable. This is
+  `is_selectable()` in `app.py`, not the plain `part_key(p) in approvals` check the Technical
+  checkbox flow used to be the *only* gate for. `approvals.json` / the Technical checkbox UI
+  still exist and still matter, but only for `requires_review: true` parts - reserved for a
+  not-yet-built third-party add-on ingestion path (RAM Mounts, Gamber-Johnson, etc.), since a
+  mount vendor's catalog doesn't self-certify fit with a specific host platform the way an
+  OEM's own spec sheet does. A part missing `requires_review` entirely defaults to `true`
+  (safe default). If you add a new ingestion path, decide deliberately which value it needs -
+  don't just copy whichever existing parser is closest without checking.
 - **Every change must be logged with author attribution.** Read `AGENTS.md` before making
   changes. Update `CHANGELOG.md` in the same branch or pull request for every code,
   configuration, data, or documentation modification. Changes made by OpenAI Codex use

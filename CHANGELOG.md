@@ -6,7 +6,7 @@ Every repository change must be recorded under the date it was made and identify
 
 ## Pending / TODO
 
-- **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: Technical always uses the JLT parser; wrong-vendor uploads can create unreliable data, Getac can report a misleading zero-row success, Purchasing reads only the active sheet with exact headers, and uploads have no preflight preview or size limit. Next action: add a brand-specific parser registry, reject unsupported layouts, validate schemas and brands, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
+- **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: ~~Technical always uses the JLT parser~~ resolved 2026-08-16 (`app.py`'s `PARSERS` dict now routes each brand to its own parser); Getac no longer risks a misleading zero-row success now that it's a real, tested parser. Still open: wrong-vendor uploads can still create unreliable data (no schema/brand validation rejects a mismatched file before parsing it), Purchasing still reads only the active sheet with exact headers, and uploads still have no preflight preview or size limit. Next action: reject unsupported layouts, validate schemas and brands before merging, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
 - **Normalize and validate spreadsheet prices** — source: 2026-08-15 Codex review. Current status: currency strings containing symbols/special spaces and other unknown text can silently calculate as zero; several existing 1514N wireless prices are affected if those options are approved. Next action: normalize currency cells and explicit included/no-charge values, preserve meaningful statuses such as discontinued, and reject unknown price text instead of silently converting it to zero.
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
 - **Make JSON catalog writes recoverable and concurrency-safe** — source: 2026-08-15 Codex review. Current status: uploads rewrite the complete catalog JSON directly with no atomic replacement, backup, or write lock. Next action: use atomic writes plus locking/backups now, then migrate to a database when concurrent usage warrants it.
@@ -14,7 +14,8 @@ Every repository change must be recorded under the date it was made and identify
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
 - **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand.
-- **Ingest Winmate, Getac, and CipherLab** — the Brand structure exists and JLT is fully wired through it, but only JLT has real data. Source spreadsheets for all three vendors sit in Box with layouts that differ from JLT's and need dedicated parsers (`ingest/parse_vmt.py` only understands JLT's format). Uploading a non-JLT-formatted file through Technical's uploader today will tag whatever it happens to extract with the chosen brand, which won't be reliable until each vendor gets its own parser.
+- ~~**Ingest Winmate, Getac, and CipherLab**~~ — resolved 2026-08-16: dedicated parsers built for all three (`ingest/parse_winmate.py`, `ingest/parse_getac.py`, `ingest/parse_cipherlab.py`), real data ingested (1,060 / 370 / 1,622 parts respectively), catalog now 3,551 parts across all 4 brands.
+- **Third-party add-on ingestion path** — not built yet, and deliberately deferred (per the user, 2026-08-16: "addons will come later in this project"). Manufacturer-catalog parts are now auto-approved (`requires_review: false`, see the 2026-08-16 entry below), but a mount vendor's own catalog (RAM Mounts, Gamber-Johnson, etc.) doesn't self-certify fit with a specific host platform the way an OEM's own spec sheet does — that path needs `requires_review: true` and will go through the existing `approvals.json`/Technical-checkbox flow, which still exists specifically for this.
 - **Real email sending** — the Email button on the Sales page downloads the Excel file and opens the printable view, but doesn't actually send anything (no SMTP/Outlook integration in the app).
 - **Real HubSpot upload** — the Upload button is a stub that reports "not connected."
 - ~~**Data drift risk**~~ — resolved 2026-08-14: both Technical's and Purchasing's Upload buttons now merge (never blindly overwrite), so a vendor refresh can't erase prices purchasing already filled in.
@@ -23,6 +24,65 @@ Every repository change must be recorded under the date it was made and identify
 - **Architecture decision (§6 of the project brief)** — single-agent vs multi-agent, agents vs skills, still open.
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
+
+## 2026-08-16
+
+- **[Claude]** **Manufacturer-catalog options no longer need Technical approval** — decided
+  by the user: an option from a vendor's own official price book is auto-selectable on Sales
+  without a checkbox, since the vendor already publishes it as valid/sellable; Technical
+  review stays required only for a not-yet-built third-party add-on path (RAM Mounts,
+  Gamber-Johnson, etc. — explicitly deferred). Added `requires_review` to the part schema
+  (`false` = auto-approved, `true`/missing = needs the existing `approvals.json` checkbox
+  flow — safe default). New `is_selectable()` in `app.py` replaces the old
+  `part_key(p) in approvals` check at all three call sites (`/sales`, `/api/search_options`,
+  `/api/search_base_units`) plus `compute_unreviewed_base_models()`. `merge_parts()` now
+  carries `requires_review` (and `attributes`, see below) through re-uploads the same way it
+  already did for description/price. Migrated all 499 existing JLT parts to
+  `requires_review: false`; `parse_vmt.py` sets it on every future ingest. Verified: Admin's
+  reviewed count went from real approvals-based to 0 unreviewed platforms immediately after
+  migration, with `approvals.json` untouched.
+
+- **[Claude]** **Built dedicated parsers for Winmate, Getac, and CipherLab and ingested real
+  data for all three** — catalog grew from 499 parts (JLT only) to 3,551 across all 4 brands
+  (1,060 Winmate, 370 Getac, 1,622 CipherLab). Added `ingest/category_map.py` (shared raw→
+  canonical category mapping), `ingest/parse_winmate.py`, `ingest/parse_getac.py`,
+  `ingest/parse_cipherlab.py`, and a brand→parser `PARSERS` registry in `app.py` that
+  Technical's upload form now routes through instead of always assuming JLT's parser. Full
+  detail (why Getac/CipherLab are ingested as Base-Unit-only records instead of decomposed
+  into fake per-category options, the Winmate header/section-detection specifics, and the
+  data-loss bug found and fixed mid-ingest) is in `HANDOFF.md` §7 — not duplicated here.
+  Headline points:
+  - **CPU cataloging** (the original ask): JLT/Winmate already had a real `Processor Options`
+    category, no extra work. Getac has no category but names a CPU in every description —
+    extracted via regex into `attributes.cpu` (370/370 rows, 100% hit rate; also grabbed
+    `attributes.os`). **CipherLab has no CPU data anywhere in the source file, including its
+    Android mobile-computer families** — nothing was fabricated to fill that gap;
+    `attributes.os`/`attributes.ram` are set where the description actually states them
+    (~540/1,624 rows), `attributes.cpu` is simply absent.
+  - **A real data-loss bug was caught and fixed before merging to the live catalog**: an
+    early version of the category-mapping table collapsed distinct raw Winmate categories
+    (e.g. "Camera" and "Data Collection:") onto one canonical bucket, and their reused short
+    codes (`X`/`A`/`0`/`1`) collided once merged, silently overwriting one option with
+    another. Caught by explicitly checking for `part_key()` collisions in parser output
+    before trusting it, not by inspection — 12 Winmate options would otherwise have vanished
+    silently. Fixed by not collapsing categories whose codes aren't provably unique, plus a
+    same-category collision guard (`resolve_category()`) for a real source pattern
+    (Winmate's MH4005 nests four independent choices under one inherited category label with
+    no sub-headers). Verified zero `part_key()` collisions across the full merged catalog
+    (3,551 parts) before shipping.
+  - Extended `/api/search_options` and `/api/search_base_units` (`ATTRIBUTE_CATEGORY_MAP`)
+    so Search by Requirements works for Getac/CipherLab's `attributes`-only data too — the
+    search endpoints originally skipped `Base Unit:` rows entirely, which is correct for
+    JLT/Winmate but left fixed-SKU brands with nothing searchable at all. Verified live:
+    searching Processor Options = "Intel Core Ultra 5 225H Processor" correctly returns both
+    Getac platforms that use it (B360G3, V120).
+  - Updated `technical.html` to show a checkmark instead of a live checkbox for auto-approved
+    options, and rewrote its intro copy — a checkbox that doesn't gate anything would have
+    been actively misleading to a real reviewer.
+  - Verified end-to-end via browser preview: Sales renders and prices correctly for all 4
+    brands (Winmate/Getac/CipherLab spot-checked, not just JLT), Admin shows 119/119
+    platforms reviewed (15 JLT + 33 Winmate + 10 Getac + 61 CipherLab), Purchasing/Technical
+    both load without error against the 7x larger catalog, no errors in the server log.
 
 ## 2026-08-15
 

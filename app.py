@@ -39,7 +39,23 @@ from openpyxl.styles import Font
 
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR / "ingest"))
-from parse_vmt import parse_workbook as parse_vendor_workbook  # noqa: E402
+import parse_vmt        # noqa: E402
+import parse_winmate     # noqa: E402
+import parse_getac       # noqa: E402
+import parse_cipherlab   # noqa: E402
+
+# Brand -> parser, so Technical's upload form can route each vendor's
+# spreadsheet to the parser that actually understands its layout instead of
+# always assuming JLT's. Every entry here is a manufacturer's own official
+# catalog (see is_selectable()) - third-party add-on vendors (RAM Mounts,
+# Gamber-Johnson, etc.) aren't in this registry yet; that's a separate,
+# not-yet-built ingestion path that will need requires_review=True instead.
+PARSERS = {
+    "JLT": parse_vmt.parse_workbook,
+    "Winmate": parse_winmate.parse_workbook,
+    "Getac": parse_getac.parse_workbook,
+    "CipherLab": parse_cipherlab.parse_workbook,
+}
 
 app = Flask(__name__)
 
@@ -123,14 +139,26 @@ CATEGORY_ORDER = [
 ]
 
 PRICE_FIELDS = ["Floor Price", "MSRP", "Cost", "Current Cost"]
+
+# Fixed-SKU brands (Getac, CipherLab - see ingest/parse_getac.py and
+# ingest/parse_cipherlab.py) don't decompose into real per-category options,
+# so there's nothing for Search by Requirements to match against for them
+# under normal category/description matching. Their CPU/OS/RAM info lives on
+# the Base Unit row's `attributes` dict instead - this maps a searchable
+# category to the attribute key that can satisfy it as a fallback.
+ATTRIBUTE_CATEGORY_MAP = {
+    "Processor Options": "cpu",
+    "Operating System:": "os",
+    "RAM Memory Options:": "ram",
+}
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 
-# Fixed roster so the Brand dropdown shows every vendor JLT resells even
-# before that vendor's spreadsheet has been ingested - Winmate/Getac sit
-# un-ingested in Box (different sheet layout than JLT, need their own
-# parser), and CipherLab has no source file at all yet. Selecting one with
-# no data just shows an empty/not-ingested state rather than being missing
-# from the list entirely.
+# Fixed roster so the Brand dropdown always shows every vendor JLT resells,
+# not just whichever ones happen to have data today. All 4 are ingested and
+# auto-approved as of 2026-08-16 (see PARSERS above and each brand's
+# requires_review=False) - this list existing independently of ingestion
+# status just means a brand added here before its parser/data exist would
+# show an empty state instead of being missing from the dropdown entirely.
 BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]
 
 
@@ -175,6 +203,21 @@ def find_part(parts, brand, platform, category, code):
         if p["brand"] == brand and p["platform"] == platform and p["category"] == category and p["code"] == code:
             return p
     return None
+
+
+def is_selectable(p, approvals):
+    """A part is usable on Sales if it's from a manufacturer's own official
+    catalog (requires_review=False - JLT/Winmate/Getac/CipherLab's own
+    published price books today) or has been explicitly Technical-approved.
+    Missing the field entirely defaults to requiring review (safe default -
+    nothing slips through unreviewed by accident). Third-party add-ons (RAM
+    Mounts, Gamber-Johnson, etc. - not built yet) will always need the
+    explicit-approval path, since a mount vendor's own catalog doesn't
+    self-certify compatibility with a specific host platform the way an
+    OEM's own spec sheet does."""
+    if not p.get("requires_review", True):
+        return True
+    return part_key(p) in approvals
 
 
 # ------------------------------------------------------------------ approvals
@@ -302,10 +345,14 @@ def compute_quote_action_items(parts, quotes):
 def compute_unreviewed_base_models(parts, approvals):
     """Platforms whose Base Unit option (the platform's base config) hasn't
     been technical-approved yet - i.e. review on that platform hasn't even
-    started."""
+    started. Auto-approved (manufacturer-catalog) base units never need
+    review in the first place, so they're excluded rather than counted as
+    outstanding work."""
     unreviewed = []
     for p in parts:
         if p["category"] != "Base Unit:":
+            continue
+        if not p.get("requires_review", True):
             continue
         if part_key(p) not in approvals:
             unreviewed.append(p)
@@ -334,7 +381,14 @@ def merge_parts(parts, new_rows, allow_new):
     upload, which shouldn't be able to invent new catalog entries (that's
     Technical's job). Returns (added, updated, skipped) counts."""
     added = updated = skipped = 0
-    mergeable_fields = ["description"] + PRICE_FIELDS
+    # "requires_review" and "attributes" merge the same way as description/price:
+    # a blank/missing incoming value never erases what's already on file. Every
+    # brand parser sets requires_review explicitly (True/False, never blank), so
+    # re-uploading an OEM catalog through Technical carries the same
+    # auto-approval policy as the initial ingest, rather than silently
+    # defaulting re-uploaded rows back to "needs review".
+    mergeable_fields = ["description", "requires_review", "attributes"] + PRICE_FIELDS
+    BLANK = (None, "", {}, [])
 
     for row in new_rows:
         brand = (row.get("brand") or "JLT").strip()
@@ -350,11 +404,11 @@ def merge_parts(parts, new_rows, allow_new):
             if not allow_new:
                 skipped += 1
                 continue
-            new_part = {"brand": brand, "platform": platform, "category": category, "code": code, "description": None}
+            new_part = {"brand": brand, "platform": platform, "category": category, "code": code, "description": None, "requires_review": True}
             for f in PRICE_FIELDS:
                 new_part[f] = None
             for f in mergeable_fields:
-                if row.get(f) not in (None, ""):
+                if row.get(f) not in BLANK:
                     new_part[f] = row[f]
             parts.append(new_part)
             added += 1
@@ -362,7 +416,7 @@ def merge_parts(parts, new_rows, allow_new):
             changed = False
             for f in mergeable_fields:
                 val = row.get(f)
-                if val not in (None, "") and existing.get(f) != val:
+                if val not in BLANK and existing.get(f) != val:
                     existing[f] = val
                     changed = True
             if changed:
@@ -423,15 +477,19 @@ def technical():
         uploaded = request.files.get("file")
         if uploaded and uploaded.filename:
             brand = request.form.get("brand", "JLT")
-            try:
-                new_rows = parse_vendor_workbook(uploaded, brand=brand)
-            except Exception as e:
-                upload_result = {"error": str(e)}
+            parser = PARSERS.get(brand)
+            if parser is None:
+                upload_result = {"error": f"No parser registered for brand {brand!r} yet."}
             else:
-                parts = load_parts()
-                added, updated, skipped = merge_parts(parts, new_rows, allow_new=True)
-                save_parts(parts)
-                upload_result = {"added": added, "updated": updated, "skipped": skipped, "total": len(new_rows), "brand": brand}
+                try:
+                    new_rows = parser(uploaded, brand=brand)
+                except Exception as e:
+                    upload_result = {"error": str(e)}
+                else:
+                    parts = load_parts()
+                    added, updated, skipped = merge_parts(parts, new_rows, allow_new=True)
+                    save_parts(parts)
+                    upload_result = {"added": added, "updated": updated, "skipped": skipped, "total": len(new_rows), "brand": brand}
         elif "approved" in request.form or request.form.get("form") == "approvals":
             selected = request.form.getlist("approved")
             new_approvals = set()
@@ -469,7 +527,7 @@ def technical():
 def sales():
     parts = load_parts()
     approvals = load_approvals()
-    approved_parts = [p for p in parts if part_key(p) in approvals]
+    approved_parts = [p for p in parts if is_selectable(p, approvals)]
 
     # {brand: {platform: {category: [options]}}} - Brand is the first choice
     # on the page, filtering which platforms show up, same as Platform then
@@ -505,14 +563,25 @@ def api_search_options():
     brand_filter = request.args.get("brand") or None
     parts = load_parts()
     approvals = load_approvals()
-    approved_parts = [p for p in parts if part_key(p) in approvals]
+    approved_parts = [p for p in parts if is_selectable(p, approvals)]
 
     by_category = {}
     for p in approved_parts:
-        if p["category"] == "Base Unit:":
-            continue
         if brand_filter and p["brand"] != brand_filter:
             continue
+
+        if p["category"] == "Base Unit:":
+            # Not a selectable option itself, but a fixed-SKU brand's only
+            # source of CPU/OS/RAM info - surface those as if they were
+            # options in the matching pseudo-category (see
+            # ATTRIBUTE_CATEGORY_MAP) so Getac/CipherLab base units show up
+            # in the same requirement search as JLT/Winmate's real options.
+            for category, attr_key in ATTRIBUTE_CATEGORY_MAP.items():
+                val = (p.get("attributes") or {}).get(attr_key)
+                if val:
+                    by_category.setdefault(category, set()).add(val)
+            continue
+
         if not p.get("description"):
             continue
         by_category.setdefault(p["category"], set()).add(p["description"])
@@ -534,11 +603,21 @@ def api_search_base_units():
 
     parts = load_parts()
     approvals = load_approvals()
-    approved_parts = [p for p in parts if part_key(p) in approvals]
+    approved_parts = [p for p in parts if is_selectable(p, approvals)]
 
     grouped = {}
     for p in approved_parts:
         grouped.setdefault((p["brand"], p["platform"]), []).append(p)
+
+    def criterion_met(options, base_unit, category, desc):
+        if any(o["category"] == category and o.get("description") == desc for o in options):
+            return True
+        # Fixed-SKU brands (Getac/CipherLab) have no real option row for
+        # Processor/OS/RAM - fall back to the Base Unit's attributes dict.
+        attr_key = ATTRIBUTE_CATEGORY_MAP.get(category)
+        if attr_key and (base_unit.get("attributes") or {}).get(attr_key) == desc:
+            return True
+        return False
 
     matches = []
     for (brand, platform), options in grouped.items():
@@ -548,7 +627,7 @@ def api_search_base_units():
         if base_unit is None:
             continue
         if all(
-            any(o["category"] == category and o.get("description") == desc for o in options)
+            criterion_met(options, base_unit, category, desc)
             for category, desc in criteria.items()
         ):
             matches.append({

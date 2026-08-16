@@ -77,6 +77,7 @@ def parse_platform_sheet(ws, platform_name, brand):
             "category": current_category,
             "code": str(code).strip() if code is not None else None,
             "description": str(description).strip() if description is not None else None,
+            "requires_review": False,  # manufacturer's own official catalog - no Technical checkbox needed
             **prices,
         })
 

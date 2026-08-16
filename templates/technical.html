@@ -4,18 +4,20 @@
   <style>main { padding-bottom: 90px; }</style>
   <h1>Technical Review</h1>
   <p class="muted">
-    Check every option that is valid and buildable. Only checked options become selectable
-    on the Sales screen.
+    Options from a manufacturer's own official catalog (JLT, Winmate, Getac, CipherLab today)
+    are auto-approved and selectable on Sales automatically &mdash; the vendor already publishes
+    them as valid, sellable configurations, so there's nothing to check here for those.
+    The checkbox below only applies to third-party add-ons (e.g. RAM Mounts, Gamber-Johnson)
+    whose fit with a specific host platform isn't self-certified the way an OEM's own spec sheet
+    is &mdash; that ingestion path doesn't exist yet, so no checkboxes appear today.
   </p>
 
   <div class="upload-box">
     <form method="post" enctype="multipart/form-data" class="upload-form">
       <label><strong>Upload vendor spreadsheet</strong></label>
       <p class="muted" style="margin:4px 0 8px;">
-        Only the JLT multi-tab layout is understood right now (one tab per platform). Winmate and
-        Getac use a different layout and need their own parser before uploading them will work
-        correctly &mdash; picking those brands here just tags whatever this parser happens to
-        extract, which won't be reliable yet.
+        Each brand has its own parser now (JLT, Winmate, Getac, CipherLab) &mdash; pick the
+        matching brand below before uploading that vendor's spreadsheet.
       </p>
       <label class="muted" style="display:block; margin-bottom:4px;">Brand</label>
       <select name="brand" style="margin-bottom:10px; padding:8px; border:1px solid #ccd2dc; border-radius:6px;">
@@ -67,9 +69,14 @@
           {% endif %}
           {% set key = brand ~ "||" ~ platform ~ "||" ~ opt.category ~ "||" ~ opt.code %}
           <label class="option-row">
-            <input type="checkbox" name="approved" value="{{ key }}"
-                   {% if (brand, platform, opt.category, opt.code) in approvals %}checked{% endif %}
-                   style="margin-right:10px;">
+            {% if opt.requires_review %}
+              <input type="checkbox" name="approved" value="{{ key }}"
+                     {% if (brand, platform, opt.category, opt.code) in approvals %}checked{% endif %}
+                     style="margin-right:10px;">
+            {% else %}
+              <span class="muted" title="From {{ brand }}'s own official catalog - no review needed"
+                    style="margin-right:10px; display:inline-block; width:14px;">&check;</span>
+            {% endif %}
             <span class="option-code">{{ opt.code }}</span>
             <span class="option-desc">{{ opt.description }}</span>
             <span class="option-price">
