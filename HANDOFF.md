@@ -4,6 +4,31 @@ Written 2026-08-15 for handing this project to another agent/developer. Goal: ev
 needed to understand, run, extend, or fully recreate this project without access to the
 conversation that built it.
 
+## 0a. Review checkpoint — read and act on this before anything else
+
+**Last reviewed up to:** HEAD `54115c4` — by Claude Code — 2026-08-15 23:12 -0500
+
+This line is the answer to "has anyone else touched this repo since I was last here?" —
+don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
+be incomplete or written after the fact, the commit graph can't lie.
+
+**Every agent, on starting work, must:**
+1. `git fetch origin`, then compare the hash above to `git rev-parse origin/main`.
+2. If they match, nothing has changed since the checkpoint — proceed normally.
+3. If they differ, someone (a different agent, a different session of the same agent, or
+   the user directly) changed the repo since. Run
+   `git log --oneline <hash-above>..origin/main` to list what's new, then actually read each
+   commit's diff (`git show <hash>`) — not just the subject lines — before starting new
+   work. Cross-check the commits against `CHANGELOG.md` for the same range and flag any
+   change that wasn't logged.
+4. `git pull --ff-only origin main` to bring the local Box-backed worktree current.
+
+**Every agent, before ending a session's work, must:** update the line above — your own
+agent name (or "the user" if a human made the change directly), the current `git rev-parse
+--short HEAD`, and the current local timestamp. This is the last edit of the session, not
+an optional cleanup step; a stale checkpoint is what makes the next session's step 3 above
+either miss something or re-review work it's already seen.
+
 ## 0. Required change-log and TODO workflow — read before changing anything
 
 `CHANGELOG.md` is the **canonical source of truth** for both completed changes and

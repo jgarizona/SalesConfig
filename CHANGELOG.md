@@ -26,6 +26,15 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Claude]** Added a concrete "Review checkpoint" (`HANDOFF.md` §0a) implementing the
+  review-on-resume policy from the governance entry below, which had stated the *requirement*
+  but not the *mechanics*. A single line records the last HEAD hash, reviewing agent, and
+  timestamp any agent caught up through; every agent must compare it to `origin/main` on
+  start (differ → `git log`/`git show` the gap and cross-check against this changelog, not
+  just skim commit subjects) and update it as the last action before ending a session. Fixes
+  the actual gap: the prior entry said "review everything since last active" without any way
+  to know what "since last active" meant. No code changed.
+
 - **[Claude]** Documented the project's governance model in `HANDOFF.md` §0, per the user's
   explicit direction: Claude Code is lead developer; Codex is a fallback used only when a
   Claude Code session runs out of budget, not an independent co-equal decision-maker. Codex's
