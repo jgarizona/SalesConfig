@@ -85,7 +85,7 @@ def parse_platform_sheet(ws, platform_name, brand):
 
 def parse_workbook(path, brand="JLT"):
     """brand defaults to JLT since that's the only vendor layout this parser
-    understands today. Winmate/Getac/CyberLabs use different sheet layouts
+    understands today. Winmate/Getac/CipherLab use different sheet layouts
     and will need their own parse_*.py once that work happens - passing a
     different brand here does NOT make this function understand their format,
     it only tags whatever it does parse (which will likely be garbage/empty
