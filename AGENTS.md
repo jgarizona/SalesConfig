@@ -13,3 +13,11 @@ Every repository change must update `CHANGELOG.md` in the same branch or pull re
 - When a review, investigation, or implementation identifies necessary work that is not completed immediately, add it to `CHANGELOG.md` under `Pending / TODO` before ending the task. Include the source, current status, and concrete next action.
 - Repository workflow steps that remain outstanding, including an open pull request that still needs to be merged into `main`, must also be tracked in `Pending / TODO`.
 - When a TODO is completed, mark or remove it through a dated, attributed changelog entry so the list does not become stale.
+
+## Automatic merge policy for this repository
+
+When the user asks Codex to update this repository, Codex must automatically merge the verified change into `main` without waiting for a separate merge instruction.
+
+A change is verified only when its scope and diff are confirmed, relevant available checks pass, required `CHANGELOG.md` and `Pending / TODO` updates are present, and no unresolved review, permission, conflict, or material uncertainty remains.
+
+Do not auto-merge when the user explicitly requests a draft/unmerged branch, when verification fails, or when a blocker requires user input. After every automatic merge, read `main` back from GitHub and confirm the expected commit and changelog entries are present.
