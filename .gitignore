@@ -3,6 +3,9 @@ __pycache__/
 data/reports/*.csv
 data/reports/*.xlsx
 
+# Personal Claude Code permission overrides - not a shared team policy
+.claude/settings.local.json
+
 # Site access PIN + Flask session secret key - this repo is PUBLIC on GitHub,
 # so these must never be committed. See data/site_access.json.
 data/site_access.json
