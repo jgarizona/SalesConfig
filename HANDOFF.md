@@ -39,6 +39,25 @@ For every repository change:
 
 **Standing post-merge Box synchronization instruction (added 2026-08-15 by Codex):** after every successful merge into `main`, confirm the Box worktree at `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git` is clean, fast-forward it with `git pull --ff-only origin main`, verify its `HEAD` and expected files match GitHub `main`, and wait for Box Desktop to synchronize the changes to Box cloud. Never overwrite a dirty or diverged worktree or bypass Git by uploading over tracked files. If permissions, network access, Git state, or Box synchronization blocks the update, leave Box unchanged and record the exact blocker and next action in `CHANGELOG.md` → `Pending / TODO`.
 
+**Project governance — lead developer (decided 2026-08-15 by the user):** Claude Code is
+the lead developer on this project. Codex is used only as a fallback when a Claude Code
+session runs out of budget, not as an independent co-equal decision-maker. Practically:
+
+- Codex's standing automatic-merge-to-`main` policy (above) **stays in place** —
+  requiring Claude's approval before every Codex merge was considered and explicitly
+  rejected, because it would block Codex's work until a Claude session is available again,
+  defeating the point of the fallback. This is a live tool with real quote/pricing data, not
+  a repo where an unmerged PR can sit indefinitely.
+- **In exchange, every time a Claude Code session resumes work on this project, its first
+  action must be a real diff-level review of everything merged into `main` since it was
+  last active** — not a skim of `CHANGELOG.md` entries taken at face value. This is the
+  review checkpoint for changes made under this policy; it happens after merge instead of
+  gating it. Flag or fix anything that doesn't meet standard before starting new work.
+- Files that govern another agent's behavior on this repo (`AGENTS.md`, `CODEX.md`) are
+  reviewed and endorsed or corrected by the lead developer, not treated as self-authored
+  artifacts to leave unquestioned — including policies an agent adopted on its own
+  initiative, like the automatic-merge policy originally was.
+
 **Codex-specific operating guide (added 2026-08-15 by Codex):** `CODEX.md` is the
 required detailed guide for OpenAI Codex. It records the exact Box project path, the
 Windows execution context needed for Box Drive reparse points and Git Credential Manager,

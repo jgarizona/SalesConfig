@@ -26,6 +26,16 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-15
 
+- **[Claude]** Documented the project's governance model in `HANDOFF.md` §0, per the user's
+  explicit direction: Claude Code is lead developer; Codex is a fallback used only when a
+  Claude Code session runs out of budget, not an independent co-equal decision-maker. Codex's
+  standing auto-merge-to-`main` policy stays in place (requiring Claude's approval first was
+  considered and rejected — it would block Codex's fallback role, and this is a live tool
+  with real data, not one where an unmerged PR can sit indefinitely). In exchange, every
+  Claude Code session must now open with a diff-level review of everything merged since it
+  was last active, not a changelog skim — recorded as a standing instruction so this survives
+  across sessions. No code changed.
+
 - **[Claude]** Closed the Claude-side gap in the handoff docs that a Codex session had
   already found and partly fixed from its own end: `CLAUDE.md` had no equivalent of the
   "read this before starting, pull first" checklist that `AGENTS.md`/`CODEX.md` already
