@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `d06686e` — by Claude Code — 2026-08-17 09:28 -0500
+**Last reviewed up to:** HEAD `1b76cb5` — by Claude Code — 2026-08-17 09:56 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -563,11 +563,24 @@ already brand-agnostic and needed no changes.
   on purpose — this repo is public on GitHub, so that file must never be committed.** If you
   ever regenerate `.gitignore` or restructure `data/`, keep that entry.
 - **Quote lock/rev rules:** a quote gets its Quote# the first time it's saved (Rev 0).
-  Locking (manual toggle, or automatically on Print) "fixes" it — further edits are blocked
-  until Unlock. Editing-then-saving a quote that has *ever* been locked bumps Rev by 1.
-  **Only the current state of each quote is stored — there is no revision history.** Rev 0's
-  content is gone the moment Rev 1 is saved over it. This is called out as a known gap in
-  CHANGELOG's Pending list.
+  **Every successful Save locks the quote** (added 2026-08-17, per the user — was previously
+  a separate manual toggle/Print-only) — a saved quote is treated as "this is what I'm
+  proposing right now," protected from accidental further edits. This applies to the very
+  first save too, not just revisions. Category dropdowns are disabled while locked (existing
+  behavior, unchanged). To make another change: click **Unlock** (enabled immediately after
+  a fresh save, since `dirty` is false at that point — no extra step needed to make it
+  clickable), edit, Accept, Save — which locks it again. **Saving an already-saved quote
+  bumps Rev by 1 whenever the configuration actually changed** (`selections`/`brand`/
+  `platform` differ from what's stored), independent of the lock state at save time (the
+  quote is always locked going into a save now, so the old "only bump if ever locked" rule
+  became meaningless the moment auto-lock shipped — replaced with a real content-diff
+  check). A no-op re-save (nothing actually different) does not bump Rev, so clicking
+  Accept+Save twice with no real edit in between is harmless. **Only the current state of
+  each quote is stored — there is no revision history.** Rev 0's content is gone the moment
+  Rev 1 is saved over it. This is called out as a known gap in CHANGELOG's Pending list.
+  Verified live end-to-end 2026-08-17: load quote → locked:false → change option → Accept →
+  Save → locked:true, rev bumped, Unlock button immediately clickable → Unlock → dropdowns
+  re-enabled → change again → Accept → Save → locked again, rev bumped again.
 - **Accept Configuration** (Sales) is a *separate* gate from rep verification — Save needs
   both. It resets on any option change AND after every successful save (so *every* save,
   first or fifth, needs a fresh click). This was an explicit request, not an assumption.

@@ -27,6 +27,21 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** **Every Save now locks the quote, and Rev now bumps on any real content
+  change regardless of lock state** — two related changes to quote lifecycle rules, per the
+  user, reported live: loaded an existing quote, changed an option, Accept, Save — Rev
+  didn't move. Root cause: the original rule only bumped Rev if the quote had *ever* been
+  locked, which this quote hadn't. Rather than just fix that check, the user confirmed (via
+  a direct tradeoff question) they want Save to auto-lock every time, which makes the old
+  check meaningless on its own — replaced it with a real diff against what's stored
+  (`selections`/`brand`/`platform`), so a no-op re-save (Accept+Save clicked twice with
+  nothing actually different) doesn't spuriously bump Rev. Applies to the very first save
+  too, not just revisions. To make another change after a save: Unlock (immediately
+  clickable — `dirty` is false right after a fresh save) → edit → Accept → Save, which locks
+  it again. Verified live end-to-end: load → `locked:false` → change → Accept → Save →
+  `locked:true` + Rev bumped + Unlock clickable → Unlock → dropdowns re-enabled → change
+  again → Accept → Save → locked again + Rev bumped again; also confirmed a genuine no-op
+  re-save leaves Rev untouched.
 - **[Claude]** **Fixed: Opportunity ID survived Clear, and survived switching to a different
   customer entirely**, leaving a real, confusing mismatch (Customer: Blue Ridge Industrial,
   Opportunity ID still "Acme Manufacturing" from before) - reported live by the user after

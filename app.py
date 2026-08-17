@@ -15,11 +15,18 @@ project's "start spreadsheet-based" approach. Cost and Current Cost are
 purchasing-internal only and are never included in anything a rep or
 customer sees (Sales screen, print view, Excel export).
 
-Quote ID/lock rules (first draft - flag if this isn't quite right):
+Quote ID/lock rules:
   - A quote gets its Opportunity-Quote# the first time it's saved. Rev starts at 0.
-  - Locking (the Lock/Unlock toggle, or automatically on Print/Upload) "fixes"
-    the quote - it can't be edited again until unlocked.
-  - Editing and re-saving a quote that has ever been locked bumps Rev by 1.
+  - Every successful save locks the quote (added 2026-08-17, per the user -
+    was previously a separate manual toggle/Print-only). Locked "fixes" the
+    quote - it can't be edited again until unlocked (Unlock is immediately
+    clickable right after a save, no extra step needed).
+  - Saving an already-saved quote bumps Rev by 1 whenever the configuration
+    (selections/brand/platform) actually changed from what's stored -
+    independent of lock state (every save locks now, so "only if ever
+    locked" became meaningless the moment auto-lock shipped; replaced with
+    a real content-diff check). A no-op re-save (nothing actually
+    different) does not bump Rev.
   - Copy clones the configuration onto a new Opportunity ID, with a fresh
     Quote# and Rev back at 0.
 """
@@ -1049,7 +1056,20 @@ def api_quote_save():
             return jsonify({"error": "Quote not found."}), 404
         if q["locked"]:
             return jsonify({"error": "This quote is locked. Unlock it before making changes."}), 400
-        if q.get("ever_locked"):
+        # Rev bumps on any REAL content change to an already-saved quote,
+        # regardless of lock history - the original rule ("only bump if the
+        # quote was ever locked") didn't match what a rep actually expects:
+        # reported live 2026-08-17, load a quote, change an option, Accept,
+        # Save - and the rev stayed put because it had never been locked.
+        # Comparing against what's already stored (not just "was Save
+        # clicked") avoids bumping on a no-op re-save (e.g. Accept+Save
+        # clicked twice with nothing actually changed in between).
+        config_changed = (
+            lines != q.get("selections")
+            or brand != q.get("brand")
+            or platform != q.get("platform")
+        )
+        if config_changed:
             q["rev_number"] += 1
         q["customer"] = customer
         q["brand"] = brand
@@ -1082,6 +1102,15 @@ def api_quote_save():
             "updated_at": now,
         }
         quotes[key] = q
+
+    # Every save locks the quote (added 2026-08-17, per the user) - a saved
+    # quote is treated as "this is what I'm proposing right now", protected
+    # from accidental further edits. To make another change, Unlock first
+    # (the button is enabled again immediately - dirty is false right after
+    # a fresh save), edit, Accept, Save - which locks it again. Applies to
+    # the very first save too, not just revisions.
+    q["locked"] = True
+    q["ever_locked"] = True
 
     save_quotes(quotes)
     out = dict(q)

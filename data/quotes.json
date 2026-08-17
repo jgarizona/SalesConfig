@@ -99,9 +99,9 @@
     "opportunity_id": "Acme Manufacturing",
     "customer": "Acme Manufacturing",
     "quote_number": 1,
-    "rev_number": 0,
-    "locked": false,
-    "ever_locked": false,
+    "rev_number": 2,
+    "locked": true,
+    "ever_locked": true,
     "brand": "JLT",
     "platform": "1014P",
     "selections": [
@@ -128,10 +128,10 @@
       },
       {
         "category": "Storage Drive Options:",
-        "code": "4",
-        "description": "60 GB CFAST",
-        "Floor Price": 110,
-        "MSRP": 220
+        "code": "6",
+        "description": "240 GB CFAST",
+        "Floor Price": 230,
+        "MSRP": 460
       },
       {
         "category": "Display options:",
@@ -170,10 +170,10 @@
       },
       {
         "category": "Internal Wireless",
-        "code": "KA",
-        "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *AT&T*",
-        "Floor Price": 360,
-        "MSRP": 540
+        "code": "KM",
+        "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
       },
       {
         "category": "Operating System:",
@@ -183,12 +183,12 @@
         "MSRP": 300
       }
     ],
-    "floor_total": 3330.0,
-    "msrp_total": 6380.0,
-    "part_number": "1014P-14P-D-G-4-P-95-X-1-O-KA-255",
+    "floor_total": 3090.0,
+    "msrp_total": 6080.0,
+    "part_number": "1014P-14P-D-G-6-P-95-X-1-O-KM-255",
     "created_by": "Test",
     "sales_rep": "Test",
     "created_at": "2026-08-17T09:17:00",
-    "updated_at": "2026-08-17T09:17:00"
+    "updated_at": "2026-08-17T09:54:22"
   }
 }
