@@ -183,6 +183,9 @@ ATTRIBUTE_CATEGORY_MAP = {
     "Processor Options": "cpu",
     "Operating System:": "os",
     "RAM Memory Options:": "ram",
+    "Storage Drive Options:": "storage",
+    "Display options:": "display",
+    "Internal Wireless": "wireless",
 }
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 

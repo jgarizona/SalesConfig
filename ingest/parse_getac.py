@@ -9,10 +9,15 @@ description into independently-selectable category options would imply
 combinations Getac doesn't actually sell, so every row becomes a single
 "Base Unit:" record (code = SKU ID) rather than several per-category rows.
 
-Since there's no separate CPU/OS column, this pulls a best-effort CPU and OS
-value out of the free-text description into an `attributes` dict purely so
-Search by Requirements has something to match against - these are NOT
-selectable options, just search metadata on an otherwise fixed SKU.
+Since there's no separate column per spec, this pulls a best-effort CPU,
+OS, RAM, storage, display, and wireless value out of the free-text
+description into an `attributes` dict purely so Search by Requirements has
+something to match against (see app.py's ATTRIBUTE_CATEGORY_MAP) - these
+are NOT selectable options, just search metadata on an otherwise fixed
+SKU. 100% hit rate on all six across the real 370-row catalog as of
+2026-08-17 (verified, not assumed) - if a future price-list refresh
+introduces a genuinely new phrasing these regexes don't cover, a row will
+just silently lack that one attribute rather than error.
 
 Usage:
     python parse_getac.py <path-to-xlsx> [--out parts.json]
@@ -54,6 +59,57 @@ def extract_os(description):
     return None
 
 
+def extract_ram(description):
+    if not description:
+        return None
+    m = re.search(r"(\d+)\s*GB\s+RAM", description, re.IGNORECASE)
+    return f"{m.group(1)}GB" if m else None
+
+
+def extract_storage(description):
+    if not description:
+        return None
+    m = re.search(r"(\d+)\s*(GB|TB)\s+(?:PCIe\s+SSD|Storage)", description, re.IGNORECASE)
+    return f"{m.group(1)}{m.group(2).upper()}" if m else None
+
+
+def extract_display(description):
+    """Size + resolution + touch, e.g. '13.3" Full HD Touchscreen'. Size is
+    pulled from whichever comma-separated clause mentions "webcam" - the
+    source consistently pairs display size with the webcam mention, but the
+    quote-mark character after the number is corrupted (mojibake) on
+    several rows (e.g. S510AD), so this deliberately doesn't require a
+    literal `"` - just the leading number in that clause."""
+    if not description:
+        return None
+    size = None
+    for segment in description.split(","):
+        if "webcam" in segment.lower():
+            m = re.search(r"(\d+\.?\d*)", segment)
+            if m:
+                size = m.group(1) + '"'
+            break
+    res_m = re.search(r"\b(Full HD|WUXGA|HD)\b", description, re.IGNORECASE)
+    resolution = res_m.group(1) if res_m else None
+    touch = bool(re.search(r"Touchscreen", description, re.IGNORECASE))
+    parts = [p for p in (size, resolution, "Touchscreen" if touch else None) if p]
+    return " ".join(parts) if parts else None
+
+
+def extract_wireless(description):
+    if not description:
+        return None
+    parts = []
+    if re.search(r"\bWi[- ]?Fi\b", description, re.IGNORECASE):
+        parts.append("WiFi")
+    if re.search(r"\bBT\b", description):
+        parts.append("BT")
+    cell_m = re.search(r"\b(4G LTE|5G Sub-6|5G)\b", description, re.IGNORECASE)
+    if cell_m:
+        parts.append(cell_m.group(1))
+    return " + ".join(parts) if parts else None
+
+
 def parse_workbook(path, brand="Getac"):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb[wb.sheetnames[0]]  # single-sheet workbook; sheet name has a stray encoding artifact
@@ -79,6 +135,18 @@ def parse_workbook(path, brand="Getac"):
         os_name = extract_os(description)
         if os_name:
             attributes["os"] = os_name
+        ram = extract_ram(description)
+        if ram:
+            attributes["ram"] = ram
+        storage = extract_storage(description)
+        if storage:
+            attributes["storage"] = storage
+        display = extract_display(description)
+        if display:
+            attributes["display"] = display
+        wireless = extract_wireless(description)
+        if wireless:
+            attributes["wireless"] = wireless
 
         parts.append({
             "brand": brand,
@@ -111,16 +179,20 @@ def main():
     out_path.write_text(json.dumps(parts, indent=2), encoding="utf-8")
 
     by_platform = {}
-    with_cpu = 0
+    attr_hits = {"cpu": 0, "os": 0, "ram": 0, "storage": 0, "display": 0, "wireless": 0}
     for p in parts:
         by_platform.setdefault(p["platform"], 0)
         by_platform[p["platform"]] += 1
-        if p["attributes"].get("cpu"):
-            with_cpu += 1
+        for k in attr_hits:
+            if p["attributes"].get(k):
+                attr_hits[k] += 1
 
-    print(f"Parsed {len(parts)} SKUs across {len(by_platform)} platforms ({with_cpu} with a detected CPU):")
+    print(f"Parsed {len(parts)} SKUs across {len(by_platform)} platforms:")
     for platform, count in sorted(by_platform.items()):
         print(f"  {platform}: {count}")
+    print("Attribute hit rates:")
+    for k, n in attr_hits.items():
+        print(f"  {k}: {n}/{len(parts)}")
     print(f"Wrote {out_path}")
 
 

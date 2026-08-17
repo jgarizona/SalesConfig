@@ -180,9 +180,10 @@ Git/
 │   │                          # sheet to sheet, plus handling for a second flat "Accessories"
 │   │                          # section some sheets have below the main matrix.
 │   ├── parse_getac.py        # Getac parser - flat, already-fixed SKU list (no per-category
-│   │                          # options at all); each row becomes one Base Unit record. Pulls a
-│   │                          # best-effort CPU/OS out of the free-text description into
-│   │                          # `attributes` purely for search (see §6).
+│   │                          # options at all); each row becomes one Base Unit record. Pulls
+│   │                          # best-effort cpu/os/ram/storage/display/wireless out of the
+│   │                          # free-text description into `attributes` purely for search
+│   │                          # (see §6) - 100% hit rate on all six, real 370-row catalog.
 │   ├── parse_cipherlab.py    # CipherLab parser - same flat-SKU shape as Getac. Platform/
 │   │                          # category come from splitting "Model Code" (e.g. "1000A
 │   │                          # Product"); no CPU field exists anywhere in this vendor's data.
@@ -394,10 +395,11 @@ safe default, so nothing slips through unreviewed by accident.
 
 `attributes` (added 2026-08-16, optional - only Getac/CipherLab rows set it): a free-form
 dict of search-only metadata pulled from free text, for brands whose data doesn't decompose
-into real per-category options (see §7). Keys in use today: `cpu` (Getac only - not present
-anywhere in CipherLab's source data), `os`, `ram`. Not selectable fields, not shown on Sales -
+into real per-category options (see §7). Keys in use today: `cpu`, `os`, `ram`, `storage`,
+`display`, `wireless` (all six Getac-only, extracted from its description column - not
+present anywhere in CipherLab's source data). Not selectable fields, not shown on Sales -
 `app.py`'s `ATTRIBUTE_CATEGORY_MAP` is what lets Search by Requirements match against them as
-if they were real Processor/OS/RAM options.
+if they were real Processor/OS/RAM/Storage/Display/Wireless options.
 
 Currently 3,551 rows: 499 JLT, 1,060 Winmate, 370 Getac, 1,622 CipherLab.
 
@@ -509,10 +511,12 @@ otherwise, not one that throws an error.
 **CPU cataloging, brand by brand** (the original ask that drove this ingest):
 - **JLT, Winmate**: real `"Processor Options"` category, one row per selectable CPU - no
   extra work needed, it's just a normal category like any other.
-- **Getac**: no category, but every description names a CPU (`"Intel Core Ultra 5 225H
-  Processor"`, `"AMD Ryzen AI 5 340 Processor"`, `"Qualcomm QCS6490"`) - extracted via regex
-  into `attributes.cpu` on the Base Unit record (100% hit rate, 370/370 rows). Also grabbed
-  `attributes.os` (Windows 11 Pro vs Android 15) the same way, since it was free.
+- **Getac**: no category, but every description packs its full spec inline - extracted via
+  regex into `attributes` on the Base Unit record (100% hit rate, 370/370 rows, on all six):
+  `cpu` (`"Intel Core Ultra 5 225H Processor"`, `"AMD Ryzen AI 5 340 Processor"`, `"Qualcomm
+  QCS6490"`), `os` (Windows 11 Pro vs Android 15), `ram` (`"16GB"`), `storage` (`"256GB"` /
+  `"1TB"`), `display` (`'13.3" Full HD Touchscreen'`), and `wireless` (`"WiFi + BT"`, `"WiFi +
+  BT + 4G LTE"`). See `ingest/parse_getac.py`'s `extract_*` functions.
 - **CipherLab**: **no CPU data exists anywhere in the source file**, including the
   Android-based RK/RS mobile-computer families - they mention Android version + RAM, never a
   chipset. Nothing was fabricated to fill this gap; `attributes.cpu` is simply absent for

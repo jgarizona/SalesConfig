@@ -131,6 +131,18 @@ Every repository change must be recorded under the date it was made and identify
   an explicit `color: #0b2545` matching the rest of the app's input text. Verified live by
   reproducing the exact failure (Sales Rep verified, type in Customer field) before and after
   the fix.
+- **[Claude]** **Expanded Getac's free-text attribute extraction from 2 fields (cpu, os) to
+  6** (cpu, os, ram, storage, display, wireless), per the user's original ask to catalog specs
+  beyond just CPU. Added `extract_ram`, `extract_storage`, `extract_display`, and
+  `extract_wireless` to `ingest/parse_getac.py`, each pulling its value out of the same
+  Description free text `extract_cpu`/`extract_os` already used. `extract_display` needed a
+  workaround: source rows consistently pair display size with the nearby "webcam" mention in
+  a comma-separated clause, but the literal `"` character after the size number is corrupted
+  (mojibake) on several rows (e.g. S510AD) — so it matches the leading number in that clause
+  instead of requiring the quote mark. Re-ingested the real 370-row Getac catalog and verified
+  all six attributes hit 100% (370/370). Wired all six into `app.py`'s
+  `ATTRIBUTE_CATEGORY_MAP` (was cpu/os/ram only) so Search by Requirements can filter Getac
+  units by storage, display, and wireless too, not just cpu/os/ram.
 
 ## 2026-08-16
 
