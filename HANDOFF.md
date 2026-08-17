@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `9c7e54f` — by Claude Code — 2026-08-16 23:41 -0500
+**Last reviewed up to:** HEAD `a93de69` — by Claude Code — 2026-08-17 00:28 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -563,6 +563,15 @@ already brand-agnostic and needed no changes.
   increasingly blocked/suppressed with no error). Both were rebuilt as real inline UI. If
   you're tempted to reach for `prompt()`/`alert()`/`confirm()` anywhere in `sales.html`,
   don't — build an inline field or panel instead, same pattern as Customer/Copy/Search.
+- **Any custom button-styled widget needs an explicit `color`, not just `background`.**
+  `button, .btn` sets a global `color: white`; a widget that only overrides `background:
+  white` (like `.wselect-trigger` did, fixed 2026-08-17) silently inherits white text on a
+  white background - invisible, not broken in any way the DOM/console shows (text is present,
+  computed style just matches the background). **This bug was specifically invisible to
+  casual testing**: `.wselect-trigger` only renders this way once Sales Rep is verified
+  (before that it's `:disabled`, which has its own correct color) - testing that never
+  verifies a rep won't catch it. If you add a new custom form control anywhere in this app,
+  check its computed `color` in the *enabled* state, not just that it renders at all.
 
 ---
 

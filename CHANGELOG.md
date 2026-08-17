@@ -25,6 +25,23 @@ Every repository change must be recorded under the date it was made and identify
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
+## 2026-08-17
+
+- **[Claude]** **Fixed: category/option dropdowns (Base Unit, Processor Options, etc. on
+  Sales, and the Search by Requirements modal's fields) rendered invisible white-on-white
+  text once the page became interactive** (Sales Rep verified). Root cause: `.wselect-trigger`
+  (the custom dropdown widget's button - built to work around native `<select>` not wrapping
+  long option text) never set its own `color` for the enabled state, only for `:disabled`. It
+  fell through to the generic `button, .btn { color: white }` rule while its own `background:
+  white` also applied - white text on a white background, DOM/JS state fully correct
+  underneath (confirmed via computed-style inspection: text was present, just invisible).
+  This is a pre-existing bug, not something introduced by tonight's other changes - it went
+  unnoticed in this session's own testing because that testing never happened past Sales Rep
+  verification, which is the only state where it's visible. Fixed by giving `.wselect-trigger`
+  an explicit `color: #0b2545` matching the rest of the app's input text. Verified live by
+  reproducing the exact failure (Sales Rep verified, type in Customer field) before and after
+  the fix.
+
 ## 2026-08-16
 
 - **[Claude]** Replaced the "Lookup Saved Quote" panel's growing row of buttons with a real

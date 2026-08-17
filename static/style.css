@@ -107,6 +107,7 @@ select {
   border: 1px solid #ccd2dc;
   border-radius: 6px;
   background: white;
+  color: #0b2545;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
