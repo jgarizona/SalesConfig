@@ -558,20 +558,20 @@
       btnCustomerAccept.classList.toggle("flash", pending && repVerified);
     }
 
-    // Populate only makes sense for a manually-typed customer - there's no
-    // HubSpot deal behind it to pull a real Opportunity ID from, so this is a
-    // stand-in until that connector exists. Customer Lookup, in the absence
-    // of a real connector, is being used to simulate what picking a real
-    // HubSpot customer would look like - so a "lookup" selection this
-    // session shows the "HubSpot Customer" badge and hides Populate, same as
-    // a real connected pull would, even though the record itself is still
-    // just local customers.json data (Admin's reporting isn't affected by
-    // this - it reads the real `source` field server-side, not this badge).
+    // Populate fills Opportunity ID with the customer name as a starting
+    // point - needed for BOTH customer paths today, not just Manual: there
+    // is no real HubSpot connector yet, so a "lookup" (simulated HubSpot)
+    // customer has no more of a real deal ID behind it than a manually-typed
+    // one does. Hiding it for "lookup" originally (2026-08-17) left no way
+    // to get an Opportunity ID at all for that path short of typing directly
+    // into the field - a real dead end the user hit in testing. Once a real
+    // connector exists and can supply a genuine deal ID for "lookup"
+    // customers, THAT'S when this should go back to Manual-only.
     function updatePopulateVisibility() {
       const isSimulatedHubspot = customerSource === "lookup";
       const isManual = customerSource === "manual";
 
-      btnPopulateOpp.style.display = isManual ? "inline-block" : "none";
+      btnPopulateOpp.style.display = (isManual || isSimulatedHubspot) ? "inline-block" : "none";
       btnPopulateOpp.disabled = !repVerified;
 
       if (isManual) {

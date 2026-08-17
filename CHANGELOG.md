@@ -27,6 +27,16 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** **Fixed a real dead end: Populate was hidden for the Customer-Lookup
+  (simulated HubSpot) path, leaving no way to get an Opportunity ID at all for that path.**
+  The user hit this directly: selected a customer via Customer Lookup, accepted a
+  configuration, and Save was blocked on a required Opportunity ID with no visible way to
+  supply one (Populate only showed for Manual customers; typing directly into the field
+  still worked but nothing in the UI said so). Root cause was my own earlier reasoning that a
+  real HubSpot connector would supply a real deal ID for "lookup" customers - true once that
+  connector exists, not true today. Populate now shows for both customer paths until a real
+  connector actually can supply one. Verified live: Customer Lookup → Acme Manufacturing →
+  Populate → Opportunity ID fills with "Acme Manufacturing" → Save unblocked.
 - **[Claude]** **"Lookup Saved Quote" now scopes results and supports copying an orphaned
   quote's configuration onto a real customer, per the user.** When the active customer was
   found via Customer Lookup (simulating a real HubSpot pull), results are limited to that

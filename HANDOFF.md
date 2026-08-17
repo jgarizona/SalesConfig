@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `f83acb6` — by Claude Code — 2026-08-17 08:42 -0500
+**Last reviewed up to:** HEAD `a4829ac` — by Claude Code — 2026-08-17 09:05 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -281,8 +281,13 @@ The big one. Top-to-bottom:
    HubSpot for a matching open opportunity instead)"** note (added 2026-08-16) shows only for
    a Manual-path customer — see point 2 above; a Lookup-path (simulated HubSpot) customer
    skips it, since that path is already pretending to be connected.
-   - **Populate** button (only visible when the current customer is manual, not a HubSpot
-     record): fills this field with the customer name as a starting point.
+   - **Populate** button: fills this field with the customer name as a starting point.
+     Visible for **both** customer paths (Manual and Customer-Lookup/simulated-HubSpot) as of
+     2026-08-17 - originally Manual-only, but there's no real HubSpot connector for the
+     "lookup" path either, so hiding it there left no way to get an Opportunity ID at all
+     short of typing directly into the field (a real dead end the user hit in testing). Once
+     a real connector exists and can supply a genuine deal ID for "lookup" customers, that's
+     when this should go back to Manual-only.
    - **Lookup Saved Quote** button: searches saved quotes by customer/opportunity/platform/
      quote ID, not just ones under whatever's currently typed here. **Scoped when the active
      customer came from Customer Lookup** (added 2026-08-17, per the user): results are
