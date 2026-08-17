@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `f70c610` — by Claude Code — 2026-08-17 10:47 -0500
+**Last reviewed up to:** HEAD `76d76f5` — by Claude Code — 2026-08-17 10:47 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
