@@ -27,6 +27,18 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Reworked the Customer badge on Sales to simulate a HubSpot connection based on
+  *how* a customer was selected this session, per the user - deliberately reintroducing the
+  session-based distinction that a 2026-08-15 fix had replaced with the record's real `source`
+  field. Rationale: there's no real HubSpot connector to test against yet, so Customer Lookup
+  is standing in for "pull from HubSpot" - picking a customer that way now shows a green
+  **"HubSpot Customer"** badge and hides Populate/the "not connected" note, as if a real
+  connected lookup had found it. Typing via Manual Customer still shows **"Manual — not in
+  HubSpot"** (amber) with Populate and the note, unchanged. Critically, `customers.json`'s real
+  `source` field and Admin's "pending HubSpot link" report are **untouched** — this is a
+  Sales-page-only display simulation using a separate session variable, not a change to what's
+  actually stored or reported, so Admin can still be tested against genuinely
+  manually-entered customers. Verified live both paths render correctly and independently.
 - **[Claude]** Added a **"(Not connected to HubSpot...)" note** next to the Opportunity ID
   "Select one →" hint badge, per the user: once a customer is picked but no Opportunity ID
   exists yet, this is exactly the point where a real HubSpot connector would search for a

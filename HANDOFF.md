@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `ab3bc24` — by Claude Code — 2026-08-16 21:44 -0500
+**Last reviewed up to:** HEAD `889ad80` — by Claude Code — 2026-08-16 22:09 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -246,17 +246,36 @@ The big one. Top-to-bottom:
    rest of the page is disabled until this succeeds** — see §8, this is explicitly *not*
    real security.
 2. **Customer** field — always directly typeable. Typing something new flashes a green
-   **Accept** button (nothing saves until clicked, or Enter). A badge next to the label
-   shows "Manual — not in HubSpot" (amber) or "Existing customer" (green, currently never
-   true since no customer is ever real HubSpot data yet) based on the customer record's
-   actual `source` field — **not** how it was selected this session (a real bug that was
-   fixed once: don't reintroduce it).
+   **Accept** button (nothing saves until clicked, or Enter). A badge next to the label shows
+   "Manual — not in HubSpot" (amber, Populate button shown) or "HubSpot Customer" (green,
+   Populate hidden) based on **how the customer was selected this session** — Manual
+   Customer + Accept vs. Customer Lookup — a client-only `customerSource` variable in
+   `sales.html`, **deliberately decoupled from the record's real `source` field in
+   `customers.json`** (decided by the user, 2026-08-16). Reasoning: there's no real HubSpot
+   connector yet, so Customer Lookup is standing in for "pull from HubSpot" - picking a
+   customer that way is meant to *look* like a real connected pull found it, even though the
+   record itself is still just local `customers.json` data.
+   - **This was a deliberate reversal of an earlier fix**, not an oversight — a 2026-08-15
+     entry describes fixing exactly this "session-based badge" behavior in favor of the real
+     `source` field, because picking an existing manual customer via Lookup was wrongly
+     showing the "existing/real" badge. That concern doesn't apply here: Admin's "pending
+     HubSpot link" report and `customers.json`'s real `source` field are **untouched** by
+     this — they still reflect genuine data, so Admin reporting can still be tested against
+     real manually-entered customers regardless of what the Sales page badge shows. If you
+     touch this again, keep those two decoupled: the *badge* may lie for simulation purposes,
+     the *stored data* must not.
    - **Customer Lookup** button: opens a live-filtered panel using the Customer field itself
-     as the filter (no separate search box).
+     as the filter (no separate search box). Selecting a result sets `customerSource =
+     "lookup"` unconditionally (see above) and skips the Opportunity ID "not connected to
+     HubSpot" note (below) — the note only shows for the Manual path.
    - **Manual Customer** button: just focuses/selects the field for typing.
 3. **Opportunity ID** — free-text, manually entered (HubSpot deal ID stand-in). Exact-match,
    case-sensitive, no normalization — a typo creates a whole new opportunity silently. A
    blue "Select one →" hint badge appears once a customer is chosen but this is still empty.
+   Next to it, a muted **"(Not connected to HubSpot — once connected, this step will search
+   HubSpot for a matching open opportunity instead)"** note (added 2026-08-16) shows only for
+   a Manual-path customer — see point 2 above; a Lookup-path (simulated HubSpot) customer
+   skips it, since that path is already pretending to be connected.
    - **Populate** button (only visible when the current customer is manual, not a HubSpot
      record): fills this field with the customer name as a starting point.
    - **Lookup Saved Quote** button: searches *all* saved quotes by customer/opportunity/

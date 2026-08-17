@@ -160,9 +160,18 @@
     // not just whatever the dropdowns happened to default to.
     let configAccepted = false;
     let selectedCustomer = "";
-    // Tracks how the current customer was set: "manual" (typed + Accept, no
-    // existing HubSpot/CRM record to draw an Opportunity ID from) vs "lookup"
-    // (picked an existing customer). Only "manual" shows the Populate button.
+    // Tracks how the current customer was set THIS SESSION: "manual" (typed +
+    // Accept) vs "lookup" (picked via the Customer Lookup panel) - NOT the
+    // customer record's real `source` field in customers.json (that stays
+    // untouched and still drives Admin's "pending HubSpot link" report
+    // server-side). Deliberate, per the user 2026-08-16: there's no real
+    // HubSpot connection yet, so Customer Lookup is being used to *simulate*
+    // a HubSpot pull for demo/testing purposes - picking a customer that way
+    // shows a "HubSpot Customer" badge and skips Populate/the "not connected"
+    // note, even though the underlying record is still just a local
+    // customers.json entry. Once a real connector exists, this simulation
+    // goes away and the real `source` field (already returned by
+    // /api/customers) takes back over.
     let customerSource = "";
 
     function normCategory(c) { return c.trim().replace(/:$/, ""); }
@@ -475,11 +484,11 @@
       const needsHint = !!selectedCustomer && !oppInput.value.trim() && !loadedQuote;
       opportunityHintBadge.textContent = needsHint ? "Select one →" : "";
       opportunityHintBadge.className = "source-badge hint" + (needsHint ? " show" : "");
-      // Today this is always true (no customer is ever source:"hubspot" yet -
-      // the connector doesn't exist). Once it does, a real hubspot-sourced
-      // customer would skip this note and trigger an actual HubSpot search
-      // instead - see api/customers and the source field it already tracks.
-      const showHubspotNote = needsHint && customerSource !== "hubspot";
+      // Only for the "manual" path (typed + Accept) - a "lookup" selection is
+      // simulating a real HubSpot pull (see updatePopulateVisibility()), so
+      // showing "not connected" there would contradict the customer badge
+      // right above it.
+      const showHubspotNote = needsHint && customerSource === "manual";
       opportunityHubspotNote.style.display = showHubspotNote ? "inline" : "none";
     }
 
@@ -520,26 +529,25 @@
 
     // Populate only makes sense for a manually-typed customer - there's no
     // HubSpot deal behind it to pull a real Opportunity ID from, so this is a
-    // stand-in until that connector exists. The badge is the visual cue for
-    // the same underlying state: is this customer a real looked-up record,
-    // or just typed in and not yet tied to anything in HubSpot?
-    // customerSource now holds the customer record's REAL source ("manual",
-    // "test", or in future "hubspot"), not "how it was picked this session" -
-    // an existing manual/test customer selected via Lookup is still not a
-    // real HubSpot record, so it still needs the Manual badge and Populate.
-    // Only source:"hubspot" (once that connector exists) counts as "existing".
+    // stand-in until that connector exists. Customer Lookup, in the absence
+    // of a real connector, is being used to simulate what picking a real
+    // HubSpot customer would look like - so a "lookup" selection this
+    // session shows the "HubSpot Customer" badge and hides Populate, same as
+    // a real connected pull would, even though the record itself is still
+    // just local customers.json data (Admin's reporting isn't affected by
+    // this - it reads the real `source` field server-side, not this badge).
     function updatePopulateVisibility() {
-      const isHubspot = customerSource === "hubspot";
-      const needsManualTreatment = !!customerSource && !isHubspot;
+      const isSimulatedHubspot = customerSource === "lookup";
+      const isManual = customerSource === "manual";
 
-      btnPopulateOpp.style.display = needsManualTreatment ? "inline-block" : "none";
+      btnPopulateOpp.style.display = isManual ? "inline-block" : "none";
       btnPopulateOpp.disabled = !repVerified;
 
-      if (needsManualTreatment) {
+      if (isManual) {
         customerSourceBadge.textContent = "Manual — not in HubSpot";
         customerSourceBadge.className = "source-badge manual";
-      } else if (isHubspot) {
-        customerSourceBadge.textContent = "Existing customer";
+      } else if (isSimulatedHubspot) {
+        customerSourceBadge.textContent = "HubSpot Customer";
         customerSourceBadge.className = "source-badge lookup";
       } else {
         customerSourceBadge.textContent = "";
@@ -605,12 +613,10 @@
         btn.className = "btn quote-chip";
         btn.textContent = c.name;
         btn.addEventListener("click", () => {
-          // Use the record's real source, not "however it was found this
-          // session" - picking an existing manual/test customer from the
-          // list is still not a real HubSpot record, so it still needs the
-          // Manual badge and Populate button. Only a genuine source:"hubspot"
-          // record (once that connector exists) counts as "existing".
-          customerSource = c.source;
+          // Picking a customer via Customer Lookup simulates a HubSpot pull
+          // (no real connector yet - see updatePopulateVisibility()), so this
+          // is always "lookup" regardless of the record's real `source` field.
+          customerSource = "lookup";
           updatePopulateVisibility();
           setCustomer(c.name);
           customerPanel.style.display = "none";
