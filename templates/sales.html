@@ -42,6 +42,12 @@
           <button type="button" id="btn-customer-new" class="btn">Manual Customer</button>
         </div>
       </div>
+      <div class="qh-row" style="margin-top:-4px;">
+        <div class="qh-field"></div>
+        <div class="qh-buttons">
+          <button type="button" id="btn-customer-clear" class="btn">Clear</button>
+        </div>
+      </div>
       <div id="customer-panel" class="lookup-panel" style="display:none;"></div>
 
       <div class="qh-row">
@@ -214,6 +220,7 @@
     const btnCopy = document.getElementById("btn-copy");
     const btnCustomerLookup = document.getElementById("btn-customer-lookup");
     const btnCustomerNew = document.getElementById("btn-customer-new");
+    const btnCustomerClear = document.getElementById("btn-customer-clear");
     const btnCustomerAccept = document.getElementById("btn-customer-accept");
     const btnQuoteLookup = document.getElementById("btn-quote-lookup");
     const btnPopulateOpp = document.getElementById("btn-populate-opp");
@@ -668,6 +675,20 @@
       customerInput.select();
     }
 
+    // Resets the Customer field and everything derived from it (badge,
+    // Populate visibility, the Opportunity ID hint/note, any leftover
+    // confirmation/error message) back to "no customer selected" - e.g. to
+    // start over after picking or typing the wrong one. Deliberately leaves
+    // the Sales Rep, Opportunity ID, and configuration untouched.
+    function clearCustomer() {
+      closePanels();
+      customerSource = "";
+      setCustomer("");
+      updatePopulateVisibility();
+      showMessage("", false);
+      customerInput.focus();
+    }
+
     // ------------------------------------------------------ Requirements search
     // Pick some (optional) desired specs, search across every approved base
     // unit for ones that have all of them, then hand the chosen brand+platform
@@ -981,6 +1002,7 @@
       btnCopy.addEventListener("click", openCopyPanel);
       btnCustomerLookup.addEventListener("click", openCustomerLookup);
       btnCustomerNew.addEventListener("click", focusManualCustomer);
+      btnCustomerClear.addEventListener("click", clearCustomer);
       btnCustomerAccept.addEventListener("click", acceptCustomer);
       btnQuoteLookup.addEventListener("click", openQuoteLookup);
       btnPopulateOpp.addEventListener("click", populateOpportunityId);

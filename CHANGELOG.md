@@ -27,6 +27,14 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Added a **Clear** button under the Customer row's button group on Sales,
+  right below Manual Customer, per the user. Resets the Customer field, the source badge,
+  Populate visibility, the Opportunity ID hint/note, and any leftover confirmation/error
+  message back to "no customer selected" - deliberately leaves Sales Rep/code verification,
+  Opportunity ID, and the Brand/Platform/option selections untouched. (First attempt at the
+  layout broke the Customer row - a `flex-wrap` + `width:100%` combination on the button
+  group pushed the Customer label/input below the buttons entirely. Fixed by giving Clear its
+  own row instead of forcing a wrap inside the existing one.)
 - **[Claude]** Reworked the Customer badge on Sales to simulate a HubSpot connection based on
   *how* a customer was selected this session, per the user - deliberately reintroducing the
   session-based distinction that a 2026-08-15 fix had replaced with the record's real `source`
