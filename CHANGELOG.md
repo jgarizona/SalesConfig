@@ -27,6 +27,14 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Replaced the "Lookup Saved Quote" panel's growing row of buttons with a real
+  `<select>` dropdown, per the user - the API already returned every quote_number and
+  rev_number for an Opportunity ID, but the UI rendered each as its own button, which
+  wouldn't scale or scroll cleanly with many revisions. A native `<select>` handles scrolling
+  automatically once opened. Each option now also shows the last-updated timestamp, not just
+  the display ID/lock icon/platform. Verified by injecting 5 test quotes under one
+  Opportunity ID (removed after verifying) and confirming both the dropdown populates
+  correctly and selecting an entry loads the right quote.
 - **[Claude]** Flash Populate and Lookup Saved Quote once a customer is selected but no
   Opportunity ID exists yet - the "Select one →" hint badge already pointed at these two
   buttons, but the buttons themselves never actually flashed, only Accept-style buttons did.

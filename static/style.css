@@ -342,6 +342,16 @@ button:hover, .btn:hover { background: #143a6b; }
 }
 .quote-chip:hover { background: #eef1f6; }
 
+.existing-quotes-select {
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 13px;
+  border: 1px solid #ccd2dc;
+  border-radius: 6px;
+  background: white;
+  color: #0b2545;
+}
+
 .stat-grid {
   display: flex;
   gap: 16px;

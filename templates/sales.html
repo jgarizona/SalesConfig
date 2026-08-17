@@ -858,18 +858,33 @@
         existingQuotesDiv.innerHTML = '<span class="muted">No existing quotes yet for this Opportunity ID — saving will create the first one.</span>';
         return;
       }
+      // API already returns every quote_number AND rev_number under this
+      // Opportunity ID, sorted - a real dropdown (native <select>) rather
+      // than a growing row of buttons, since that scrolls natively once
+      // there are many revisions instead of just wrapping/piling up.
       const label = document.createElement("div");
       label.className = "muted";
-      label.textContent = "Existing quotes for this Opportunity — click to load:";
+      label.textContent = `${list.length} existing quote${list.length === 1 ? "" : "s"} for this Opportunity — select one to load:`;
       existingQuotesDiv.appendChild(label);
+
+      const select = document.createElement("select");
+      select.className = "existing-quotes-select";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Select a quote/revision…";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
       list.forEach(q => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn quote-chip";
-        btn.textContent = q.display_id + (q.locked ? " 🔒" : "") + ` — ${q.platform}`;
-        btn.addEventListener("click", () => loadQuote(oppId, q.quote_number));
-        existingQuotesDiv.appendChild(btn);
+        const opt = document.createElement("option");
+        opt.value = q.quote_number;
+        opt.textContent = q.display_id + (q.locked ? " 🔒 " : " ") + `— ${q.platform} — updated ${q.updated_at}`;
+        select.appendChild(opt);
       });
+      select.addEventListener("change", () => {
+        if (select.value) loadQuote(oppId, parseInt(select.value, 10));
+      });
+      existingQuotesDiv.appendChild(select);
     }
 
     async function loadQuote(oppId, quoteNumber) {
