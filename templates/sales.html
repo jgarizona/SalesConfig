@@ -830,7 +830,13 @@
       const filterInput = quoteLookupPanel.querySelector(".lookup-filter");
       const resultsDiv = quoteLookupPanel.querySelector(".lookup-results");
 
-      const res = await fetch("/api/quotes/all");
+      // Scope results to "this customer's own quotes + orphaned ones" only
+      // when the active customer is a Customer-Lookup (simulated HubSpot)
+      // pick - a manually-typed customer has no real identity to scope by,
+      // so it sees everything, same as before this feature existed.
+      const scoped = customerSource === "lookup" && selectedCustomer;
+      const url = scoped ? `/api/quotes/all?customer=${encodeURIComponent(selectedCustomer)}` : "/api/quotes/all";
+      const res = await fetch(url);
       const all = await res.json();
 
       function render() {
@@ -851,9 +857,15 @@
           btn.type = "button";
           btn.className = "btn quote-chip";
           const cust = item.customer ? item.customer + " — " : "";
-          btn.textContent = `${cust}${item.display_id}${item.locked ? " 🔒" : ""} — ${item.platform}`;
+          const isForeign = scoped && item.customer !== selectedCustomer;
+          btn.textContent = `${cust}${item.display_id}${item.locked ? " 🔒" : ""} — ${item.platform}` +
+            (isForeign ? " (copy config to " + selectedCustomer + ")" : "");
           btn.addEventListener("click", () => {
-            loadQuote(item.opportunity_id, item.quote_number);
+            if (isForeign) {
+              copyQuoteConfigToCurrentCustomer(item.opportunity_id, item.quote_number);
+            } else {
+              loadQuote(item.opportunity_id, item.quote_number);
+            }
             quoteLookupPanel.style.display = "none";
           });
           resultsDiv.appendChild(btn);
@@ -912,17 +924,45 @@
       existingQuotesDiv.appendChild(select);
     }
 
+    function applyQuoteConfig(q) {
+      const preset = {};
+      q.selections.forEach(l => preset[l.category] = l.code);
+      selectBrandAndPlatform(q.brand || "JLT", q.platform, preset);
+    }
+
     async function loadQuote(oppId, quoteNumber) {
       const res = await fetch(`/api/quotes/${encodeURIComponent(oppId)}/${quoteNumber}`);
       if (!res.ok) { showMessage("Could not load that quote.", true); return; }
       const q = await res.json();
       oppInput.value = q.opportunity_id;
-      const preset = {};
-      q.selections.forEach(l => preset[l.category] = l.code);
-      selectBrandAndPlatform(q.brand || "JLT", q.platform, preset);
+      applyQuoteConfig(q);
       showQuote(q);
       refreshExistingQuotes();
       showMessage("Loaded " + q.display_id + ".", false);
+    }
+
+    // Picked from Lookup Saved Quote while a real (Customer-Lookup-found)
+    // customer is active, and the picked quote belongs to someone else (an
+    // orphaned, not-yet-HubSpot-linked customer per the server-side filter
+    // in /api/quotes/all). Rather than taking over editing THEIR quote
+    // under the wrong customer, seed a brand-new, not-yet-saved quote for
+    // the customer currently active here with the same configuration.
+    // Customer field and Opportunity ID are deliberately left alone (the
+    // rep still needs their own Opportunity ID for this new quote) and the
+    // original quote is never written to - no save/update call references
+    // it at all.
+    async function copyQuoteConfigToCurrentCustomer(oppId, quoteNumber) {
+      const res = await fetch(`/api/quotes/${encodeURIComponent(oppId)}/${quoteNumber}`);
+      if (!res.ok) { showMessage("Could not load that quote.", true); return; }
+      const q = await res.json();
+      applyQuoteConfig(q);
+      loadedQuote = null;
+      onUserChange();
+      showMessage(
+        `Copied ${q.display_id}'s configuration to ${selectedCustomer || "the current customer"} — ` +
+        `set an Opportunity ID and Accept to save as a new quote. ${q.display_id} itself was not changed.`,
+        false
+      );
     }
 
     async function saveQuote() {

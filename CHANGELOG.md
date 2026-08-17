@@ -27,6 +27,29 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** **"Lookup Saved Quote" now scopes results and supports copying an orphaned
+  quote's configuration onto a real customer, per the user.** When the active customer was
+  found via Customer Lookup (simulating a real HubSpot pull), results are limited to that
+  customer's own quotes plus quotes belonging to customers not yet linked to HubSpot
+  (`source: "manual"`) — a real HubSpot search wouldn't surface some other unrelated
+  customer's quotes. Picking one of those "orphaned" results doesn't take over editing it —
+  it copies the configuration onto a new, not-yet-saved quote for the currently active
+  customer (`copyQuoteConfigToCurrentCustomer()`), leaving the Customer field, Opportunity
+  ID, and — critically — **the original quote record completely untouched** (no save/update
+  call ever references it). A manually-typed active customer sees every quote, unscoped,
+  same as always. Server side: `/api/quotes/all` gained an optional `?customer=` filter.
+  Verified live end-to-end: selected "Acme Manufacturing" via Customer Lookup, opened Lookup
+  Saved Quote, confirmed only the one orphaned quote ("test-1-0", customer `source:"manual"`)
+  appeared and was labeled "(copy config to Acme Manufacturing)"; selecting it correctly left
+  Customer/Opportunity ID untouched, reset Quote#/Rev# to unsaved, populated the real saved
+  configuration (not defaults); confirmed via MD5 checksum that `quotes.json` was **byte-
+  identical** before and after — the original quote was genuinely never written to.
+- **[Claude]** Also finally logged and documented (previously shipped live for the user's own
+  testing, undocumented until now): **`/api/customers` excludes `source: "manual"` records
+  from Customer Lookup results** — a manually-created customer is confirmed not to be in
+  HubSpot, so a real HubSpot search wouldn't find them either. `source: "test"` stays
+  included (that's what those exist for). Does not affect Admin's "pending HubSpot link"
+  report or saving — both read/write `customers.json` directly, not through this endpoint.
 - **[Claude]** Three Sales-page fixes per the user, tested together:
   - **Fixed: the "Lookup Saved Quote" dropdown reverted to the "Select a quote/revision…"
     placeholder immediately after selecting an entry**, instead of showing the loaded quote

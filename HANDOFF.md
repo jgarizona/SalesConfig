@@ -6,7 +6,7 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `6a75ab3` — by Claude Code — 2026-08-17 07:57 -0500
+**Last reviewed up to:** HEAD `6f15ba2` — by Claude Code — 2026-08-17 08:41 -0500
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -267,7 +267,12 @@ The big one. Top-to-bottom:
    - **Customer Lookup** button: opens a live-filtered panel using the Customer field itself
      as the filter (no separate search box). Selecting a result sets `customerSource =
      "lookup"` unconditionally (see above) and skips the Opportunity ID "not connected to
-     HubSpot" note (below) — the note only shows for the Manual path.
+     HubSpot" note (below) — the note only shows for the Manual path. **`/api/customers`
+     excludes `source: "manual"` records from these results** (added 2026-08-17) — a customer
+     created via Manual Customer is confirmed not to be in HubSpot, so a real HubSpot search
+     wouldn't find them either; `source: "test"` stays included since those exist to exercise
+     this exact panel. Does not affect Admin's "pending HubSpot link" report, which reads
+     `customers.json` directly server-side, not through this endpoint.
    - **Manual Customer** button: just focuses/selects the field for typing.
 3. **Opportunity ID** — free-text, manually entered (HubSpot deal ID stand-in). Exact-match,
    case-sensitive, no normalization — a typo creates a whole new opportunity silently. A
@@ -278,8 +283,20 @@ The big one. Top-to-bottom:
    skips it, since that path is already pretending to be connected.
    - **Populate** button (only visible when the current customer is manual, not a HubSpot
      record): fills this field with the customer name as a starting point.
-   - **Lookup Saved Quote** button: searches *all* saved quotes by customer/opportunity/
-     platform/quote ID, not just ones under whatever's currently typed here.
+   - **Lookup Saved Quote** button: searches saved quotes by customer/opportunity/platform/
+     quote ID, not just ones under whatever's currently typed here. **Scoped when the active
+     customer came from Customer Lookup** (added 2026-08-17, per the user): results are
+     limited to that customer's own quotes plus quotes belonging to customers not yet linked
+     to HubSpot (`source: "manual"`) - a real HubSpot search wouldn't surface some *other*
+     unrelated customer's quotes. A manually-typed active customer sees everything,
+     unscoped, same as before this existed. Picking one of the "orphaned" (foreign-customer)
+     results doesn't load/take over that quote - it **copies its configuration onto a new,
+     not-yet-saved quote for the currently active customer** (`copyQuoteConfigToCurrentCustomer()`
+     in `sales.html`) and leaves the Customer field, Opportunity ID, and the original quote
+     record completely untouched (no save/update call ever references the source quote). The
+     rep still has to supply their own Opportunity ID and Accept before this new quote can be
+     saved. Picking a result that already belongs to the active customer loads/edits it
+     normally, same as always.
 4. **Quote # / Rev #** readout boxes (auto-assigned on Save, not user-entered) + **Copy to
    New Opportunity** (opens an inline panel — new Opportunity ID + optional new Customer —
    clones the current config to a fresh quote lineage starting at Rev 0).

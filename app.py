@@ -900,7 +900,21 @@ def api_quotes_for_opportunity():
 @app.route("/api/quotes/all")
 def api_quotes_all():
     """Every saved quote, for the Sales-page 'Lookup saved quote' panel -
-    unlike /api/quotes this isn't filtered to one Opportunity ID."""
+    unlike /api/quotes this isn't filtered to one Opportunity ID.
+
+    Optional ?customer=<name>: scopes results the way a real HubSpot search
+    would once that connector exists, per the user 2026-08-17. Only sent by
+    the client when the currently active customer was found via Customer
+    Lookup (simulating a real HubSpot pull - see sales.html's
+    `customerSource`), not for a manually-typed one. When present, returns
+    only (a) that customer's own quotes, and (b) quotes belonging to
+    customers not yet linked to HubSpot (`source: "manual"` in
+    customers.json - the same customers Admin's "pending HubSpot link"
+    report tracks) - a real search wouldn't surface some OTHER unrelated
+    customer's quotes, but SHOULD surface orphaned ones that might actually
+    belong to the customer just found, pending review. Quotes belonging to
+    a *different* named customer are excluded entirely."""
+    customer_filter = (request.args.get("customer") or "").strip()
     quotes = load_quotes()
     out = [
         {
@@ -917,18 +931,28 @@ def api_quotes_all():
         }
         for q in quotes.values()
     ]
+    if customer_filter:
+        manual_names = {c["name"] for c in load_customers() if c.get("source") == "manual"}
+        out = [q for q in out if q["customer"] == customer_filter or q["customer"] in manual_names]
     out.sort(key=lambda q: q["updated_at"], reverse=True)
     return jsonify(out)
 
 
 @app.route("/api/customers")
 def api_customers_list():
-    """Returns {name, source} per customer - the client needs `source` to
-    show the right badge/Populate button. Not just the customer's name: how
-    it was *found this session* (typed vs picked from the list) isn't the
-    same thing as whether it's actually a real HubSpot record."""
+    """Powers the Sales-page Customer Lookup panel, which simulates
+    searching HubSpot (see sales.html's customerSource handling - there's no
+    real connector yet). A customer created via Manual Customer represents
+    someone confirmed NOT to be in HubSpot, so a real HubSpot search
+    wouldn't find them either - excluded here so Lookup can't hand back a
+    "manual" record and simulate finding it in HubSpot. source:"test" stays
+    included on purpose: those are seeded specifically to exercise this
+    panel (see Admin's "Add 5 Test Customers"), standing in for what a real
+    HubSpot result would look like. This does NOT affect Admin's "pending
+    HubSpot link" report, which reads customers.json directly server-side,
+    not through this endpoint."""
     query = (request.args.get("q") or "").strip().lower()
-    customers = load_customers()
+    customers = [c for c in load_customers() if c.get("source") != "manual"]
     if query:
         customers = [c for c in customers if query in c["name"].lower()]
     out = [{"name": c["name"], "source": c.get("source", "manual")} for c in customers]
