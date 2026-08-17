@@ -497,6 +497,14 @@
       // right above it.
       const showHubspotNote = needsHint && customerSource === "manual";
       opportunityHubspotNote.style.display = showHubspotNote ? "inline-block" : "none";
+
+      // Flash both buttons the hint badge is pointing at - a badge alone was
+      // easy to miss. Populate only flashes when it's actually visible
+      // (manual path only, see updatePopulateVisibility()); Lookup Saved
+      // Quote is always a valid next step regardless of customer source, so
+      // it flashes for either path.
+      btnPopulateOpp.classList.toggle("flash", needsHint && customerSource === "manual");
+      btnQuoteLookup.classList.toggle("flash", needsHint);
     }
 
     function updateConfigAcceptState() {

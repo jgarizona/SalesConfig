@@ -27,6 +27,15 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Flash Populate and Lookup Saved Quote once a customer is selected but no
+  Opportunity ID exists yet - the "Select one →" hint badge already pointed at these two
+  buttons, but the buttons themselves never actually flashed, only Accept-style buttons did.
+  Added a `.qh-buttons .btn.flash` CSS rule (same pulsing-ring animation as
+  `.accept-btn.flash`, blue instead of green so it reads as "click this" rather than "confirm
+  this") since neither button uses the green accept-btn styling at rest. Populate only
+  flashes when it's actually visible (manual customer path only); Lookup Saved Quote flashes
+  for either customer path, since it's always a valid next step. Verified live via the
+  buttons' actual class list, since a static screenshot can't show a CSS animation reliably.
 - **[Claude]** Restyled the "not connected to HubSpot" Opportunity ID note as a pill badge
   matching the Customer badge's visual style (`source-badge manual` - amber), per the user's
   crude mockup: the earlier version was small muted inline text, not a bubble. Shortened the
