@@ -27,6 +27,11 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Restyled the "not connected to HubSpot" Opportunity ID note as a pill badge
+  matching the Customer badge's visual style (`source-badge manual` - amber), per the user's
+  crude mockup: the earlier version was small muted inline text, not a bubble. Shortened the
+  text to "Not connected to HubSpot" (was a full sentence) and moved it before the "Select
+  one →" hint instead of after, matching the mockup's ordering.
 - **[Claude]** Added a **Clear** button under the Customer row's button group on Sales,
   right below Manual Customer, per the user. Resets the Customer field, the source badge,
   Populate visibility, the Opportunity ID hint/note, and any leftover confirmation/error

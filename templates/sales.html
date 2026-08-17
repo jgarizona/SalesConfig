@@ -52,7 +52,7 @@
 
       <div class="qh-row">
         <div class="qh-field wide">
-          <label>Opportunity ID <span id="opportunity-hint-badge" class="source-badge hint"></span><span id="opportunity-hubspot-note" class="muted" style="font-size:11px; margin-left:6px; display:none;">(Not connected to HubSpot — once connected, this step will search HubSpot for a matching open opportunity instead)</span></label>
+          <label>Opportunity ID <span id="opportunity-hubspot-note" class="source-badge manual" title="Once connected, this step will search HubSpot for a matching open opportunity instead" style="display:none;">Not connected to HubSpot</span> <span id="opportunity-hint-badge" class="source-badge hint"></span></label>
           <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
         </div>
         <div class="qh-buttons">
@@ -496,7 +496,7 @@
       // showing "not connected" there would contradict the customer badge
       // right above it.
       const showHubspotNote = needsHint && customerSource === "manual";
-      opportunityHubspotNote.style.display = showHubspotNote ? "inline" : "none";
+      opportunityHubspotNote.style.display = showHubspotNote ? "inline-block" : "none";
     }
 
     function updateConfigAcceptState() {
