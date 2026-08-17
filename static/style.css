@@ -301,6 +301,7 @@ button:hover, .btn:hover { background: #143a6b; }
   padding: 8px 10px;
   border-radius: 6px;
   background: #142c52;
+  color: white;
   font-size: 13px;
 }
 .quote-status.saved { background: #1e5631; }

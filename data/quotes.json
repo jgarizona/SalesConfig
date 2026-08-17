@@ -190,5 +190,101 @@
     "sales_rep": "Test",
     "created_at": "2026-08-17T09:17:00",
     "updated_at": "2026-08-17T09:54:22"
+  },
+  "Harborview Freight::1": {
+    "opportunity_id": "Harborview Freight",
+    "customer": "Harborview Freight",
+    "quote_number": 1,
+    "rev_number": 1,
+    "locked": false,
+    "ever_locked": true,
+    "brand": "JLT",
+    "platform": "1014P",
+    "selections": [
+      {
+        "category": "Base Unit:",
+        "code": "14P",
+        "description": "Rugged Fixed Mount Computer, JLT1014P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+        "Floor Price": 2660,
+        "MSRP": 5320
+      },
+      {
+        "category": "Processor Options",
+        "code": "D",
+        "description": "Intel 6413E Elkhart Lake",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "RAM Memory Options:",
+        "code": "G",
+        "description": "8 GB  RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Storage Drive Options:",
+        "code": "4",
+        "description": "60 GB CFAST",
+        "Floor Price": 110,
+        "MSRP": 220
+      },
+      {
+        "category": "Display options:",
+        "code": "P",
+        "description": "XGA LED Standard Bright with  Capacitive Touch Screen",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Internal Options:",
+        "code": "95",
+        "description": "9-36VDC input range, RS232 Serial Port with 5V power on pin 9",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Add On Options:",
+        "code": "X",
+        "description": "No Add Ons",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "IP Rating Options:",
+        "code": "1",
+        "description": "IP-65 with Rubber Plugs",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Power Cable Options:",
+        "code": "O",
+        "description": "No Bare Leads Power Cable",
+        "Floor Price": "NC",
+        "MSRP": "NC"
+      },
+      {
+        "category": "Internal Wireless",
+        "code": "KM",
+        "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Operating System:",
+        "code": "395",
+        "description": "Windows 11 IoT Enterprise LTSC",
+        "Floor Price": 60,
+        "MSRP": 90
+      }
+    ],
+    "floor_total": 2830.0,
+    "msrp_total": 5630.0,
+    "part_number": "1014P-14P-D-G-4-P-95-X-1-O-KM-395",
+    "created_by": "Test",
+    "sales_rep": "Test",
+    "created_at": "2026-08-17T10:41:36",
+    "updated_at": "2026-08-17T10:46:58"
   }
 }

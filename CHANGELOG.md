@@ -27,6 +27,18 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** **Fixed: the quote status banner's "(LOCKED)" state was unreadable** — dark
+  near-black text (inherited from `body`'s default `color: #1b1f27`) on a dark brown
+  background (`#7a3b12`). Same root pattern as the earlier `.wselect-trigger` white-on-white
+  bug: `.quote-status` set a dark `background` for all three states (default navy, saved
+  green, locked brown) but never its own `color`, so it fell through to the page default
+  instead of the white every other dark-background element in this app uses. Fixed by
+  setting `color: white` on the base `.quote-status` rule (covers all three states via
+  inheritance, not just `.locked`). Proactively scanned the rest of `static/css` for the
+  same pattern (dark background, no explicit color) - the two other hits (`.part-number`,
+  `button:hover`) both turned out to be false positives once checked against their actual
+  parent/base rule, which already supplies `color: white` via inheritance - no other real
+  instances found.
 - **[Claude]** **Every Save now locks the quote, and Rev now bumps on any real content
   change regardless of lock state** — two related changes to quote lifecycle rules, per the
   user, reported live: loaded an existing quote, changed an option, Accept, Save — Rev
