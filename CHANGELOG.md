@@ -27,6 +27,20 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** **Fixed: Opportunity ID survived Clear, and survived switching to a different
+  customer entirely**, leaving a real, confusing mismatch (Customer: Blue Ridge Industrial,
+  Opportunity ID still "Acme Manufacturing" from before) - reported live by the user after
+  clicking Clear then picking a new customer. Neither the Clear button nor any of the
+  "confirm a customer" entry points (Customer Lookup pick, Manual Customer Accept) ever
+  touched Opportunity ID before. Added `resetOpportunityIfCustomerChanging()`, called at
+  each of those three entry points before the customer actually changes: if there's a
+  non-blank Opportunity ID and the customer is genuinely changing, it's cleared along with
+  any loaded-quote state. Deliberately NOT called from `loadQuote()`/
+  `copyQuoteConfigToCurrentCustomer()`, which set their own correct Opportunity ID on
+  purpose and would have had it wiped right back out by this. Verified via direct function
+  calls reproducing the exact reported sequence (pick Acme → Populate → Clear → pick Blue
+  Ridge): Opportunity ID went `"Acme Manufacturing"` → `""` → stayed `""` for Blue Ridge,
+  never carrying the old value forward.
 - **[Claude]** **Fixed a real dead end: Populate was hidden for the Customer-Lookup
   (simulated HubSpot) path, leaving no way to get an Opportunity ID at all for that path.**
   The user hit this directly: selected a customer via Customer Lookup, accepted a

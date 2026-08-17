@@ -548,6 +548,24 @@
       updateOpportunityHint();
     }
 
+    // Call before setCustomer() at any "the rep is choosing/confirming a
+    // customer" entry point (Customer Lookup pick, Manual Accept, Clear) -
+    // NOT from loadQuote()/copyQuoteConfigToCurrentCustomer(), which set
+    // their own correct Opportunity ID deliberately and would have it wiped
+    // right back out by this if it ran there too. A previously-typed
+    // Opportunity ID almost certainly belonged to whoever was active
+    // before, not a newly-picked customer - carrying it over produced a
+    // real, confusing mismatch (Customer: Blue Ridge Industrial,
+    // Opportunity ID still "Acme Manufacturing" from before), reported live
+    // 2026-08-17.
+    function resetOpportunityIfCustomerChanging(newName) {
+      if ((newName || "") !== selectedCustomer && oppInput.value.trim()) {
+        oppInput.value = "";
+        clearQuote();
+        refreshExistingQuotes();
+      }
+    }
+
     // Accept is always visible so it's obvious the control exists - only its
     // enabled/flashing state changes, whenever the field's text doesn't match
     // the last confirmed customer. (It used to be fully hidden until pending,
@@ -649,6 +667,7 @@
           // is always "lookup" regardless of the record's real `source` field.
           customerSource = "lookup";
           updatePopulateVisibility();
+          resetOpportunityIfCustomerChanging(c.name);
           setCustomer(c.name);
           customerPanel.style.display = "none";
         });
@@ -671,7 +690,7 @@
     // that's clicked (or Enter is pressed as a shortcut for the same thing).
     async function acceptCustomer() {
       const name = customerInput.value.trim();
-      if (!name) { customerSource = ""; updatePopulateVisibility(); setCustomer(""); return; }
+      if (!name) { customerSource = ""; updatePopulateVisibility(); resetOpportunityIfCustomerChanging(""); setCustomer(""); return; }
       if (name === selectedCustomer) { updateCustomerAcceptVisibility(); return; }
 
       const res = await fetch("/api/customers", {
@@ -682,6 +701,7 @@
       if (!res.ok) { showMessage(data.error || "Could not create customer.", true); return; }
       customerSource = "manual";
       updatePopulateVisibility();
+      resetOpportunityIfCustomerChanging(data.name);
       setCustomer(data.name);
       showMessage("Added customer " + data.name + ".", false);
     }
@@ -707,6 +727,7 @@
     function clearCustomer() {
       closePanels();
       customerSource = "";
+      resetOpportunityIfCustomerChanging("");
       setCustomer("");
       updatePopulateVisibility();
       showMessage("", false);
