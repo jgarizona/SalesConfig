@@ -27,6 +27,22 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-17
 
+- **[Claude]** Three Sales-page fixes per the user, tested together:
+  - **Fixed: the "Lookup Saved Quote" dropdown reverted to the "Select a quote/revision…"
+    placeholder immediately after selecting an entry**, instead of showing the loaded quote
+    as selected. Root cause: `loadQuote()` calls `refreshExistingQuotes()` again right after
+    loading (to refresh the list), which rebuilt the `<select>` from scratch with no memory
+    of what had just been picked. Fixed by having the rebuild check `loadedQuote` and
+    pre-select the matching option when it belongs to the same Opportunity ID. Verified via
+    the dropdown's actual selected value/text after a full select→reload cycle, not just a
+    screenshot.
+  - Renamed the per-quote "Upload" button to **"Upload Hspt"** — clearer that it's pushing
+    the quote back to the HubSpot deal (once connected), not attaching a generic file.
+  - Added a **second "Accept Configuration" button near the top** (next to Save/Lock/Print/
+    Upload Hspt/Email), mirroring the existing one at the bottom of the config panel - both
+    now share one `updateConfigAcceptState()` so a rep doesn't have to scroll down every time
+    after changing an option.
+
 - **[Claude]** **Fixed: category/option dropdowns (Base Unit, Processor Options, etc. on
   Sales, and the Search by Requirements modal's fields) rendered invisible white-on-white
   text once the page became interactive** (Sales Rep verified). Root cause: `.wselect-trigger`

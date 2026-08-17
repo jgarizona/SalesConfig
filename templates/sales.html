@@ -74,11 +74,16 @@
         <button type="button" id="btn-save">Save</button>
         <button type="button" id="btn-lock">Lock</button>
         <button type="button" id="btn-print" disabled>Print (PDF)</button>
-        <button type="button" id="btn-upload" disabled>Upload</button>
+        <button type="button" id="btn-upload" disabled>Upload Hspt</button>
         <button type="button" id="btn-email" disabled>Email</button>
       </div>
       <div id="quote-status" class="quote-status">Not saved yet.</div>
       <div id="action-message" class="action-message"></div>
+
+      <div class="config-accept-row">
+        <button type="button" id="btn-accept-config-top" class="btn accept-btn" disabled>Accept Configuration</button>
+        <span id="config-accept-status-top" class="config-accept-status">Review your selections below, then Accept to enable Save.</span>
+      </div>
     </div>
 
     <div class="platform-picker-row">
@@ -228,6 +233,8 @@
     const opportunityHintBadge = document.getElementById("opportunity-hint-badge");
     const opportunityHubspotNote = document.getElementById("opportunity-hubspot-note");
     const btnAcceptConfig = document.getElementById("btn-accept-config");
+    const btnAcceptConfigTop = document.getElementById("btn-accept-config-top");
+    const configAcceptStatusTop = document.getElementById("config-accept-status-top");
     const configAcceptStatus = document.getElementById("config-accept-status");
     const repSelect = document.getElementById("sales-rep-select");
     const repCodeInput = document.getElementById("sales-rep-code");
@@ -507,16 +514,25 @@
       btnQuoteLookup.classList.toggle("flash", needsHint);
     }
 
+    // Two Accept Configuration buttons (top, near Save/Lock/etc - and
+    // bottom, next to the price panel) mirror the same configAccepted
+    // state, so a rep doesn't have to scroll to the bottom every time after
+    // changing an option. Keep both in sync here rather than duplicating
+    // this logic anywhere else.
     function updateConfigAcceptState() {
-      btnAcceptConfig.disabled = !repVerified || configAccepted;
-      btnAcceptConfig.classList.toggle("flash", repVerified && !configAccepted);
-      if (configAccepted) {
-        configAcceptStatus.textContent = "✓ Configuration accepted — Save is enabled.";
-        configAcceptStatus.style.color = "#1e5631";
-      } else {
-        configAcceptStatus.textContent = "Review your selections above, then Accept to enable Save.";
-        configAcceptStatus.style.color = "";
-      }
+      [btnAcceptConfig, btnAcceptConfigTop].forEach(btn => {
+        btn.disabled = !repVerified || configAccepted;
+        btn.classList.toggle("flash", repVerified && !configAccepted);
+      });
+      [configAcceptStatus, configAcceptStatusTop].forEach(status => {
+        if (configAccepted) {
+          status.textContent = "✓ Configuration accepted — Save is enabled.";
+          status.style.color = "#1e5631";
+        } else {
+          status.textContent = "Review your selections below, then Accept to enable Save.";
+          status.style.color = "";
+        }
+      });
     }
 
     function acceptConfiguration() {
@@ -867,20 +883,29 @@
       label.textContent = `${list.length} existing quote${list.length === 1 ? "" : "s"} for this Opportunity — select one to load:`;
       existingQuotesDiv.appendChild(label);
 
+      // If the quote currently loaded belongs to this same Opportunity ID,
+      // the dropdown should show IT as selected, not reset to the
+      // placeholder - loadQuote() calls this function again right after
+      // loading to refresh the list, which was wiping the just-made
+      // selection back to "Select a quote/revision..." every time.
+      const currentlyLoadedNumber = (loadedQuote && loadedQuote.opportunity_id === oppId)
+        ? String(loadedQuote.quote_number) : null;
+
       const select = document.createElement("select");
       select.className = "existing-quotes-select";
       const placeholder = document.createElement("option");
       placeholder.value = "";
       placeholder.textContent = "Select a quote/revision…";
       placeholder.disabled = true;
-      placeholder.selected = true;
       select.appendChild(placeholder);
       list.forEach(q => {
         const opt = document.createElement("option");
         opt.value = q.quote_number;
         opt.textContent = q.display_id + (q.locked ? " 🔒 " : " ") + `— ${q.platform} — updated ${q.updated_at}`;
+        if (String(q.quote_number) === currentlyLoadedNumber) opt.selected = true;
         select.appendChild(opt);
       });
+      if (!currentlyLoadedNumber) placeholder.selected = true;
       select.addEventListener("change", () => {
         if (select.value) loadQuote(oppId, parseInt(select.value, 10));
       });
@@ -1030,6 +1055,7 @@
       btnQuoteLookup.addEventListener("click", openQuoteLookup);
       btnPopulateOpp.addEventListener("click", populateOpportunityId);
       btnAcceptConfig.addEventListener("click", acceptConfiguration);
+      btnAcceptConfigTop.addEventListener("click", acceptConfiguration);
       btnOpenSearch.addEventListener("click", openSearchModal);
       btnCloseSearch.addEventListener("click", closeSearchModal);
       btnRunSearch.addEventListener("click", runSearch);
