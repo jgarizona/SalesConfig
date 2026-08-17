@@ -27,6 +27,21 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-16
 
+- **[Claude]** Added a **"(Not connected to HubSpot...)" note** next to the Opportunity ID
+  "Select one →" hint badge, per the user: once a customer is picked but no Opportunity ID
+  exists yet, this is exactly the point where a real HubSpot connector would search for a
+  matching open opportunity rather than pointing at Populate/Lookup Saved Quote as a manual
+  stand-in. The note is conditioned on `customerSource !== "hubspot"` (always true today,
+  since no connector exists) so it self-disables once a real `source:"hubspot"` customer
+  exists and the real search replaces this step, rather than needing to be removed by hand
+  later. Verified live: selecting an existing customer via Customer Lookup with no
+  Opportunity ID shows both the hint badge and the note in the same row.
+- **[Claude]** Ran the Flask dev server `threaded=True` after a report of intermittent hangs
+  switching Technical brand views — 8 rapid alternating requests via curl (including the
+  exact reported Getac↔CipherLab pattern) all returned correct and fast (20-36ms) responses,
+  so no server-side data/logic bug was found. Most likely explanation: the debug reloader
+  restarting mid-session from concurrent file edits. Threading removes one theoretical
+  contributing factor regardless (a slow request no longer blocks the next one) at no cost.
 - **[Claude]** Added a **Viewing brand** filter to Technical (previously all 4 brands' 119
   platforms rendered on one continuous scroll with one combined jump-nav — confusing and
   unwieldy now that all 4 brands have real data). Defaults to JLT, carried as `?view=` (kept

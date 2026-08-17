@@ -46,7 +46,7 @@
 
       <div class="qh-row">
         <div class="qh-field wide">
-          <label>Opportunity ID <span id="opportunity-hint-badge" class="source-badge hint"></span></label>
+          <label>Opportunity ID <span id="opportunity-hint-badge" class="source-badge hint"></span><span id="opportunity-hubspot-note" class="muted" style="font-size:11px; margin-left:6px; display:none;">(Not connected to HubSpot — once connected, this step will search HubSpot for a matching open opportunity instead)</span></label>
           <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
         </div>
         <div class="qh-buttons">
@@ -210,6 +210,7 @@
     const btnPopulateOpp = document.getElementById("btn-populate-opp");
     const customerSourceBadge = document.getElementById("customer-source-badge");
     const opportunityHintBadge = document.getElementById("opportunity-hint-badge");
+    const opportunityHubspotNote = document.getElementById("opportunity-hubspot-note");
     const btnAcceptConfig = document.getElementById("btn-accept-config");
     const configAcceptStatus = document.getElementById("config-accept-status");
     const repSelect = document.getElementById("sales-rep-select");
@@ -474,6 +475,12 @@
       const needsHint = !!selectedCustomer && !oppInput.value.trim() && !loadedQuote;
       opportunityHintBadge.textContent = needsHint ? "Select one →" : "";
       opportunityHintBadge.className = "source-badge hint" + (needsHint ? " show" : "");
+      // Today this is always true (no customer is ever source:"hubspot" yet -
+      // the connector doesn't exist). Once it does, a real hubspot-sourced
+      // customer would skip this note and trigger an actual HubSpot search
+      // instead - see api/customers and the source field it already tracks.
+      const showHubspotNote = needsHint && customerSource !== "hubspot";
+      opportunityHubspotNote.style.display = showHubspotNote ? "inline" : "none";
     }
 
     function updateConfigAcceptState() {
