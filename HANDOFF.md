@@ -568,6 +568,19 @@ no longer offered as one. CipherLab's dropdown count dropped from 702 to 542 val
 160 dead-end ones removed); re-running the full audit afterward (1,202 brand-scoped values, plus
 1,190 more via the unscoped "Any brand" pooling) came back at 0 issues everywhere.
 
+**CipherLab is currently excluded from Search by Requirements entirely (per the user,
+2026-08-17), on top of the per-value fix above** - until a fuller catalog replaces the current
+price-increase-only source file, there's no point letting a rep search a brand where most
+product families are known to be incompletely represented. `app.py`'s `SEARCH_EXCLUDED_BRANDS`
+set (currently just `{"CipherLab"}`) is checked in both `/api/search_options` and
+`/api/search_base_units`, so CipherLab can't surface via any path - a direct `brand=CipherLab`
+request, or the unscoped "Any brand" pool. The same set is passed to `sales.html` as
+`search_excluded_brands` so the search modal's Brand dropdown renders CipherLab as a disabled,
+greyed-out option ("CipherLab (search unavailable)") instead of silently returning nothing if
+picked. This is search-only - CipherLab still works normally on the main Brand/Platform/Base
+Unit dropdowns for direct configuration. Meant to be temporary: remove the set (both usages) and
+the template's `disabled` branch once a fuller CipherLab catalog is sourced and re-ingested.
+
 Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
 already brand-agnostic and needed no changes.
 

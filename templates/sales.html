@@ -138,7 +138,11 @@
           <select id="search-brand-select">
             <option value="">Any brand</option>
             {% for b in brands_with_data %}
-              <option value="{{ b }}">{{ b }}</option>
+              {% if b in search_excluded_brands %}
+                <option value="{{ b }}" disabled title="Search temporarily unavailable for {{ b }} while its catalog data is being completed - see CHANGELOG.md 2026-08-17">{{ b }} (search unavailable)</option>
+              {% else %}
+                <option value="{{ b }}">{{ b }}</option>
+              {% endif %}
             {% endfor %}
           </select>
         </div>

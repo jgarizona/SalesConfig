@@ -11,7 +11,7 @@ Every repository change must be recorded under the date it was made and identify
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
 - **Make JSON catalog writes recoverable and concurrency-safe** — source: 2026-08-15 Codex review. Current status: uploads rewrite the complete catalog JSON directly with no atomic replacement, backup, or write lock. Next action: use atomic writes plus locking/backups now, then migrate to a database when concurrent usage warrants it.
 - **Add automated spreadsheet-ingestion tests** — source: 2026-08-15 Codex review and the handoff's known no-tests limitation. Current status: ingestion is verified manually. Next action: add representative JLT, Winmate, Getac, CipherLab, malformed-workbook, pricing-normalization, blank-preservation, and zero-row test fixtures.
-- **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Worked around by excluding those from Search by Requirements (see 2026-08-17 entry), but their accessories still aren't purchasable as configured add-ons to anything in this app since the base system isn't here to attach them to. Next action: when a fuller CipherLab catalog is sourced, re-run the ingest and confirm these families pick up real Base Unit rows (the exclusion in `api_search_options` self-resolves once that happens — nothing to undo by hand).
+- **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Per the user, CipherLab is excluded from Search by Requirements entirely until this is fixed at the source (see the second 2026-08-17 entry below) — normal Sales configuration is unaffected, this is search-only. Next action: once a fuller CipherLab catalog is sourced, re-run the ingest and remove `SEARCH_EXCLUDED_BRANDS = {"CipherLab"}` in `app.py` (two usages) and the matching `disabled` branch in `sales.html`'s search-brand-select loop.
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
 - **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand.
@@ -197,6 +197,21 @@ Every repository change must be recorded under the date it was made and identify
   values and 1,190 unscoped ("Any brand") values. Verified live: CipherLab's "Add On Options:"
   dropdown no longer offers 8600/HERA51 accessories, only options tied to real in-file systems
   (e.g. RS38 cradles); searching one returns real CipherLab RS38 matches with prices.
+- **[Claude]** **Excluded CipherLab from Search by Requirements entirely, per the user** - until
+  the price-increase-only source file above is replaced with a fuller catalog, CipherLab's
+  option is now greyed out and disabled in the search modal's Brand dropdown (labeled "CipherLab
+  (search unavailable)", with a title tooltip pointing at this entry), and the backend excludes
+  CipherLab parts from both `/api/search_options` and `/api/search_base_units` regardless of
+  which brand is requested - so even a direct API call with `brand=CipherLab`, or the unscoped
+  "Any brand" pool, can't surface a CipherLab result. New `SEARCH_EXCLUDED_BRANDS` set in
+  `app.py`, checked in both endpoints; the disabled option is rendered from the same set (passed
+  to the template as `search_excluded_brands`) so the UI can't drift out of sync with the
+  backend. Normal Sales configuration (Brand/Platform/Base Unit dropdowns) is untouched - this
+  is search-only, since that's what's actually broken. Meant to be temporary: see the Pending/TODO
+  entry above for what to remove once a fuller CipherLab catalog is sourced. Verified: the
+  Brand dropdown shows CipherLab greyed out and unselectable; `/api/search_options?brand=
+  CipherLab` returns `{}`; an unscoped no-criteria search returns 425 matches across
+  JLT/Winmate/Getac only, zero CipherLab.
 
 ## 2026-08-16
 

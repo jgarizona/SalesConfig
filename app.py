@@ -189,6 +189,17 @@ ATTRIBUTE_CATEGORY_MAP = {
 }
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 
+# Temporary, per the user (2026-08-17): CipherLab's source spreadsheet is a
+# price-*increase* list, not a full catalog, so ~160 of its search-dropdown
+# values (accessories/warranties/licenses for product families whose base
+# price didn't change) have no Base Unit row to ever match - see the
+# api_search_options fix earlier the same day. Rather than rely solely on
+# that per-value filtering, exclude CipherLab from Search by Requirements
+# entirely until a fuller catalog is sourced - normal Sales configuration
+# (Brand/Platform/Base Unit dropdowns) is untouched, this only affects
+# search. Remove this set (and its two usages below) once that's resolved.
+SEARCH_EXCLUDED_BRANDS = {"CipherLab"}
+
 # Fixed roster so the Brand dropdown always shows every vendor JLT resells,
 # not just whichever ones happen to have data today. All 4 are ingested and
 # auto-approved as of 2026-08-16 (see PARSERS above and each brand's
@@ -604,6 +615,7 @@ def sales():
         brands_with_data=brands_with_data,
         brands_json=json.dumps(brands),
         category_order=CATEGORY_ORDER,
+        search_excluded_brands=SEARCH_EXCLUDED_BRANDS,
     )
 
 
@@ -617,7 +629,7 @@ def api_search_options():
     brand_filter = request.args.get("brand") or None
     parts = load_parts()
     approvals = load_approvals()
-    approved_parts = [p for p in parts if is_selectable(p, approvals)]
+    approved_parts = [p for p in parts if is_selectable(p, approvals) and p["brand"] not in SEARCH_EXCLUDED_BRANDS]
 
     # Some source spreadsheets aren't a full catalog - e.g. CipherLab's is a
     # *price increase* list, so a product family whose base unit price didn't
@@ -690,7 +702,7 @@ def api_search_base_units():
 
     parts = load_parts()
     approvals = load_approvals()
-    approved_parts = [p for p in parts if is_selectable(p, approvals)]
+    approved_parts = [p for p in parts if is_selectable(p, approvals) and p["brand"] not in SEARCH_EXCLUDED_BRANDS]
 
     grouped = {}
     for p in approved_parts:
