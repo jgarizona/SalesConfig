@@ -128,6 +128,54 @@ Every repository change must be recorded under the date it was made and identify
   only; the "Generate Catalog Report" button in §1 is unaffected. Verified via the rendered
   HTML: the button now appears immediately after the section heading/description, before
   `<table>`.
+- **[Claude]** **Purchasing navigation overhaul, per the user ("this page is difficult to
+  navigate"), which surfaced a real, serious pre-existing bug along the way: Save Prices was
+  completely broken for the full pricing-gaps table.** Three requested changes:
+  1. **"Export Pricing Sheet" button + "Jump to §2" link at the very top of the page** (before
+     the Upload box), so the export → edit → re-upload round trip and the quote-action-items
+     section are both reachable with zero scrolling. Triggers the same `generate_catalog_report`
+     action as §1's button, in its own minimal form.
+  2. **"Generate Catalog Report" duplicated at the top of §1** in addition to staying at the
+     bottom, per the user ("should also be at the top").
+  3. **Generated reports are now real browser downloads**, not just a filename shown as text.
+     New `/purchasing/download/<filename>` route serves files from `data/reports/` (path
+     validated against the reports directory to block `../` traversal). Applies to both
+     `report_generated` and `quotes_report_generated` banners.
+
+  **The bug found while testing #2 live:** clicking "Generate Catalog Report" produced a live
+  413 "Request Entity Too Large." Root cause had two layers. First, a real bug in the existing
+  HTML: the pricing-gaps form had a hidden `<input name="action" value="save_prices">` *and* a
+  `<button name="action" value="generate_catalog_report">` sharing the same field name - browsers
+  submit both, and Flask's `request.form.get("action")` returns whichever comes first in
+  document order (the hidden input), so clicking "Generate Catalog Report" silently ran
+  `save_prices` instead and never actually generated a report. Fixed by giving every button in
+  that form (`Save Prices`, `Generate Catalog Report` x2) its own explicit `name="action"
+  value="..."` and removing the hidden default entirely. Second, and more serious: the pricing
+  table has one row per flagged part (3,421 today) x 5 fields each (`row_key` + 4 price fields)
+  = ~17,100 form fields - Werkzeug 3.x's default `max_form_parts=1000` safety limit rejects the
+  request before `app.py` ever runs. **This meant Save Prices itself - the core Purchasing
+  editing workflow - was already completely broken for the full table**, not just the report
+  button; confirmed via the Flask test client (`Save Prices` on all 3,421 rows: `413`, both
+  before and independent of the button-collision fix). Fixed by raising
+  `app.config["MAX_FORM_PARTS"]` to 50,000 and `MAX_FORM_MEMORY_SIZE"]` to 5,000,000 (well above
+  today's ~17K fields / ~900KB, with headroom for catalog growth). Also decoupled "Generate
+  Catalog Report" (all three copies) from the giant Save-Prices form entirely - it doesn't need
+  any of that row data, so there's no reason for it to submit 17K fields at all going forward.
+
+  **A mistake made while testing this, caught and fixed the same turn:** an early verification
+  pass submitted a full-size test payload with every price field blank, which - because it used
+  the real `/purchasing` route rather than a dry run - actually saved `null` over 3,421 rows'
+  real Floor Price/MSRP/Cost values in `data/parts_vmt_q1_2026.json` (confirmed via `git diff`:
+  5,984 changed lines, all real values replaced with `null`). Caught immediately via `git diff`
+  before this was committed anywhere; reverted with `git checkout -- data/parts_vmt_q1_2026.json`
+  and confirmed restored (spot-checked known values, e.g. 1014P/H back to Floor 50/MSRP 100/
+  Cost 30) - nothing was pushed or committed in the corrupted state.
+
+  Verified after all fixes: Save Prices on the real, full 3,421-row/17,106-field form now
+  returns `200` (was `413`); Generate Catalog Report (top of page, top of §1, bottom of §1) all
+  correctly generate a report without touching Save Prices; the download link works end-to-end
+  live (clicked "Export Pricing Sheet," got a real `<a href="/purchasing/download/...">` link,
+  confirmed via `read_page`); "Jump to §2" scrolls straight past the 3,421-row table.
 
 ## 2026-08-17
 

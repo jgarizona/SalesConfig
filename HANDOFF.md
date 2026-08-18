@@ -335,16 +335,59 @@ The big one. Top-to-bottom:
    *description text*, not code (codes aren't consistent across platforms).
 
 ### `/purchasing` — Purchasing Review
-Two independent sections:
+Top of page (added 2026-08-18, per the user - the page was hard to navigate before this):
+**"Export Pricing Sheet"** button and **"Jump to §2"** anchor link, both reachable with zero
+scrolling regardless of how big the catalog gets.
+
+Two independent sections below that:
 1. **Catalog pricing gaps** — every option missing any of the 4 price fields (Floor Price,
    MSRP, Cost, Current Cost), editable inline, "Save Prices" writes back to
    `parts_vmt_q1_2026.json`. "Upload pricing spreadsheet" bulk-applies a flat `.xlsx`/`.csv`
    in the same shape as "Generate Catalog Report" — **can only update existing parts, never
    create new ones** (that's Technical's job). "Generate Catalog Report" exports the gaps
-   as CSV.
+   as CSV — appears three times (top of page, top of §1, bottom of §1), all three deliberately
+   in their **own minimal forms**, separate from the giant Save-Prices form (see gotcha below).
 2. **What's been quoted to Sales — action items** — every saved quote's line items
    cross-checked against *current* pricing (not the quote's frozen snapshot), flagging
-   exactly what's still missing before purchasing can sign off. Own CSV export.
+   exactly what's still missing before purchasing can sign off. Own CSV export, "Generate
+   Report" button lives above the table (moved 2026-08-18, was below it).
+
+Generated reports (`report_generated`/`quotes_report_generated`) are real downloads via
+`/purchasing/download/<filename>` (added 2026-08-18 — previously the filename was shown as
+plain text with no way to actually get the file from a browser). Path is validated against
+`REPORTS_DIR` to block `../` traversal.
+
+**Gotcha that bit a real user (2026-08-18) and is worth understanding before touching this
+page again: the pricing-gaps table can have thousands of rows, and that has two real
+consequences.**
+- **Never put a report-generation button inside the same `<form>` as the pricing table.**
+  It doesn't need any of that row data, and including it means submitting one form field per
+  row x 4 (currently ~17,000 fields) just to generate a report - which used to also silently
+  trigger the wrong action (see next point) and, separately, can hit Werkzeug's form-size
+  limits (see below). Keep it in its own tiny form with just a hidden `action` field.
+- **Every submit button in a form needs its own explicit `name="action" value="..."` - never
+  rely on a hidden `<input name="action">` as a "default"** when other buttons in the same form
+  share that name. A hidden default field and a same-named button both get submitted; Flask's
+  `request.form.get("action")` returns whichever comes first in *document order*, not whichever
+  control was actually clicked - if the hidden field is first, every button in that form
+  silently resolves to the hidden field's action, no matter which one was clicked. This was a
+  real, live bug: "Generate Catalog Report" always silently ran `save_prices` instead of
+  generating anything, for as long as this page has existed.
+- **`app.config["MAX_FORM_PARTS"]`/`["MAX_FORM_MEMORY_SIZE"]` are explicitly raised in `app.py`**
+  (to 50,000 / 5,000,000) specifically because of this table. Werkzeug 3.x's defaults
+  (`max_form_parts=1000`, `max_form_memory_size=500_000` bytes) are a real safety limit meant
+  to stop request-based DoS on untrusted internet endpoints - not appropriate for a trusted
+  internal tool with a legitimately large form, but they will 413 a real submission from a real
+  user if left at default. If the catalog roughly triples from today's 3,551 parts, these caps
+  will need raising again.
+- **When testing this page's POST routes directly (test client, curl, etc.), never submit
+  real price-field values you haven't checked** - `save_prices` writes straight to
+  `parts_vmt_q1_2026.json` with no confirmation step. A blank-value test payload submitted
+  against the live route on 2026-08-18 (checking whether a request-size fix worked) actually
+  overwrote real Floor Price/MSRP/Cost across all 3,421 flagged rows with `null` before the
+  mistake was caught via `git diff` and reverted with `git checkout --`. Always diff before and
+  after a script that hits `save_prices` for real, or point it at a scratch copy of the data
+  file instead.
 
 Shared upload rule (`merge_parts()` in `app.py`): **a blank cell in an upload never erases a
 value already on file** — only non-blank incoming values overwrite. This is what stops a

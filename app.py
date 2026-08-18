@@ -73,6 +73,18 @@ PARSERS = {
 
 app = Flask(__name__)
 
+# Purchasing's "Save Prices" form has one row per flagged part (currently
+# 3,421) x 5 fields each (row_key + 4 price fields) = ~17,100 form fields -
+# real, legitimate data from a trusted internal user, not an attack. Found
+# 2026-08-18 when the user hit a live 413 clicking Generate Catalog
+# Report: Werkzeug 3.x's default safety limits (max_form_parts=1000,
+# max_form_memory_size=500_000 bytes) reject the request before app.py
+# ever sees it - Save Prices itself was equally broken for the full table,
+# not just the report button. Raised well above today's catalog size, with
+# headroom for it to grow.
+app.config["MAX_FORM_PARTS"] = 50_000
+app.config["MAX_FORM_MEMORY_SIZE"] = 5_000_000
+
 
 def _get_app_version():
     """Short git commit hash the running app was started from - shown in the
@@ -972,6 +984,20 @@ def purchasing():
         total_quotes=len(quotes),
         upload_result=upload_result,
     )
+
+
+@app.route("/purchasing/download/<path:filename>")
+def purchasing_download(filename):
+    """Serves a previously-generated report out of data/reports/ as a real
+    browser download - added 2026-08-18 because Generate Catalog Report/
+    Generate Report used to only write the file to the server's local disk
+    and show its filename as plain text, with no way to actually get it
+    from the browser. Path is resolved and checked against REPORTS_DIR
+    to block '../' traversal outside the reports folder."""
+    safe_path = (REPORTS_DIR / filename).resolve()
+    if REPORTS_DIR.resolve() not in safe_path.parents or not safe_path.is_file():
+        return "Report not found.", 404
+    return send_file(safe_path, as_attachment=True, download_name=filename)
 
 
 @app.route("/admin", methods=["GET", "POST"])
