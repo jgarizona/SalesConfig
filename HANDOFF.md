@@ -625,6 +625,38 @@ Verified live and via direct API calls against the real catalog: searching Stora
 512GB (not narrowed to one capacity); searching Storage Capacity = "64GB" returns 27 matches
 spanning SSD/eMMC/CFAST/M.2/unspecified technology (not narrowed to one technology).
 
+**"Operating System:" search got the same treatment immediately after, for the same reason
+(per the user, 2026-08-18): split into "OS Version" and "OS Edition".** The real data was
+worse than storage's - 31 distinct "Any brand" OS descriptions mixed version, licensing/
+servicing channel (Pro/IoT Enterprise/LTSC/LTSB/GAC/SAC), bit-width, and even a leftover CPU
+model in a few rows (`"Windows 11 IoT Enterprise LTSC  i7-1185GRE"`) into one exact-match
+string. New `ingest/os_facets.py` (mirrors `storage_facets.py`'s structure) extracts:
+- **OS Version**: `Android 9/11/12/13/15`, `Windows 7/10/11`, `Linux Ubuntu 20.04` - dedupes
+  cosmetic variants too (`Android 11` and `Android 11.0` become one value). CPU mentions
+  elsewhere in the text are simply never matched by these patterns, so they're silently
+  ignored rather than corrupting the version - that's Processor Options' job, a real field of
+  its own.
+- **OS Edition**: `GAC`, `SAC`, `LTSC`, `LTSB`, `IoT Enterprise`, `Pro`, checked in that
+  priority order. Order matters for a real row: `"Windows 11 IoT Enterprise GAC (64-bit) -
+  Microsoft has not released Win 11 IoT Enterprise LTSC yet"` mentions LTSC only to say it's
+  *not* what this SKU is - checking LTSC before GAC/SAC would misclassify it. Confirmed correct
+  against the real data (that specific row's platform shows under OS Edition = GAC, not LTSC).
+
+Getac precomputes both via the same shared functions (`attributes.os_version`/`os_edition`,
+fed its already-isolated `os` attribute rather than the raw description). JLT/Winmate derive
+both on the fly from their real "Operating System:" option rows, same pattern as storage -
+`FACET_CATEGORIES` (generalized from the old storage-only `STORAGE_FACET_CATEGORIES`) now maps
+each synthetic search category to *both* which real category its options live under and which
+extractor to use, since storage and OS pull from two different real categories.
+
+OS Version sorts by family then numeric version ascending (`_os_version_sort_key`) rather than
+plain string sort, which would put "Windows 7" after "Windows 10"/"Windows 11" and "Android 11"
+before "Android 9" (character-by-character '1' < '9'). Verified live and via direct API calls:
+`OS Version` dropdown shows `Android 9, 11, 12, 13, 15, Linux Ubuntu 20.04, Windows 7, 10, 11`
+in that exact order; `OS Edition = GAC` returns exactly the 2 platforms that should have it,
+correctly excluding the negated-LTSC-mention row from LTSC's results; full audit re-run at 0
+issues across 618 brand-scoped values.
+
 ---
 
 ## 8. Non-obvious rules worth knowing before you touch this

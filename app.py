@@ -52,6 +52,7 @@ import parse_winmate     # noqa: E402
 import parse_getac       # noqa: E402
 import parse_cipherlab   # noqa: E402
 from storage_facets import extract_storage_capacity, extract_storage_technology  # noqa: E402
+from os_facets import extract_os_version, extract_os_edition  # noqa: E402
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -164,11 +165,12 @@ CATEGORY_ORDER = [
     "Processor Options",
     "RAM Memory Options:",
     "Storage Drive Options:",
-    # "Storage Capacity"/"Storage Technology" are search-only pseudo-
-    # categories (see STORAGE_FACET_CATEGORIES below) - never a real part's
-    # `category` value, only used to order/render them in the Search by
-    # Requirements modal via category_sort_key(). Real Sales-page category
-    # grouping/sorting still uses "Storage Drive Options:" above, unaffected.
+    # "Storage Capacity"/"Storage Technology"/"OS Version"/"OS Edition" are
+    # search-only pseudo-categories (see FACET_CATEGORIES below) - never a
+    # real part's `category` value, only used to order/render them in the
+    # Search by Requirements modal via category_sort_key(). Real Sales-page
+    # category grouping/sorting still uses "Storage Drive Options:" and
+    # "Operating System:" below, unaffected.
     "Storage Capacity",
     "Storage Technology",
     "Display options:",
@@ -178,6 +180,8 @@ CATEGORY_ORDER = [
     "Power Cable Options:",
     "Internal Wireless",
     "Operating System:",
+    "OS Version",
+    "OS Edition",
 ]
 
 PRICE_FIELDS = ["Floor Price", "MSRP", "Cost", "Current Cost"]
@@ -188,28 +192,40 @@ PRICE_FIELDS = ["Floor Price", "MSRP", "Cost", "Current Cost"]
 # under normal category/description matching. Their CPU/OS/RAM/etc info
 # lives on the Base Unit row's `attributes` dict instead - this maps a
 # searchable category to the attribute key that can satisfy it as a
-# fallback. "Storage Capacity"/"Storage Technology" replace what used to be
-# a single "Storage Drive Options:" entry (see STORAGE_FACET_CATEGORIES
-# below and ingest/storage_facets.py's docstring for why).
+# fallback. "Storage Capacity"/"Storage Technology" and "OS Version"/
+# "OS Edition" replace what used to be single "Storage Drive Options:" and
+# "Operating System:" entries (see FACET_CATEGORIES below and
+# ingest/storage_facets.py's + ingest/os_facets.py's docstrings for why).
 ATTRIBUTE_CATEGORY_MAP = {
     "Processor Options": "cpu",
-    "Operating System:": "os",
     "RAM Memory Options:": "ram",
     "Storage Capacity": "storage",
     "Storage Technology": "storage_tech",
+    "OS Version": "os_version",
+    "OS Edition": "os_edition",
     "Display options:": "display",
     "Internal Wireless": "wireless",
 }
 
-# JLT/Winmate's real "Storage Drive Options:" rows have no precomputed
-# attributes (unlike Getac) - a search on "Storage Capacity"/"Storage
-# Technology" has to derive those facets from each option's free-text
-# description on the fly. Maps the synthetic search category to the
-# extractor that does that (see ingest/storage_facets.py).
-STORAGE_FACET_CATEGORIES = {
-    "Storage Capacity": extract_storage_capacity,
-    "Storage Technology": extract_storage_technology,
+# JLT/Winmate's real "Storage Drive Options:"/"Operating System:" rows have
+# no precomputed attributes (unlike Getac) - a search on one of these
+# synthetic categories has to derive the facet from each option's free-text
+# description on the fly. Maps synthetic search category -> (real category
+# its options actually live under, extractor function) - see
+# ingest/storage_facets.py and ingest/os_facets.py.
+FACET_CATEGORIES = {
+    "Storage Capacity": ("Storage Drive Options:", extract_storage_capacity),
+    "Storage Technology": ("Storage Drive Options:", extract_storage_technology),
+    "OS Version": ("Operating System:", extract_os_version),
+    "OS Edition": ("Operating System:", extract_os_edition),
 }
+
+# Reverse index: which real categories need facet-splitting instead of
+# being pooled as an exact-match description, and into which synthetic
+# categories each one splits.
+_REAL_CATEGORY_TO_FACETS = {}
+for _synthetic_cat, (_real_cat, _extractor) in FACET_CATEGORIES.items():
+    _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractor))
 
 
 def _capacity_sort_key(label):
@@ -220,6 +236,25 @@ def _capacity_sort_key(label):
         return (1, 0)
     n, unit = int(m.group(1)), m.group(2)
     return (0, n * 1024 if unit == "TB" else n)
+
+
+def _os_version_sort_key(label):
+    """Groups by OS family, then sorts numerically ascending within each
+    family ("Android 9" before "Android 11" - plain string sort would put
+    "Android 11" before "Android 9" since '1' < '9' character-by-character).
+    """
+    parts = label.split()
+    family = parts[0] if parts else label
+    version = 0.0
+    for tok in parts[1:]:
+        try:
+            version = float(tok)
+            break
+        except ValueError:
+            continue
+    return (family, version)
+
+
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 
 # Temporary, per the user (2026-08-17): CipherLab's source spreadsheet is a
@@ -696,14 +731,15 @@ def api_search_options():
                     by_category.setdefault(category, set()).add(val)
             continue
 
-        if p["category"] == "Storage Drive Options:":
-            # Split into two independent, loosely-matched facets instead of
-            # one flat exact-description dropdown - see STORAGE_FACET_
-            # CATEGORIES and ingest/storage_facets.py's docstring for why
-            # (per the user, 2026-08-17: capacity search shouldn't care
-            # about technology, and a technology search like "M.2" should
-            # surface every M.2 drive regardless of capacity).
-            for category, extractor in STORAGE_FACET_CATEGORIES.items():
+        if p["category"] in _REAL_CATEGORY_TO_FACETS:
+            # Split into independent, loosely-matched facets instead of one
+            # flat exact-description dropdown - see FACET_CATEGORIES and
+            # ingest/storage_facets.py's/ingest/os_facets.py's docstrings
+            # for why (per the user, 2026-08-17: a capacity search shouldn't
+            # care about storage technology and vice versa; an OS search
+            # shouldn't care about GAC/LTSC licensing channels or a CPU
+            # model that happens to be mentioned in the same description).
+            for category, extractor in _REAL_CATEGORY_TO_FACETS[p["category"]]:
                 val = extractor(p.get("description"))
                 if val:
                     by_category.setdefault(category, set()).add(val)
@@ -714,7 +750,9 @@ def api_search_options():
         by_category.setdefault(p["category"], set()).add(p["description"])
 
     out = {
-        cat: (sorted(descs, key=_capacity_sort_key) if cat == "Storage Capacity" else sorted(descs))
+        cat: sorted(descs, key=_capacity_sort_key) if cat == "Storage Capacity"
+        else sorted(descs, key=_os_version_sort_key) if cat == "OS Version"
+        else sorted(descs)
         for cat, descs in by_category.items()
     }
     return jsonify(out)
@@ -758,14 +796,15 @@ def api_search_base_units():
         grouped.setdefault((p["brand"], p["platform"]), []).append(p)
 
     def real_category_met(options, category, desc):
-        if category in STORAGE_FACET_CATEGORIES:
-            # JLT/Winmate's real "Storage Drive Options:" rows have no
-            # precomputed capacity/technology attribute - derive it from
-            # each option's description the same way api_search_options
-            # does when building the dropdown, so the two stay in sync.
-            extractor = STORAGE_FACET_CATEGORIES[category]
+        if category in FACET_CATEGORIES:
+            # JLT/Winmate's real "Storage Drive Options:"/"Operating
+            # System:" rows have no precomputed facet attributes - derive
+            # it from each option's description the same way
+            # api_search_options does when building the dropdown, so the
+            # two stay in sync.
+            real_category, extractor = FACET_CATEGORIES[category]
             return any(
-                o["category"] == "Storage Drive Options:" and extractor(o.get("description")) == desc
+                o["category"] == real_category and extractor(o.get("description")) == desc
                 for o in options
             )
         return any(o["category"] == category and o.get("description") == desc for o in options)

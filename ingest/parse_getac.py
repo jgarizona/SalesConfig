@@ -10,20 +10,20 @@ combinations Getac doesn't actually sell, so every row becomes a single
 "Base Unit:" record (code = SKU ID) rather than several per-category rows.
 
 Since there's no separate column per spec, this pulls a best-effort CPU,
-OS, RAM, storage capacity, storage technology, display, and wireless value
-out of the free-text description into an `attributes` dict purely so
-Search by Requirements has something to match against (see app.py's
-ATTRIBUTE_CATEGORY_MAP) - these are NOT selectable options, just search
-metadata on an otherwise fixed SKU. Storage capacity/technology are
-extracted via the shared `storage_facets` module (see its docstring) so
-Getac and JLT/Winmate's search dropdowns use the exact same capacity-tier
-and technology taxonomy, even though JLT/Winmate classify their real
-per-SKU option descriptions on the fly instead of precomputing an
-attribute. 100% hit rate on cpu/os/ram/storage/display/wireless across the
-real 370-row catalog as of 2026-08-17 (verified, not assumed) - if a
-future price-list refresh introduces a genuinely new phrasing these
-regexes don't cover, a row will just silently lack that one attribute
-rather than error.
+OS version, OS edition, RAM, storage capacity, storage technology,
+display, and wireless value out of the free-text description into an
+`attributes` dict purely so Search by Requirements has something to match
+against (see app.py's ATTRIBUTE_CATEGORY_MAP) - these are NOT selectable
+options, just search metadata on an otherwise fixed SKU. Storage capacity/
+technology and OS version/edition are extracted via the shared
+`storage_facets`/`os_facets` modules (see their docstrings) so Getac and
+JLT/Winmate's search dropdowns use the exact same taxonomy, even though
+JLT/Winmate classify their real per-SKU option descriptions on the fly
+instead of precomputing an attribute. 100% hit rate on cpu/os/ram/storage/
+display/wireless across the real 370-row catalog as of 2026-08-17
+(verified, not assumed) - if a future price-list refresh introduces a
+genuinely new phrasing these regexes don't cover, a row will just silently
+lack that one attribute rather than error.
 
 Usage:
     python parse_getac.py <path-to-xlsx> [--out parts.json]
@@ -38,6 +38,7 @@ from pathlib import Path
 import openpyxl
 
 from storage_facets import extract_storage_capacity, extract_storage_technology
+from os_facets import extract_os_version, extract_os_edition
 
 CPU_PATTERNS = [
     re.compile(r"(?:Intel|AMD)\s+.+?Processor", re.IGNORECASE),
@@ -169,6 +170,12 @@ def parse_workbook(path, brand="Getac"):
         os_name = extract_os(description)
         if os_name:
             attributes["os"] = os_name
+        os_version = extract_os_version(os_name)
+        if os_version:
+            attributes["os_version"] = os_version
+        os_edition = extract_os_edition(os_name)
+        if os_edition:
+            attributes["os_edition"] = os_edition
         ram = extract_ram(description)
         if ram:
             attributes["ram"] = ram
@@ -216,7 +223,7 @@ def main():
     out_path.write_text(json.dumps(parts, indent=2), encoding="utf-8")
 
     by_platform = {}
-    attr_hits = {"cpu": 0, "os": 0, "ram": 0, "storage": 0, "storage_tech": 0, "display": 0, "wireless": 0}
+    attr_hits = {"cpu": 0, "os": 0, "os_version": 0, "os_edition": 0, "ram": 0, "storage": 0, "storage_tech": 0, "display": 0, "wireless": 0}
     for p in parts:
         by_platform.setdefault(p["platform"], 0)
         by_platform[p["platform"]] += 1

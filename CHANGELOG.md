@@ -239,6 +239,37 @@ Every repository change must be recorded under the date it was made and identify
   live and via direct API calls: Storage Technology = "M.2" returns 14 matches spanning both
   JLT and Winmate across every capacity from 64GB to 512GB; Storage Capacity = "64GB" returns 27
   matches spanning SSD/eMMC/CFAST/M.2/unspecified technology.
+- **[Claude]** **Split "Operating System:" search into "OS Version" and "OS Edition", per the
+  user** ("when someone's looking at Windows or Android they don't care about GAC or LTSC").
+  The real data was messier than storage's: 31 distinct "Any brand" OS descriptions mixed
+  version, licensing/servicing channel (Pro/IoT Enterprise/LTSC/LTSB/GAC/SAC), bit-width, and
+  even a leftover CPU model in a few rows (`"Windows 11 IoT Enterprise LTSC  i7-1185GRE"`,
+  `"...(Intel Quad-Core E3845 Processor)"`) into one exact-match string. New
+  `ingest/os_facets.py` (mirrors `storage_facets.py`) extracts OS Version
+  (`Android 9/11/12/13/15`, `Windows 7/10/11`, `Linux Ubuntu 20.04` - dedupes `Android 11.0` into
+  `Android 11`) and OS Edition (`GAC`/`SAC`/`LTSC`/`LTSB`/`IoT Enterprise`/`Pro`, checked in that
+  priority order). CPU mentions inside OS descriptions are simply never matched by these
+  patterns, so they're ignored rather than corrupting the version - that's Processor Options'
+  job. Order matters for one real row: `"Windows 11 IoT Enterprise GAC (64-bit) - Microsoft has
+  not released Win 11 IoT Enterprise LTSC yet"` mentions LTSC only to say it's *not* what this
+  SKU is - checking GAC/SAC before LTSC/LTSB avoids misclassifying it (verified: that row's
+  platform correctly shows under OS Edition = GAC, and does *not* also show under LTSC unless a
+  separate real LTSC option genuinely exists on the same platform, which one of its neighbors
+  does).
+
+  Generalized `STORAGE_FACET_CATEGORIES` into `FACET_CATEGORIES`, now mapping each synthetic
+  search category to `(real_category, extractor)` instead of just an extractor, since storage
+  and OS pull from two different real categories ("Storage Drive Options:" vs "Operating
+  System:"). Getac precomputes both new attributes at ingest time
+  (`attributes.os_version`/`os_edition`, fed its already-isolated `os` attribute) the same
+  pattern as its other five. Added `_os_version_sort_key` (groups by family, then sorts
+  numerically within it) since plain string sort would put "Windows 7" after "Windows 10"/"11"
+  and "Android 11" before "Android 9". Re-ingested Getac (370/370 rows gained `os_version`,
+  336/370 gained `os_edition` - the other 34 are the same ZX10G2/ZX80 Android tablets with no
+  edition concept). Full audit re-run: 0 issues across 618 brand-scoped values. Verified live
+  and via direct API calls: `OS Version` dropdown shows `Android 9, 11, 12, 13, 15, Linux
+  Ubuntu 20.04, Windows 7, 10, 11` in that exact grouped/ascending order; searching OS
+  Version = "Windows 11" returns 356 real matches across all three non-excluded brands.
 
 ## 2026-08-16
 
