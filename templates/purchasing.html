@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Purchasing Review{% endblock %}
 {% block content %}
-  <h1>Purchasing Review</h1>
+  <h1 id="top">Purchasing Review</h1>
 
   <div class="quick-links" style="margin-bottom: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
     <form method="post" style="display:inline;">
@@ -52,11 +52,14 @@
   </p>
 
   {% if flagged %}
-    <form method="post" style="margin-bottom: 14px;">
-      <input type="hidden" name="action" value="generate_catalog_report">
-      <button type="submit">Generate Catalog Report</button>
-    </form>
-    <form method="post">
+    <div style="margin-bottom: 14px; display:flex; gap:10px;">
+      <button type="submit" name="action" value="save_prices" form="pricing-form">Save Prices</button>
+      <form method="post" style="display:inline;">
+        <input type="hidden" name="action" value="generate_catalog_report">
+        <button type="submit">Generate Catalog Report</button>
+      </form>
+    </div>
+    <form method="post" id="pricing-form">
       <table>
         <thead>
           <tr>
@@ -101,7 +104,7 @@
   <p class="muted">
     {{ total_quotes }} saved quote(s). {{ action_items|length }} line item(s) below belong to a
     quote sales has already built but still need Cost or Current Cost resolved before purchasing
-    can sign off.
+    can sign off. <a href="#top">Back to top &uarr;</a>
   </p>
 
   {% if quotes_report_generated %}

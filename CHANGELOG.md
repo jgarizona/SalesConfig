@@ -176,6 +176,22 @@ Every repository change must be recorded under the date it was made and identify
   correctly generate a report without touching Save Prices; the download link works end-to-end
   live (clicked "Export Pricing Sheet," got a real `<a href="/purchasing/download/...">` link,
   confirmed via `read_page`); "Jump to §2" scrolls straight past the 3,421-row table.
+- **[Claude]** Two follow-up fixes to the above, per the user: **"Save Prices" now also appears
+  at the top of §1**, next to "Generate Catalog Report" (the user noticed only one of the pair
+  was duplicated up top). Uses the HTML5 `form="pricing-form"` attribute on a button physically
+  outside the giant form - clicking it still submits the full table's real field data (the id'd
+  form, not an empty duplicate), so it stays a genuine save, not a no-op. Also added a
+  **"Back to top" link at §2**, mirroring the "Jump to §2" link already at the top, since the
+  page only had one-way navigation before. Verified live: clicked the new top Save Prices button
+  against the real full-size form (200, not 413, confirmed via `git diff` then reverted since it
+  was a test); clicked "Jump to §2" then "Back to top" and landed correctly both times.
+
+  **Incidental finding while testing, not a bug to fix:** re-saving via either Save Prices
+  button converts touched fields from JSON numbers to numeric strings (`50` -> `"50"`) - HTML
+  forms only ever submit text, and `save_prices` doesn't cast it back. Confirmed harmless:
+  `money_value()` (`app.py`) already handles both types identically for every downstream total.
+  Reverted the test save's byte diff via `git checkout --` regardless, to keep the file's
+  existing formatting/types undisturbed by testing.
 
 ## 2026-08-17
 
