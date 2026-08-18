@@ -91,6 +91,9 @@
   {% endif %}
 
   {% if action_items %}
+    <form method="post" style="margin-bottom: 14px;">
+      <button type="submit" name="action" value="generate_quotes_report">Generate Report</button>
+    </form>
     <table>
       <thead>
         <tr>
@@ -114,9 +117,6 @@
         {% endfor %}
       </tbody>
     </table>
-    <form method="post" style="margin-top: 14px;">
-      <button type="submit" name="action" value="generate_quotes_report">Generate Report</button>
-    </form>
   {% elif total_quotes > 0 %}
     <p class="empty-state">All quoted line items have full purchasing pricing. Nothing to act on.</p>
   {% else %}

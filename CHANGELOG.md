@@ -122,6 +122,12 @@ Every repository change must be recorded under the date it was made and identify
   (`HUAWEI, MediaTek, Quectel RedCap, Sierra EM7411, ...`); `WWAN Carrier` shows only
   `AT&T, T-Mobile, Verizon`; searching a module name from the Generation field still returns the
   same real matches as before (8 for "Sierra EM7455").
+- **[Claude]** Moved Purchasing's "Generate Report" button (§2, "What's been quoted to Sales —
+  action items") from below the action-items table to right above it, per the user - previously
+  a rep had to scroll past every flagged line item to find it. `templates/purchasing.html`
+  only; the "Generate Catalog Report" button in §1 is unaffected. Verified via the rendered
+  HTML: the button now appears immediately after the section heading/description, before
+  `<table>`.
 
 ## 2026-08-17
 
