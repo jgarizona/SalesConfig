@@ -303,6 +303,18 @@ The big one. Top-to-bottom:
      rep still has to supply their own Opportunity ID and Accept before this new quote can be
      saved. Picking a result that already belongs to the active customer loads/edits it
      normally, same as always.
+   - **Existing-quotes panel** (below Opportunity ID, auto-shown whenever it's non-blank):
+     **read-only informational text as of 2026-08-18** ("N existing quotes for this Opportunity.
+     Saving now will create Quote #X, Rev 0. To view or revise an existing one instead, use
+     'Lookup Saved Quote' above" - or, if a quote for this Opportunity ID is already loaded,
+     "Editing <display_id>... Saving now will revise this quote"). Used to be a clickable
+     `<select>` that loaded whichever quote you picked - removed after a real dead end the user
+     hit live: populating an Opportunity ID with existing quotes, picking the existing one out
+     of this panel (a reasonable guess for what new on-screen UI here was for) loaded that
+     locked quote instead of starting a new one, silently disabling Save with no visible
+     explanation. Loading/revising an existing quote is Lookup Saved Quote's job specifically -
+     this panel's only job now is telling a rep what clicking Save is about to do, correctly for
+     either case (new quote vs. revising whatever's currently loaded).
 4. **Quote # / Rev #** readout boxes (auto-assigned on Save, not user-entered) + **Copy to
    New Opportunity** (opens an inline panel — new Opportunity ID + optional new Customer —
    clones the current config to a fresh quote lineage starting at Rev 0).

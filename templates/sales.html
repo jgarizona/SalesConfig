@@ -901,6 +901,15 @@
       render();
     }
 
+    // Informational only, deliberately not clickable - per the user
+    // (2026-08-18). This used to be a "select one to load" dropdown, which
+    // caused a real problem: a rep populating an Opportunity ID to start a
+    // NEW quote saw it, picked the existing one out of it (a reasonable
+    // guess for what "something on the screen" here was for), which loaded
+    // that quote instead - and since it was locked, Save silently went
+    // disabled with no clear explanation why. Loading an existing quote to
+    // revise it is Lookup Saved Quote's job specifically, so this panel now
+    // only tells a rep what clicking Save is actually about to do.
     async function refreshExistingQuotes() {
       const oppId = oppInput.value.trim();
       existingQuotesDiv.innerHTML = "";
@@ -911,42 +920,21 @@
         existingQuotesDiv.innerHTML = '<span class="muted">No existing quotes yet for this Opportunity ID — saving will create the first one.</span>';
         return;
       }
-      // API already returns every quote_number AND rev_number under this
-      // Opportunity ID, sorted - a real dropdown (native <select>) rather
-      // than a growing row of buttons, since that scrolls natively once
-      // there are many revisions instead of just wrapping/piling up.
-      const label = document.createElement("div");
-      label.className = "muted";
-      label.textContent = `${list.length} existing quote${list.length === 1 ? "" : "s"} for this Opportunity — select one to load:`;
-      existingQuotesDiv.appendChild(label);
-
-      // If the quote currently loaded belongs to this same Opportunity ID,
-      // the dropdown should show IT as selected, not reset to the
-      // placeholder - loadQuote() calls this function again right after
-      // loading to refresh the list, which was wiping the just-made
-      // selection back to "Select a quote/revision..." every time.
-      const currentlyLoadedNumber = (loadedQuote && loadedQuote.opportunity_id === oppId)
-        ? String(loadedQuote.quote_number) : null;
-
-      const select = document.createElement("select");
-      select.className = "existing-quotes-select";
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "Select a quote/revision…";
-      placeholder.disabled = true;
-      select.appendChild(placeholder);
-      list.forEach(q => {
-        const opt = document.createElement("option");
-        opt.value = q.quote_number;
-        opt.textContent = q.display_id + (q.locked ? " 🔒 " : " ") + `— ${q.platform} — updated ${q.updated_at}`;
-        if (String(q.quote_number) === currentlyLoadedNumber) opt.selected = true;
-        select.appendChild(opt);
-      });
-      if (!currentlyLoadedNumber) placeholder.selected = true;
-      select.addEventListener("change", () => {
-        if (select.value) loadQuote(oppId, parseInt(select.value, 10));
-      });
-      existingQuotesDiv.appendChild(select);
+      // Editing an already-loaded quote for this same Opportunity ID (via
+      // Lookup Saved Quote) means Save will revise it, not create a new
+      // one - the message needs to reflect whichever is actually true.
+      if (loadedQuote && loadedQuote.opportunity_id === oppId) {
+        existingQuotesDiv.innerHTML =
+          `<span class="muted">Editing ${loadedQuote.display_id}${loadedQuote.locked ? " (locked - unlock to change it)" : ""}. ` +
+          `Saving now will revise this quote. ${list.length} existing quote${list.length === 1 ? "" : "s"} total ` +
+          `for this Opportunity.</span>`;
+        return;
+      }
+      const nextNumber = Math.max(...list.map(q => q.quote_number)) + 1;
+      existingQuotesDiv.innerHTML =
+        `<span class="muted">${list.length} existing quote${list.length === 1 ? "" : "s"} for this Opportunity. ` +
+        `Saving now will create Quote #${nextNumber}, Rev 0. To view or revise an existing one instead, use ` +
+        `"Lookup Saved Quote" above.</span>`;
     }
 
     function applyQuoteConfig(q) {

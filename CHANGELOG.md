@@ -26,6 +26,30 @@ Every repository change must be recorded under the date it was made and identify
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
+## 2026-08-18
+
+- **[Claude]** **Fixed a real dead end the user hit live: the "existing quotes" panel under
+  Opportunity ID was an interactive "select one to load" dropdown, and picking the wrong thing
+  out of it silently blocked Save with no clear explanation.** Reported sequence: rep populates
+  an Opportunity ID that already has quotes, sees "N existing quotes for this Opportunity -
+  select one to load," picks the existing one (a reasonable guess for what to do with new UI
+  appearing on screen) - which loads that quote instead of starting a new one, and since it was
+  locked, Save silently disabled with no visible reason why. Root cause wasn't the quote-
+  numbering logic (verified correct: `next_quote_number()` in `app.py` already computes
+  max-existing+1 correctly - confirmed live, Quote #2 Rev 0 was assigned correctly when the
+  panel was left alone) - it was that this panel duplicated Lookup Saved Quote's job while also
+  being the thing sitting directly under Populate, where a rep would naturally look for "the
+  quote number." Per the user, loading an existing quote to revise it should only be reachable
+  through Lookup Saved Quote - this panel now shows read-only text instead of a clickable
+  `<select>`: "N existing quotes for this Opportunity. Saving now will create Quote #X, Rev 0.
+  To view or revise an existing one instead, use 'Lookup Saved Quote' above." If a quote for
+  this same Opportunity ID is already loaded (via Lookup Saved Quote), the message correctly
+  switches to "Editing <display_id>... Saving now will revise this quote" instead, so it never
+  says something false. Removed the now-unused `.existing-quotes-select` CSS rule. Verified
+  live both branches: populating a fresh Opportunity ID with 2 existing quotes showed "Saving
+  now will create Quote #3, Rev 0" and Save produced exactly that; loading an existing quote
+  first and re-checking showed the correct "Editing ... will revise this quote" message.
+
 ## 2026-08-17
 
 - **[Claude]** **Fixed: the quote status banner's "(LOCKED)" state was unreadable** — dark
