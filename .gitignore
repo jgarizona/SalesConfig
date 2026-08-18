@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 data/reports/*.csv
 data/reports/*.xlsx
+data/pending_imports/*.json
 
 # Personal Claude Code permission overrides - not a shared team policy
 .claude/settings.local.json

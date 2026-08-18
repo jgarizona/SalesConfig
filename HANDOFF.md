@@ -335,63 +335,71 @@ The big one. Top-to-bottom:
    *description text*, not code (codes aren't consistent across platforms).
 
 ### `/purchasing` — Purchasing Review
-Top of page (added 2026-08-18, per the user - the page was hard to navigate before this):
-**"Export Pricing Sheet"** button and **"Jump to §2"** anchor link, both reachable with zero
-scrolling regardless of how big the catalog gets.
+Top of page: **Export Pricing Sheet**, **View Report**, **Part # Compare**, **$ Jeeves
+Compare** buttons and a **Jump to §2** anchor link, all reachable with zero scrolling
+regardless of how big the catalog gets. Every button has a `title` hover tooltip explaining
+what it does (same convention already used elsewhere - Sales' HubSpot badge, the disabled
+search-brand option - not a new pattern).
 
 Two independent sections below that:
 1. **Catalog pricing gaps** — every option missing any of the 4 price fields (Floor Price,
-   MSRP, Cost, Current Cost), editable inline, "Save Prices" writes back to
-   `parts_vmt_q1_2026.json`. "Upload pricing spreadsheet" bulk-applies a flat `.xlsx`/`.csv`
-   in the same shape as "Generate Catalog Report" — **can only update existing parts, never
-   create new ones** (that's Technical's job). "Generate Catalog Report" exports the gaps
-   as CSV — appears three times (top of page, top of §1, bottom of §1), all three deliberately
-   in their **own minimal forms**, separate from the giant Save-Prices form (see gotcha below).
+   MSRP, Cost, Current Cost). **No inline editing** (removed 2026-08-18 - see history below) -
+   the only ways to see or change these are:
+   - **View Report** (`GET /purchasing/pricing_gaps`,
+     `templates/purchasing_pricing_gaps.html`) - read-only table, no form, no inputs.
+   - **Export Pricing Sheet** / **Generate Catalog Report** (same action, appears at top of
+     page and top of §1) - downloads a CSV in upload-ready format.
+   - **Upload pricing spreadsheet** - now a **two-step preview-then-confirm** flow (added
+     2026-08-18), not immediate-apply. Uploading parses the file and dry-runs
+     `merge_parts()` against a `copy.deepcopy(parts)` to show real "N will update, M will
+     skip" counts *before* anything is saved - nothing touches `parts_vmt_q1_2026.json` at
+     this point. The already-parsed rows are stashed as JSON in
+     `data/pending_imports/<token>.json` (gitignored, mirrors `data/reports/`). **Continue**
+     (`action=confirm_import`) re-loads that JSON, runs the real merge against the live
+     `parts` list, saves, and deletes the temp file. **Cancel** (`action=cancel_import`)
+     just deletes it - nothing applied. No expiry/cleanup job for an abandoned preview
+     (same as `data/reports/*.csv` already has none) - an ignored preview just leaves a
+     small orphaned JSON file. **Can only update existing parts, never create new ones**
+     (that's Technical's job) - unchanged from before.
+   - **Part # Compare** / **$ Jeeves Compare** - stubs (see `/purchasing`'s Jeeves section
+     in CHANGELOG.md's Pending/TODO for what they'll do once Jeeves access exists).
 2. **What's been quoted to Sales — action items** — every saved quote's line items
    cross-checked against *current* pricing (not the quote's frozen snapshot), flagging
    exactly what's still missing before purchasing can sign off. Own CSV export, "Generate
-   Report" button lives above the table (moved 2026-08-18, was below it).
+   Report" button lives above the table.
 
 Generated reports (`report_generated`/`quotes_report_generated`) are real downloads via
-`/purchasing/download/<filename>` (added 2026-08-18 — previously the filename was shown as
-plain text with no way to actually get the file from a browser). Path is validated against
-`REPORTS_DIR` to block `../` traversal.
+`/purchasing/download/<filename>` — previously the filename was shown as plain text with no
+way to actually get the file from a browser. Path is validated against `REPORTS_DIR` to
+block `../` traversal.
 
-**Gotcha that bit a real user (2026-08-18) and is worth understanding before touching this
-page again: the pricing-gaps table can have thousands of rows, and that has two real
-consequences.**
-- **Never put a report-generation button inside the same `<form>` as the pricing table.**
-  It doesn't need any of that row data, and including it means submitting one form field per
-  row x 4 (currently ~17,000 fields) just to generate a report - which used to also silently
-  trigger the wrong action (see next point) and, separately, can hit Werkzeug's form-size
-  limits (see below). Keep it in its own tiny form with just a hidden `action` field.
-- **Every submit button in a form needs its own explicit `name="action" value="..."` - never
-  rely on a hidden `<input name="action">` as a "default"** when other buttons in the same form
-  share that name. A hidden default field and a same-named button both get submitted; Flask's
-  `request.form.get("action")` returns whichever comes first in *document order*, not whichever
-  control was actually clicked - if the hidden field is first, every button in that form
-  silently resolves to the hidden field's action, no matter which one was clicked. This was a
-  real, live bug: "Generate Catalog Report" always silently ran `save_prices` instead of
-  generating anything, for as long as this page has existed.
-- **`app.config["MAX_FORM_PARTS"]`/`["MAX_FORM_MEMORY_SIZE"]` are explicitly raised in `app.py`**
-  (to 50,000 / 5,000,000) specifically because of this table. Werkzeug 3.x's defaults
-  (`max_form_parts=1000`, `max_form_memory_size=500_000` bytes) are a real safety limit meant
-  to stop request-based DoS on untrusted internet endpoints - not appropriate for a trusted
-  internal tool with a legitimately large form, but they will 413 a real submission from a real
-  user if left at default. If the catalog roughly triples from today's 3,551 parts, these caps
-  will need raising again.
-- **When testing this page's POST routes directly (test client, curl, etc.), never submit
-  real price-field values you haven't checked** - `save_prices` writes straight to
-  `parts_vmt_q1_2026.json` with no confirmation step. A blank-value test payload submitted
-  against the live route on 2026-08-18 (checking whether a request-size fix worked) actually
-  overwrote real Floor Price/MSRP/Cost across all 3,421 flagged rows with `null` before the
-  mistake was caught via `git diff` and reverted with `git checkout --`. Always diff before and
-  after a script that hits `save_prices` for real, or point it at a scratch copy of the data
-  file instead.
+**History worth knowing before touching this page again - why it's built this way, not
+just "how":** §1 used to be an inline-editable table (one `<form>`, one row per flagged
+part x 4 price-field inputs - ~17,000 fields against the real 3,421-row catalog).
+2026-08-18, in order: (1) that form had a hidden `action=save_prices` default competing
+with a same-named "Generate Catalog Report" button - Flask resolves duplicate form keys to
+whichever comes first in *document order*, not whichever control was clicked, so the report
+button silently ran `save_prices` instead of generating anything, for as long as the page
+had existed; (2) fixing that (every button needs its own explicit
+`name="action" value="..."`, no shared hidden default) surfaced a live 413 - the ~17,000-field
+form exceeds Werkzeug 3.x's default `max_form_parts=1000` safety limit, meaning **Save
+Prices itself, not just the report button, had been completely broken for the full table**;
+raised via `app.config["MAX_FORM_PARTS"]`/`["MAX_FORM_MEMORY_SIZE"]` (still set, harmless to
+leave even though nothing needs them now) as a same-day fix; (3) rather than keep raising
+limits as the catalog grows, the whole inline-editing model was replaced with the
+export/view/import-with-preview design described above, which has no giant form at all.
+Also during this: a test payload submitted directly against the live `save_prices` route
+(checking whether the 413 fix worked) actually overwrote real Floor Price/MSRP/Cost across
+all 3,421 rows with `null` before being caught via `git diff` and reverted - **when testing
+any of this page's POST routes directly (test client, curl, etc.), always diff
+`data/parts_vmt_q1_2026.json` before and after**, since none of these actions have a
+confirmation step except the import flow's Continue/Cancel built specifically to solve that.
 
 Shared upload rule (`merge_parts()` in `app.py`): **a blank cell in an upload never erases a
 value already on file** — only non-blank incoming values overwrite. This is what stops a
-partial vendor refresh from wiping purchasing's manual price entries.
+partial vendor refresh from wiping purchasing's manual price entries. `merge_parts()` never
+calls `save_parts()` itself - the caller does - which is exactly what makes it safe to
+dry-run for the import preview (call it against a deep copy first, discard the result).
 
 ### `/admin` — Admin Overview
 Stat cards + detail tables:

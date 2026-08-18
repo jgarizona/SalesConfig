@@ -12,7 +12,7 @@
       <nav>
         <a href="{{ url_for('technical') }}" class="{{ 'active' if request.path == '/technical' else '' }}">Technical</a>
         <a href="{{ url_for('sales') }}" class="{{ 'active' if request.path == '/sales' or request.path == '/' else '' }}">Sales</a>
-        <a href="{{ url_for('purchasing') }}" class="{{ 'active' if request.path == '/purchasing' else '' }}">Purchasing</a>
+        <a href="{{ url_for('purchasing') }}" class="{{ 'active' if request.path.startswith('/purchasing') else '' }}">Purchasing</a>
         <a href="{{ url_for('admin') }}" class="{{ 'active' if request.path == '/admin' else '' }}">Admin</a>
         <a href="{{ url_for('logout') }}" style="opacity:0.6;">Log out</a>
       </nav>

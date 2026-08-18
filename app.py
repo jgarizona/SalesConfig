@@ -31,6 +31,7 @@ Quote ID/lock rules:
     Quote# and Rev back at 0.
 """
 
+import copy
 import csv
 import io
 import json
@@ -119,6 +120,12 @@ CUSTOMERS_FILE = DATA_DIR / "customers.json"
 SALES_REPS_FILE = DATA_DIR / "sales_reps.json"
 SITE_ACCESS_FILE = DATA_DIR / "site_access.json"
 REPORTS_DIR = DATA_DIR / "reports"
+# Holds the already-parsed rows of an uploaded pricing sheet between the
+# preview step (dry-run counts shown, nothing saved) and Continue (real
+# merge + save) - see purchasing()'s upload handling. Not cleaned up on a
+# timer; an abandoned preview just leaves a small orphaned JSON file, same
+# as REPORTS_DIR already does for generated reports nobody downloaded.
+PENDING_IMPORTS_DIR = DATA_DIR / "pending_imports"
 
 # --------------------------------------------------------------- site access
 # A single shared PIN gating every page/API on the whole app - not per-user,
@@ -913,8 +920,17 @@ def quote_print(opportunity_id, quote_number):
 def purchasing():
     parts = load_parts()
     quotes = load_quotes()
+    action = request.form.get("action") if request.method == "POST" else None
 
+    # Upload now previews instead of applying immediately (added 2026-08-18,
+    # per the user - the old immediate-apply behavior gave no chance to
+    # catch a bad file before it was already saved). Parses the file and
+    # dry-runs merge_parts() against a deep copy to get real would-be
+    # counts without touching the live parts list, then stashes the
+    # already-parsed rows as JSON so Continue doesn't need to re-parse the
+    # original CSV/XLSX - see PENDING_IMPORTS_DIR.
     upload_result = None
+    pending_import = None
     uploaded = request.files.get("file") if request.method == "POST" else None
     if uploaded and uploaded.filename:
         try:
@@ -922,25 +938,46 @@ def purchasing():
         except Exception as e:
             upload_result = {"error": str(e)}
         else:
+            _added, updated, skipped = merge_parts(copy.deepcopy(parts), new_rows, allow_new=False)
+            PENDING_IMPORTS_DIR.mkdir(parents=True, exist_ok=True)
+            token = secrets.token_hex(8)
+            (PENDING_IMPORTS_DIR / f"{token}.json").write_text(json.dumps(new_rows), encoding="utf-8")
+            pending_import = {"token": token, "updated": updated, "skipped": skipped, "total": len(new_rows)}
+
+    if action == "confirm_import":
+        token = request.form.get("token", "")
+        pending_path = PENDING_IMPORTS_DIR / f"{token}.json"
+        if pending_path.is_file():
+            new_rows = json.loads(pending_path.read_text(encoding="utf-8"))
             added, updated, skipped = merge_parts(parts, new_rows, allow_new=False)
             save_parts(parts)
             parts = load_parts()
+            pending_path.unlink()
             upload_result = {"added": added, "updated": updated, "skipped": skipped, "total": len(new_rows)}
+        else:
+            upload_result = {"error": "That import preview has expired or was already applied."}
 
-    if request.method == "POST" and request.form.get("action") == "save_prices":
-        keys = request.form.getlist("row_key")
-        for row_key in keys:
-            brand, platform, category, code = row_key.split("||", 3)
-            part = find_part(parts, brand, platform, category, code)
-            if part is None:
-                continue
-            for field in PRICE_FIELDS:
-                field_input_name = f"{row_key}||{field}"
-                if field_input_name in request.form:
-                    raw = request.form[field_input_name].strip()
-                    part[field] = raw if raw != "" else None
-        save_parts(parts)
-        parts = load_parts()
+    if action == "cancel_import":
+        token = request.form.get("token", "")
+        pending_path = PENDING_IMPORTS_DIR / f"{token}.json"
+        if pending_path.is_file():
+            pending_path.unlink()
+        upload_result = {"cancelled": True}
+
+    jeeves_message = None
+    if action == "jeeves_part_compare":
+        jeeves_message = (
+            "Jeeves isn't connected yet. This button is a placeholder for that future "
+            "integration - once available, it will check every catalog part's assigned "
+            "Jeeves Part Number against Jeeves and list any part not recognized there."
+        )
+    if action == "jeeves_price_compare":
+        jeeves_message = (
+            "Jeeves isn't connected yet. This button is a placeholder for that future "
+            "integration - once available, it will compare local Floor Price/MSRP/Cost/"
+            "Current Cost against Jeeves' own prices and generate a difference report, "
+            "exportable and re-importable here to adjust prices."
+        )
 
     flagged = [
         p for p in parts
@@ -948,7 +985,7 @@ def purchasing():
     ]
 
     report_generated = None
-    if request.method == "POST" and request.form.get("action") == "generate_catalog_report":
+    if action == "generate_catalog_report":
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         report_path = REPORTS_DIR / f"purchasing_catalog_report_{datetime.now():%Y%m%d_%H%M%S}.csv"
         fieldnames = ["brand", "platform", "category", "code", "description"] + PRICE_FIELDS
@@ -962,7 +999,7 @@ def purchasing():
     action_items = compute_quote_action_items(parts, quotes)
 
     quotes_report_generated = None
-    if request.method == "POST" and request.form.get("action") == "generate_quotes_report":
+    if action == "generate_quotes_report":
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         report_path = REPORTS_DIR / f"purchasing_quotes_report_{datetime.now():%Y%m%d_%H%M%S}.csv"
         fieldnames = ["display_id", "opportunity_id", "locked", "brand", "platform", "category", "code", "description", "missing"]
@@ -978,11 +1015,32 @@ def purchasing():
         flagged=flagged,
         total_parts=len(parts),
         report_generated=report_generated,
+        pending_import=pending_import,
+        jeeves_message=jeeves_message,
         price_fields=PRICE_FIELDS,
         action_items=action_items,
         quotes_report_generated=quotes_report_generated,
         total_quotes=len(quotes),
         upload_result=upload_result,
+    )
+
+
+@app.route("/purchasing/pricing_gaps")
+def purchasing_pricing_gaps():
+    """Read-only view of §1's flagged parts - added 2026-08-18 to replace the
+    old inline-editable table (which was also the giant ~17K-field form that
+    caused a real 413 earlier the same day). No form, no inputs - just a
+    look. Editing happens via Export Pricing Sheet -> edit offline -> Upload."""
+    parts = load_parts()
+    flagged = [
+        p for p in parts
+        if any(p.get(f) in (None, "") for f in PRICE_FIELDS)
+    ]
+    return render_template(
+        "purchasing_pricing_gaps.html",
+        flagged=flagged,
+        total_parts=len(parts),
+        price_fields=PRICE_FIELDS,
     )
 
 

@@ -6,10 +6,23 @@
   <div class="quick-links" style="margin-bottom: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
     <form method="post" style="display:inline;">
       <input type="hidden" name="action" value="generate_catalog_report">
-      <button type="submit">Export Pricing Sheet</button>
+      <button type="submit" title="Downloads a CSV of every part missing a price field, in the same format Upload expects - edit it and upload it back to bulk-apply prices.">Export Pricing Sheet</button>
+    </form>
+    <a href="{{ url_for('purchasing_pricing_gaps') }}" class="btn" title="Opens a read-only view of every part missing a price field, without downloading anything.">View Report</a>
+    <form method="post" style="display:inline;">
+      <input type="hidden" name="action" value="jeeves_part_compare">
+      <button type="submit" title="Jeeves isn't connected yet. Once available: checks every catalog part's assigned Jeeves Part Number against Jeeves and lists any part not recognized there.">Part # Compare</button>
+    </form>
+    <form method="post" style="display:inline;">
+      <input type="hidden" name="action" value="jeeves_price_compare">
+      <button type="submit" title="Jeeves isn't connected yet. Once available: compares local Floor Price/MSRP/Cost/Current Cost against Jeeves' own prices and generates a difference report, exportable and re-importable here to adjust prices.">$ Jeeves Compare</button>
     </form>
     <a href="#section-2">Jump to: What's been quoted to Sales &rarr;</a>
   </div>
+
+  {% if jeeves_message %}
+    <div class="banner">{{ jeeves_message }}</div>
+  {% endif %}
 
   {% if report_generated %}
     <div class="banner">
@@ -22,19 +35,42 @@
     <form method="post" enctype="multipart/form-data" class="upload-form">
       <label><strong>Upload pricing spreadsheet</strong></label>
       <p class="muted" style="margin:4px 0 8px;">
-        Flat format, same columns as "Export Pricing Sheet"/"Generate Catalog Report" above/below
+        Flat format, same columns as "Export Pricing Sheet"/"Generate Catalog Report"
         (brand, platform, category, code, description, Floor Price, MSRP, Cost, Current Cost)
         &mdash; .xlsx or .csv. Fill in a downloaded report and upload it back to bulk-apply prices
-        instead of typing them in one by one. This only updates parts that already exist; it can't
+        instead of typing them in one by one. You'll see a preview of how many rows will change
+        before anything is actually saved. This only updates parts that already exist; it can't
         create new catalog entries (that's done on Technical). A blank/missing brand column
         defaults to JLT.
       </p>
       <input type="file" name="file" accept=".xlsx,.csv" required>
       <button type="submit">Upload</button>
     </form>
-    {% if upload_result %}
+
+    {% if pending_import %}
+      <div class="banner">
+        This import will update <strong>{{ pending_import.updated }}</strong> row(s) and skip
+        <strong>{{ pending_import.skipped }}</strong> (no matching part, or missing
+        platform/category/code) out of {{ pending_import.total }} row(s) in the file. Nothing has
+        been saved yet.
+      </div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <form method="post">
+          <input type="hidden" name="action" value="confirm_import">
+          <input type="hidden" name="token" value="{{ pending_import.token }}">
+          <button type="submit">Continue</button>
+        </form>
+        <form method="post">
+          <input type="hidden" name="action" value="cancel_import">
+          <input type="hidden" name="token" value="{{ pending_import.token }}">
+          <button type="submit">Cancel</button>
+        </form>
+      </div>
+    {% elif upload_result %}
       {% if upload_result.error %}
         <div class="banner error">Upload failed: {{ upload_result.error }}</div>
+      {% elif upload_result.cancelled %}
+        <div class="banner">Import cancelled - nothing was saved.</div>
       {% else %}
         <div class="banner">
           Uploaded {{ upload_result.total }} row(s): {{ upload_result.updated }} updated,
@@ -47,55 +83,18 @@
   <h2>1. Catalog pricing gaps</h2>
   <p class="muted">
     {{ total_parts }} total options in the price list. {{ flagged|length }} are missing at least
-    one of the 4 price fields (Floor Price, MSRP, Cost, Current Cost). Fill in what you know below
-    and Save. Cost and Current Cost are never shown to Sales or a customer.
+    one of the 4 price fields (Floor Price, MSRP, Cost, Current Cost). Cost and Current Cost are
+    never shown to Sales or a customer.
   </p>
 
   {% if flagged %}
     <div style="margin-bottom: 14px; display:flex; gap:10px;">
-      <button type="submit" name="action" value="save_prices" form="pricing-form">Save Prices</button>
+      <a href="{{ url_for('purchasing_pricing_gaps') }}" class="btn">View Report</a>
       <form method="post" style="display:inline;">
         <input type="hidden" name="action" value="generate_catalog_report">
         <button type="submit">Generate Catalog Report</button>
       </form>
     </div>
-    <form method="post" id="pricing-form">
-      <table>
-        <thead>
-          <tr>
-            <th>Brand</th><th>Platform</th><th>Category</th><th>Code</th><th>Description</th>
-            {% for f in price_fields %}<th>{{ f }}</th>{% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in flagged %}
-          {% set row_key = p.brand ~ "||" ~ p.platform ~ "||" ~ p.category ~ "||" ~ p.code %}
-          <tr>
-            <td>{{ p.brand }}</td>
-            <td>{{ p.platform }}</td>
-            <td>{{ p.category }}</td>
-            <td>{{ p.code }}</td>
-            <td>{{ p.description }}</td>
-            <input type="hidden" name="row_key" value="{{ row_key }}">
-            {% for f in price_fields %}
-            <td>
-              <input type="text" name="{{ row_key }}||{{ f }}"
-                     value="{{ p[f] if p[f] is not none else '' }}"
-                     style="width: 90px; padding: 4px; {% if p[f] is none %}background:#fff3e0;{% endif %}">
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <div style="margin-top: 14px; display:flex; gap: 10px;">
-        <button type="submit" name="action" value="save_prices">Save Prices</button>
-      </div>
-    </form>
-    <form method="post" style="margin-top: 10px;">
-      <input type="hidden" name="action" value="generate_catalog_report">
-      <button type="submit">Generate Catalog Report</button>
-    </form>
   {% else %}
     <p class="empty-state">Nothing flagged — every option has full pricing.</p>
   {% endif %}

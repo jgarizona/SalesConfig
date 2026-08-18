@@ -14,7 +14,7 @@ Every repository change must be recorded under the date it was made and identify
 - **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Per the user, CipherLab is excluded from Search by Requirements entirely until this is fixed at the source (see the second 2026-08-17 entry below) — normal Sales configuration is unaffected, this is search-only. Next action: once a fuller CipherLab catalog is sourced, re-run the ingest and remove `SEARCH_EXCLUDED_BRANDS = {"CipherLab"}` in `app.py` (two usages) and the matching `disabled` branch in `sales.html`'s search-brand-select loop.
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
-- **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand.
+- **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand. Layout/UX defined 2026-08-18 (see the same-day CHANGELOG entry): "Part # Compare" and "$ Jeeves Compare" buttons exist on Purchasing (top of page) but are stubs — real Jeeves API/database access isn't available yet, so clicking either just shows a "not connected" banner. Blocked on two things before either can do anything real: (1) live Jeeves access, (2) a **Jeeves Part Number mapping for non-JLT parts** — Winmate/Getac/CipherLab parts likely don't have a native Jeeves part number, and per the user (2026-08-18) this is explicitly deferred ("put this in the TODO and we will look at this later"), no field or capture mechanism exists yet. Once both are available: "Part # Compare" checks every catalog part's assigned Jeeves Part Number against Jeeves and lists what's missing/unrecognized; "$ Jeeves Compare" compares local Floor Price/MSRP/Cost/Current Cost against Jeeves' own prices and generates a difference report, exportable and re-importable through the same preview/confirm import flow built the same day for §1's pricing gaps (see `confirm_import`/`cancel_import` in `app.py`).
 - ~~**Ingest Winmate, Getac, and CipherLab**~~ — resolved 2026-08-16: dedicated parsers built for all three (`ingest/parse_winmate.py`, `ingest/parse_getac.py`, `ingest/parse_cipherlab.py`), real data ingested (1,060 / 370 / 1,622 parts respectively), catalog now 3,551 parts across all 4 brands.
 - **Third-party add-on ingestion path** — not built yet, and deliberately deferred (per the user, 2026-08-16: "addons will come later in this project"). Manufacturer-catalog parts are now auto-approved (`requires_review: false`, see the 2026-08-16 entry below), but a mount vendor's own catalog (RAM Mounts, Gamber-Johnson, etc.) doesn't self-certify fit with a specific host platform the way an OEM's own spec sheet does — that path needs `requires_review: true` and will go through the existing `approvals.json`/Technical-checkbox flow, which still exists specifically for this.
 - **Real email sending** — the Email button on the Sales page downloads the Excel file and opens the printable view, but doesn't actually send anything (no SMTP/Outlook integration in the app).
@@ -192,6 +192,50 @@ Every repository change must be recorded under the date it was made and identify
   `money_value()` (`app.py`) already handles both types identically for every downstream total.
   Reverted the test save's byte diff via `git checkout --` regardless, to keep the file's
   existing formatting/types undisturbed by testing.
+- **[Claude]** **Replaced §1's inline price-editing table with export/view + a two-step
+  preview-then-confirm import, and added two Jeeves stub buttons - a bigger redesign than the
+  form-limit fix earlier today, per the user.** Rather than keep raising Werkzeug's form
+  limits as the catalog grows, §1's ~17,000-field editable table and both "Save Prices"
+  buttons are gone entirely. In their place:
+  - **View Report** (new, top of page and top of §1) - new `GET /purchasing/pricing_gaps`
+    route + `templates/purchasing_pricing_gaps.html`, a read-only table of the same flagged
+    parts, no form, no inputs. The only way to change a price now is Export -> edit offline
+    -> Upload.
+  - **Upload now previews before applying.** `merge_parts()` already returned
+    `(added, updated, skipped)` without saving anything itself - the caller always called
+    `save_parts()` separately - so a true dry run just meant calling it against
+    `copy.deepcopy(parts)` first. Uploading now parses the file, dry-runs the merge for
+    real counts, and stashes the already-parsed rows as JSON in new `PENDING_IMPORTS_DIR`
+    (`data/pending_imports/<token>.json`, gitignored like `data/reports/`) instead of saving
+    immediately. Shows "This will update N row(s) and skip M" with **Continue**
+    (`action=confirm_import`) and **Cancel** (`action=cancel_import`) buttons, each posting
+    just the token. Continue re-loads the JSON (no re-parsing the original CSV/XLSX needed),
+    runs the real merge against the live `parts` list, saves, and deletes the temp file.
+    Cancel just deletes it - nothing applied. Confirming an expired/already-used token shows
+    an error instead of silently no-op'ing.
+  - **Part # Compare** and **$ Jeeves Compare** (new, top of page) - stubs, matching the
+    existing "Upload Hspt" pattern (`api_quote_upload()`) since there's no live Jeeves
+    access yet (confirmed with the user). Each posts a dedicated action
+    (`jeeves_part_compare`/`jeeves_price_compare`) that renders a "Jeeves isn't connected
+    yet..." banner describing what it'll do once connected - checking Jeeves Part Number
+    mappings and comparing local vs. Jeeves prices respectively (see the updated Jeeves
+    connector TODO entry above for the deferred Jeeves Part Number mapping problem this is
+    blocked on). Every top-row button (`Export Pricing Sheet`, `View Report`,
+    `Part # Compare`, `$ Jeeves Compare`) now has a `title` hover tooltip explaining its
+    use, per the user - matches this codebase's existing tooltip convention (`title=` is
+    already used on Sales' HubSpot badge and the disabled-brand search option, not a new
+    pattern).
+
+  Verified: `GET /purchasing` no longer has a `<table>` in §1's HTML; `GET
+  /purchasing/pricing_gaps` returns a real 3,422-row (3,421 + header) read-only table with
+  zero `<input>` elements; both Jeeves buttons render their correct stub message. Full
+  import round trip scripted via the Flask test client: uploading the real 3,421-row export
+  unchanged showed a preview of "2,970 updated, 0 skipped" with **zero** change to
+  `data/parts_vmt_q1_2026.json` (`git diff` empty) until Confirm was actually clicked, at
+  which point the diff appeared and matched the preview exactly; separately, Upload -> Cancel
+  left zero diff and deleted the pending JSON; confirming an already-cancelled token
+  correctly showed the expired-token error instead of applying anything. All test diffs
+  reverted via `git checkout --` before committing.
 
 ## 2026-08-17
 

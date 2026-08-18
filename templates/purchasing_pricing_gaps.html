@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Catalog Pricing Gaps{% endblock %}
+{% block content %}
+  <h1>Catalog Pricing Gaps</h1>
+  <p class="muted">
+    Read-only view - {{ flagged|length }} of {{ total_parts }} total options are missing at least
+    one of the 4 price fields (Floor Price, MSRP, Cost, Current Cost). To fill these in, use
+    "Export Pricing Sheet" on Purchasing, edit the download, and upload it back.
+    <a href="{{ url_for('purchasing') }}">&larr; Back to Purchasing</a>
+  </p>
+
+  {% if flagged %}
+    <table>
+      <thead>
+        <tr>
+          <th>Brand</th><th>Platform</th><th>Category</th><th>Code</th><th>Description</th>
+          {% for f in price_fields %}<th>{{ f }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in flagged %}
+        <tr>
+          <td>{{ p.brand }}</td>
+          <td>{{ p.platform }}</td>
+          <td>{{ p.category }}</td>
+          <td>{{ p.code }}</td>
+          <td>{{ p.description }}</td>
+          {% for f in price_fields %}
+          <td{% if p[f] is none %} style="background:#fff3e0;"{% endif %}>
+            {{ p[f] if p[f] is not none else "" }}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-state">Nothing flagged — every option has full pricing.</p>
+  {% endif %}
+{% endblock %}
