@@ -747,48 +747,57 @@ returns real matches spanning every platform whose raw description used to be a 
 near-duplicate spelling (7 matches across 1014P/1214N/1214P/1514N/6012/6015/VM1007E FM07E for
 the x6413E group, previously split across up to 5 separate unmergeable search terms).
 
-**"Internal Wireless" got a WWAN Generation/WWAN Carrier split too (2026-08-18), but ADDED
-alongside the original flat field rather than replacing it - a real design difference from
-storage/OS/CPU.** Per the user: WWAN/cellular info is jumbled together with WiFi/Bluetooth/GPS
-in the same free-text description (109 distinct real values), and the carrier/module should be
-searchable separately from WWAN generally, the same pattern as Storage Capacity/Technology. The
-key difference from storage/OS: a single "Internal Wireless" description can simultaneously
-encode WiFi standard (802.11ac/ax/etc), Bluetooth version, GPS, *and* cellular all at once (e.g.
-`"WLAN (802.11 a/b/g/n/ac) + BT 5.0 + GPS 4G Sierra EM7455"`) - removing the flat field the way
-storage/OS's raw categories were removed would have lost real search capability (a rep searching
-by WiFi standard or Bluetooth version alone). So `ingest/wwan_facets.py`'s two new facets are
-*added* alongside "Internal Wireless," which still lists all 109 raw descriptions unchanged.
-New `_KEEP_RAW_ALONGSIDE_FACETS` set in `app.py` (currently just `{"Internal Wireless"}`) marks
-which real categories get this "facets plus the original" treatment instead of full replacement
-- everything else in `FACET_CATEGORIES` still fully replaces its real category as before.
+**"Internal Wireless" is now split into four independent search fields (2026-08-18) - WiFi
+radio, WWAN Generation, WWAN Card, and WWAN Carrier - all fully replacing the original flat
+field, same pattern as storage/OS/CPU.** JLT/Winmate's real "Internal Wireless" rows jumble WiFi
+radio, Bluetooth, GPS, and WWAN cellular into one free-text description (109 distinct real
+values as of the original 2026-08-18 audit), e.g. `"Intel Wireless AX210 802.11 ac/a/b/g/n with
+WWAN *AT&T*"`. The first version of this split (same day, earlier) kept the raw flat description
+list as "Internal Wireless" and only *added* WWAN Generation/Carrier alongside it
+(`_KEEP_RAW_ALONGSIDE_FACETS` in `app.py`) - reasoned at the time that dropping the raw field
+would lose WiFi-standard/Bluetooth search capability. The user then flagged this live: the
+"Internal Wireless" dropdown was still showing the raw WWAN-mixed text, defeating the point of
+splitting WWAN out at all. Fixed by replacing the raw field with a real WiFi-only facet instead
+of dropping it - `_KEEP_RAW_ALONGSIDE_FACETS` is gone, every real category in `FACET_CATEGORIES`
+(including "Internal Wireless" itself now) is fully replaced by its facet(s), no exceptions.
 
-- **WWAN Generation**: 3G/4G/5G (LTE counts as 4G, extracted by `extract_wwan_generation`),
-  *plus* specific cellular module part numbers - Telit LN920/FN990, Sierra
-  EM7455/EM7411/EM9291/EM7595, Sierra MC7455/MC7411, Quectel RedCap, MediaTek, HUAWEI
-  (`extract_wwan_module`) - sorted after the plain generations (`wwan_generation_sort_key`).
-  Repartitioned here from an original design that put modules in "WWAN Carrier" - per the user
-  (2026-08-18): "the cards are tied to 3g 4g 5g more than the carrier," so a module belongs
-  alongside Generation, not lumped in with actual named carriers. This is why
-  `FACET_CATEGORIES` maps each synthetic category to a *list* of extractors, not a single one -
-  a row can contribute both a generic value ("4G") and a specific one ("Sierra EM7455") to the
-  same dropdown. Deliberately does NOT merge EM7455/MC7455 or EM7411/MC7411 - different Sierra
-  Wireless part numbers (M.2 vs mini-PCIe form factor), and nothing in the source text confirms
-  they're interchangeable for search the way "Elkhart Lake" confirmed two CPU spellings were the
-  same chip.
-- **WWAN Carrier**: only the three actual named US carriers (AT&T/T-Mobile/Verizon, present on
-  Intel Wireless 8265/AX210 module SKUs) - `extract_wwan_carrier`. A row with a generation/module
-  but no named carrier (the common case - most rows just say "4G" or "5G WWAN," or name a module
-  without a carrier) is simply not findable via Carrier, same pattern as an untagged storage/OS
-  description.
+- **Internal Wireless** (`ingest/wifi_facets.py`, `extract_wifi_radio`): WiFi radio only, no
+  WWAN/carrier text. JLT names a specific Intel chip (`AX210`/`8265`) so that's returned
+  directly; Winmate never names a chip, only an 802.11 standard revision, so the *highest*
+  standard mentioned is returned (`802.11ax` > `ac` > `n` > `g` > `b`); `"No Radio"` is
+  recognized on either brand. A row with no WiFi component at all (a WWAN-module-only row, or a
+  bare "WLAN"/"Wifi" mention with no stated standard) returns `None` rather than a fabricated
+  value - the row stays fully selectable directly from the platform's own option list, it's just
+  not findable via this search facet. Applied to both JLT and Winmate.
+- **WWAN Generation** (`extract_wwan_generation`): plain 3G/4G/5G only (LTE counts as 4G),
+  sorted via `wwan_generation_sort_key`.
+- **WWAN Card** (`extract_wwan_module`): specific cellular module/card part numbers - Telit
+  LN920/FN990, Sierra EM7455/EM7411/EM9291/EM7595/MC7455/MC7411/MC7421, Quectel
+  RedCap/RedCap RG255C, MediaTek, HUAWEI. Originally these fed into "WWAN Generation" as extra,
+  more-specific values (reasoning: "the cards are tied to 3g 4g 5g more than the carrier") - the
+  user revised this the same day once they saw the actual field list: a rep looking for a
+  specific card wants its own dropdown, not a search through Generation's 3G/4G/5G entries. Now
+  its own category. Deliberately does NOT merge EM7455/MC7455 or EM7411/MC7411 - different
+  Sierra Wireless part numbers (M.2 vs mini-PCIe form factor), and nothing in the source text
+  confirms they're interchangeable for search the way "Elkhart Lake" confirmed two CPU spellings
+  were the same chip. `MC7421` and the specific `Quectel RedCap RG255C` submodel were added to
+  the pattern list per the user even though neither appears in the catalog yet, so a future JLT
+  spreadsheet update picks them up with no further code change (checked ahead of the generic
+  "Quectel RedCap" pattern so a row naming the submodel gets the precise label).
+- **WWAN Carrier** (`extract_wwan_carrier`): only the three actual named US carriers
+  (AT&T/T-Mobile/Verizon, present on Intel Wireless 8265/AX210 module SKUs). A row with a
+  generation/card but no named carrier (the common case) is simply not findable via Carrier,
+  same pattern as an untagged storage/OS description.
 
 Getac's own `attributes.wireless` values are untouched by this - already simple/clean (a handful
 of values like `"WiFi + BT + 5G Sub-6"`), and this only affects JLT/Winmate's real per-SKU
-"Internal Wireless" rows. Full audit re-run after the change: 0 issues across 628 brand-scoped
-values (Internal Wireless itself still has all 109 original values - nothing was lost). Verified
-live and via direct API calls: `WWAN Generation` dropdown shows `3G, 4G, 5G`; searching
-`WWAN Generation = "5G"` alone returns 6 real matches across platforms with different exact raw
-wording; searching `WWAN Carrier = "AT&T"` returns 12 matches; the original exact-match
-`Internal Wireless` search still works unchanged (verified against a real Getac value).
+"Internal Wireless" rows. Verified via the Flask test client against live data: JLT's "Internal
+Wireless" is exactly `['802.11ac', 'Intel 8265', 'Intel AX210', 'No Radio']`; Winmate's is
+exactly `['802.11ac', '802.11ax', '802.11n']`; JLT's "WWAN Card" is `['Sierra EM7455', 'Sierra
+MC7411', 'Telit FN990', 'Telit LN920']`; `WWAN Generation` is back to plain `['4G', '5G']`
+(JLT)/`['3G', '4G', '5G']` (Winmate); confirmed `/api/search_base_units` still correctly matches
+on the new fields (`Internal Wireless: "Intel AX210"` → 9 JLT matches, `WWAN Card: "Sierra
+MC7411"` → 1 match, `WWAN Card: "Sierra EM7455"` → 7 Winmate matches).
 
 ---
 

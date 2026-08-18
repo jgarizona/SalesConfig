@@ -28,6 +28,46 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Split "Internal Wireless" into a clean WiFi-only search field, plus a new
+  standalone "WWAN Card" field.** Reported by the user from a Search by Requirements
+  screenshot: JLT's "Internal Wireless" dropdown mixed WiFi radio, WWAN generation, and
+  carrier together (e.g. "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN *AT&T*" as one
+  option), when the field should be WiFi-only. Root cause: the same-day WWAN Generation/
+  Carrier split (see below) had *added* those two facets alongside the original raw flat
+  "Internal Wireless" description list rather than replacing it, so the raw WWAN-laden text
+  was still what populated the "Internal Wireless" dropdown itself.
+  - New `ingest/wifi_facets.py` (`extract_wifi_radio`) derives a clean WiFi-only value per
+    row: JLT names a specific Intel chip (AX210/8265) so that's returned directly; Winmate
+    never names a chip, only an 802.11 standard revision (ac/ax/n), so the highest one
+    mentioned is returned instead; "No Radio" is recognized on either brand; a row with no
+    WiFi component at all (a WWAN-module-only row, or a bare "WLAN"/"Wifi" mention with no
+    stated standard) correctly returns nothing rather than a fabricated value — still fully
+    selectable directly from the platform's own option list, just not via this search facet.
+    Applied to **both JLT and Winmate** (per the user - Winmate's raw text has the identical
+    mixing problem, just messier: ~71 distinct variants vs JLT's 35).
+  - `app.py`'s `FACET_CATEGORIES` now maps "Internal Wireless" to itself via this new
+    extractor (previously only Storage/OS/Processor did a real-category-to-itself or
+    -to-two-synthetics mapping; "Internal Wireless" used to be the one exception that kept
+    its raw text). The old `_KEEP_RAW_ALONGSIDE_FACETS` mechanism that caused this is
+    removed entirely — every real category in `FACET_CATEGORIES` is now fully replaced by
+    its facet(s), no exceptions.
+  - **New "WWAN Card" search field**, separate from "WWAN Generation" — per the user
+    (revising the same-day decision below), a rep looking for a specific card (Sierra
+    Wireless MC7411, Quectel RedCap, etc.) wants its own dropdown rather than hunting
+    through the 3G/4G/5G list. `extract_wwan_module` (`ingest/wwan_facets.py`) now feeds
+    "WWAN Card" instead of "WWAN Generation"; Generation is back to a plain 3G/4G/5G list.
+    Also added `MC7421` and a specific `Quectel RedCap RG255C` pattern (checked before the
+    generic "Quectel RedCap" one) per the user's named examples — neither appears in the
+    catalog yet, added ahead of time so a future JLT spreadsheet update picks them up
+    without another code change.
+  - Verified via the Flask test client against live data: JLT's "Internal Wireless" is now
+    exactly `['802.11ac', 'Intel 8265', 'Intel AX210', 'No Radio']`; Winmate's is exactly
+    `['802.11ac', '802.11ax', '802.11n']`; JLT's "WWAN Card" is
+    `['Sierra EM7455', 'Sierra MC7411', 'Telit FN990', 'Telit LN920']`; confirmed
+    `/api/search_base_units` still correctly matches base units on the new "Internal
+    Wireless" and "WWAN Card" values (e.g. `Internal Wireless: "Intel AX210"` → 9 JLT
+    matches, `WWAN Card: "Sierra MC7411"` → 1 match).
+
 - **[Claude]** **Fixed a real dead end the user hit live: the "existing quotes" panel under
   Opportunity ID was an interactive "select one to load" dropdown, and picking the wrong thing
   out of it silently blocked Save with no clear explanation.** Reported sequence: rep populates

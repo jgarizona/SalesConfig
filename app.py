@@ -58,6 +58,7 @@ from cpu_facets import normalize_cpu_label, cpu_sort_key  # noqa: E402
 from wwan_facets import (  # noqa: E402
     extract_wwan_generation, extract_wwan_module, extract_wwan_carrier, wwan_generation_sort_key,
 )
+from wifi_facets import extract_wifi_radio  # noqa: E402
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -203,6 +204,7 @@ CATEGORY_ORDER = [
     "Power Cable Options:",
     "Internal Wireless",
     "WWAN Generation",
+    "WWAN Card",
     "WWAN Carrier",
     "Operating System:",
     "OS Version",
@@ -239,22 +241,26 @@ ATTRIBUTE_CATEGORY_MAP = {
 # fly. Maps synthetic search category -> (real category its options
 # actually live under, list of extractor functions) - see
 # ingest/storage_facets.py, ingest/os_facets.py, ingest/cpu_facets.py,
-# ingest/wwan_facets.py. Storage/OS split one real category into two
-# synthetic ones; "Processor Options" maps to itself - it's not a split,
-# just deduping near-identical spellings of the same real chip. Most
-# entries have exactly one extractor; "WWAN Generation" has two (plain
-# generation + specific module part number) so a row can contribute both a
-# generic "4G" value and a more specific "Sierra EM7455" value to the same
-# dropdown - per the user (2026-08-18), a module identifies a generation
-# more directly than it identifies a carrier, so module names live in
-# Generation, not Carrier (see wwan_facets.py's docstring).
+# ingest/wifi_facets.py, ingest/wwan_facets.py. Storage/OS split one real
+# category into two synthetic ones; "Processor Options" maps to itself -
+# it's not a split, just deduping near-identical spellings of the same real
+# chip. "Internal Wireless" also maps to itself - JLT/Winmate's real
+# "Internal Wireless" rows mix WiFi radio + Bluetooth + GPS + WWAN cellular
+# into one free-text description, so the synthetic "Internal Wireless"
+# search field is a *clean WiFi-only* re-derivation of the same real
+# category (extract_wifi_radio), not the raw text - WWAN cellular gets its
+# own three fields below instead (revised 2026-08-18, per the user; this
+# used to keep the raw flat description alongside the WWAN facets, which is
+# exactly what mixed WiFi/WWAN/Carrier together in the dropdown).
 FACET_CATEGORIES = {
     "Storage Capacity": ("Storage Drive Options:", [extract_storage_capacity]),
     "Storage Technology": ("Storage Drive Options:", [extract_storage_technology]),
     "OS Version": ("Operating System:", [extract_os_version]),
     "OS Edition": ("Operating System:", [extract_os_edition]),
     "Processor Options": ("Processor Options", [normalize_cpu_label]),
-    "WWAN Generation": ("Internal Wireless", [extract_wwan_generation, extract_wwan_module]),
+    "Internal Wireless": ("Internal Wireless", [extract_wifi_radio]),
+    "WWAN Generation": ("Internal Wireless", [extract_wwan_generation]),
+    "WWAN Card": ("Internal Wireless", [extract_wwan_module]),
     "WWAN Carrier": ("Internal Wireless", [extract_wwan_carrier]),
 }
 
@@ -264,14 +270,6 @@ FACET_CATEGORIES = {
 _REAL_CATEGORY_TO_FACETS = {}
 for _synthetic_cat, (_real_cat, _extractors) in FACET_CATEGORIES.items():
     _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractors))
-
-# "Internal Wireless" is the one real category where the facets above are
-# ADDED alongside the original flat description list, not a replacement -
-# unlike storage/OS, a single "Internal Wireless" description can encode
-# WiFi standard + Bluetooth version + GPS + cellular all at once, so
-# dropping the raw field would lose real search capability (see
-# ingest/wwan_facets.py's docstring).
-_KEEP_RAW_ALONGSIDE_FACETS = {"Internal Wireless"}
 
 
 def _capacity_sort_key(label):
@@ -781,21 +779,21 @@ def api_search_options():
             # Split into independent, loosely-matched facets instead of one
             # flat exact-description dropdown - see FACET_CATEGORIES and
             # ingest/storage_facets.py's/ingest/os_facets.py's/
-            # ingest/wwan_facets.py's docstrings for why (per the user,
-            # 2026-08-17/18: a capacity search shouldn't care about storage
-            # technology and vice versa; an OS search shouldn't care about
-            # GAC/LTSC licensing channels; a WWAN carrier/module should be
-            # searchable separately from its generation).
+            # ingest/wifi_facets.py's/ingest/wwan_facets.py's docstrings for
+            # why (per the user, 2026-08-17/18/19: a capacity search
+            # shouldn't care about storage technology and vice versa; an OS
+            # search shouldn't care about GAC/LTSC licensing channels; WWAN
+            # generation/card/carrier should each be searchable
+            # independently of each other and of the WiFi radio itself).
+            # Every real category listed here is fully replaced by its
+            # facet(s) - none of them fall through to the raw description
+            # below.
             for category, extractors in _REAL_CATEGORY_TO_FACETS[p["category"]]:
                 for extractor in extractors:
                     val = extractor(p.get("description"))
                     if val:
                         by_category.setdefault(category, set()).add(val)
-            # Most real categories are fully replaced by their facets - only
-            # "Internal Wireless" also keeps its original flat description
-            # searchable (see _KEEP_RAW_ALONGSIDE_FACETS above).
-            if p["category"] not in _KEEP_RAW_ALONGSIDE_FACETS:
-                continue
+            continue
 
         if not p.get("description"):
             continue
