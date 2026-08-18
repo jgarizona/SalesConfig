@@ -143,6 +143,39 @@ Every repository change must be recorded under the date it was made and identify
   all six attributes hit 100% (370/370). Wired all six into `app.py`'s
   `ATTRIBUTE_CATEGORY_MAP` (was cpu/os/ram only) so Search by Requirements can filter Getac
   units by storage, display, and wireless too, not just cpu/os/ram.
+- **[Claude]** **Fixed a real bug the user caught by hand: Sales Search by Requirements
+  returned zero results for most Getac processor values**, even though the value came straight
+  from the search dropdown itself. Root cause in `api_search_base_units` (`app.py`): a Getac
+  platform (e.g. B360G3) can have several "Base Unit:" rows - one per sellable SKU, each with
+  its own cpu/ram/storage/etc in `attributes` - but the search grouped all of a platform's rows
+  together and checked the attribute criteria against only the *first* one found, silently
+  ignoring every other SKU's attributes. 14 of the 22 distinct Getac CPU values (confirmed by
+  reproducing the exact matching logic against the real 370-row catalog) returned zero matches
+  as a result, purely because whatever SKU happened to be first in file order for a platform
+  determined the only CPU that platform could ever match on. Rewrote the matching so, for
+  brands with more than one Base Unit row per platform, every attribute criterion is checked
+  against each row individually (and all criteria must be satisfied by the *same* row - checking
+  each criterion independently against different rows would wrongly match cpu+ram/storage/etc
+  combinations no real SKU actually offers). JLT/Winmate's real per-category matching (a single
+  Base Unit per platform, options mixed freely) is untouched. Also fixed a related gap this
+  surfaced: `search-overlay`'s "Select" button only ever set brand+platform, so even a correct
+  search result would load the platform's default Base Unit rather than the specific SKU that
+  matched - now the backend returns the matched SKU's `code` and the frontend passes it as
+  `presetSelections` so Select loads the exact unit found. Verified: reproduced the matching
+  logic standalone (0 of 22 Getac CPU values now return zero matches, was 14/22) and live in
+  the browser (searched a previously-broken CPU, got real F120/UX10G5 matches, Select loaded
+  the exact matching SKU - F120's FW8739DA4IA, not a default).
+- **[Claude]** **Also found and fixed a related data-quality bug while investigating the above**
+  (same root cause category - "the search should reflect the actual inventory," per the user):
+  one real CPU (Intel Core i5-1335U) was silently split into two separate dropdown entries
+  because the F110G7 rows' source description used a non-breaking space (U+00A0) between "Core"
+  and "i5-1335U" where every other row uses a regular space - textually different strings for
+  the same real spec, so searching the regular-space form missed all 30 F110G7 SKUs using the
+  nbsp form. Fixed by normalizing all whitespace runs (including nbsp) to a single regular
+  space on the Description text before any attribute extraction runs, in `ingest/parse_getac.py`
+  - applies to all six extracted fields, not just cpu, so the same class of bug can't recur in
+  ram/storage/display/wireless/os either. Re-ingested; Getac's distinct CPU count went from 22
+  to 21 (the duplicate merged away), total row count unchanged at 370.
 
 ## 2026-08-16
 

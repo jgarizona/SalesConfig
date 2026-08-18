@@ -646,11 +646,29 @@ def api_search_options():
 
 @app.route("/api/search_base_units", methods=["POST"])
 def api_search_base_units():
-    """Finds every (brand, platform) whose *approved* options satisfy every
-    selected requirement (category -> exact description match). Requirements
-    are optional and independent - a rep can fill in just Storage and OS and
-    leave the rest blank, and any base unit with both stays in the results
-    regardless of what else it does or doesn't offer."""
+    """Finds every (brand, platform, Base Unit SKU) whose *approved* options
+    satisfy every selected requirement (category -> exact description match).
+    Requirements are optional and independent - a rep can fill in just
+    Storage and OS and leave the rest blank, and any base unit with both
+    stays in the results regardless of what else it does or doesn't offer.
+
+    JLT/Winmate have exactly one Base Unit row per platform plus real,
+    independently-selectable per-category option rows (Processor Options,
+    RAM Memory Options, etc.) - a criterion on one of those categories is
+    checked against every option row for the platform, since any of them
+    can be combined freely with any Base Unit chassis choice.
+
+    Getac/CipherLab have no such per-category rows - each "Base Unit:" row
+    *is* a complete, already-fixed SKU, and a single platform (e.g. Getac's
+    B360G3) can have several Base Unit rows, one per sellable SKU, each with
+    its own cpu/os/ram/storage/display/wireless in `attributes`. A criterion
+    on one of those pseudo-categories (see ATTRIBUTE_CATEGORY_MAP) must
+    therefore be checked against *each* Base Unit row individually, and all
+    criteria must be satisfied by the *same* row - checking against just one
+    arbitrarily-picked row per platform (the previous approach) silently
+    missed every SKU whose attributes weren't on that one row, and checking
+    each criterion independently across different rows would wrongly match
+    combinations no single real SKU actually offers."""
     body = request.get_json(force=True)
     brand_filter = body.get("brand") or None
     criteria = {k: v for k, v in (body.get("criteria") or {}).items() if v}
@@ -663,36 +681,41 @@ def api_search_base_units():
     for p in approved_parts:
         grouped.setdefault((p["brand"], p["platform"]), []).append(p)
 
-    def criterion_met(options, base_unit, category, desc):
-        if any(o["category"] == category and o.get("description") == desc for o in options):
-            return True
-        # Fixed-SKU brands (Getac/CipherLab) have no real option row for
-        # Processor/OS/RAM - fall back to the Base Unit's attributes dict.
-        attr_key = ATTRIBUTE_CATEGORY_MAP.get(category)
-        if attr_key and (base_unit.get("attributes") or {}).get(attr_key) == desc:
-            return True
-        return False
+    def real_category_met(options, category, desc):
+        return any(o["category"] == category and o.get("description") == desc for o in options)
 
     matches = []
     for (brand, platform), options in grouped.items():
         if brand_filter and brand != brand_filter:
             continue
-        base_unit = next((o for o in options if o["category"] == "Base Unit:"), None)
-        if base_unit is None:
+        base_units = [o for o in options if o["category"] == "Base Unit:"]
+        if not base_units:
             continue
-        if all(
-            criterion_met(options, base_unit, category, desc)
-            for category, desc in criteria.items()
-        ):
-            matches.append({
-                "brand": brand,
-                "platform": platform,
-                "description": base_unit.get("description"),
-                "floor_price": base_unit.get("Floor Price"),
-                "msrp": base_unit.get("MSRP"),
-            })
 
-    matches.sort(key=lambda m: (m["brand"], m["platform"]))
+        # Criteria satisfiable by a real, platform-wide option category
+        # (JLT/Winmate) don't need to be re-checked per Base Unit row - any
+        # Base Unit chassis choice can be paired with any of those options.
+        remaining = {
+            category: desc for category, desc in criteria.items()
+            if not real_category_met(options, category, desc)
+        }
+
+        for bu in base_units:
+            attrs = bu.get("attributes") or {}
+            if all(
+                attrs.get(ATTRIBUTE_CATEGORY_MAP.get(category)) == desc
+                for category, desc in remaining.items()
+            ):
+                matches.append({
+                    "brand": brand,
+                    "platform": platform,
+                    "code": bu.get("code"),
+                    "description": bu.get("description"),
+                    "floor_price": bu.get("Floor Price"),
+                    "msrp": bu.get("MSRP"),
+                })
+
+    matches.sort(key=lambda m: (m["brand"], m["platform"], m["code"] or ""))
     return jsonify(matches)
 
 

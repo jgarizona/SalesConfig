@@ -833,7 +833,7 @@
         const checked = list.querySelector('input[name="search-result"]:checked');
         if (!checked) { showMessage("Pick a base unit first.", true); return; }
         const m = matches[parseInt(checked.value, 10)];
-        selectBrandAndPlatform(m.brand, m.platform);
+        selectBrandAndPlatform(m.brand, m.platform, { "Base Unit:": m.code });
         markDirty();
         closeSearchModal();
         showMessage(`Loaded ${m.brand} ${m.platform} from search — finish the configuration and Save.`, false);

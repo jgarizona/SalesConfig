@@ -128,6 +128,16 @@ def parse_workbook(path, brand="Getac"):
             continue
 
         description = str(description).strip() if description is not None else None
+        if description is not None:
+            # Collapses stray whitespace runs, including non-breaking spaces
+            # (U+00A0) that show up on some rows as an artifact of the
+            # source spreadsheet being pasted from elsewhere - left alone,
+            # "Intel Core\xa0i5-1335U Processor" (nbsp) and "Intel Core
+            # i5-1335U Processor" (regular space) extract as two distinct
+            # attribute values for the same real CPU, splitting one search
+            # match into two and silently hiding whichever rows use the
+            # nbsp form from a search on the regular-space form.
+            description = re.sub(r"\s+", " ", description).strip()
         attributes = {}
         cpu = extract_cpu(description)
         if cpu:

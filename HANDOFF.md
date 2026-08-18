@@ -529,8 +529,27 @@ originally skipped `Base Unit:` rows entirely (correct for JLT/Winmate, where Ba
 a "requirement" - but wrong for Getac/CipherLab, where the Base Unit *is* the only row that
 has anything to search). A criterion on "Processor Options" or "Operating System:" now
 matches either a real option description (JLT/Winmate) or a Base Unit's `attributes` value
-(Getac/CipherLab) - verified live: searching "Processor Options" = "Intel Core Ultra 5 225H
-Processor" correctly returns both Getac platforms that use it (B360G3, V120).
+(Getac/CipherLab).
+
+**Matching granularity matters here and previously had a real bug (found and fixed
+2026-08-17):** a Getac/CipherLab platform can have *several* `Base Unit:` rows - one per
+sellable SKU, each with its own `attributes` - unlike JLT/Winmate, which have exactly one
+Base Unit per platform. `api_search_base_units` originally grouped a platform's rows together
+and checked attribute criteria against only the first row found, so a criterion only ever
+matched whichever SKU happened to be first in file order for that platform - 14 of Getac's 22
+distinct CPU values returned zero results as a result, despite coming straight from the same
+search dropdown. Fixed by checking each Base Unit row individually per platform, requiring all
+attribute criteria to be satisfied by the *same* row (checking each criterion independently
+across different rows would wrongly match spec combinations no real SKU offers). The frontend
+also now receives the matched row's `code` and passes it as `presetSelections` so "Select"
+loads the exact SKU found, not the platform's default. See `ingest/parse_getac.py`'s docstring
+and the 2026-08-17 CHANGELOG entry for the full writeup, including a related data bug (one CPU
+silently split across two dropdown entries by a non-breaking-space artifact in the source file,
+fixed by normalizing whitespace before extraction).
+
+Verified live: searching "Processor Options" = "Intel Core Ultra 5 225H Processor" correctly
+returns both Getac platforms that use it (B360G3, V120); searching a CPU that previously
+returned zero results now returns real matches, and Select loads the exact matching SKU.
 
 Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
 already brand-agnostic and needed no changes.
