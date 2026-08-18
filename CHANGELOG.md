@@ -212,6 +212,33 @@ Every repository change must be recorded under the date it was made and identify
   Brand dropdown shows CipherLab greyed out and unselectable; `/api/search_options?brand=
   CipherLab` returns `{}`; an unscoped no-criteria search returns 425 matches across
   JLT/Winmate/Getac only, zero CipherLab.
+- **[Claude]** **Split "Storage Drive Options:" search into "Storage Capacity" and "Storage
+  Technology", per the user.** Screenshot-driven feedback: searching a specific capacity (e.g.
+  60GB) shouldn't require caring whether it's SSD/CFAST/eMMC/etc, and searching a technology
+  (e.g. "M.2") should return every drive of that type at every capacity - the old single dropdown
+  of 48 distinct full descriptions (JLT+Winmate combined, e.g. "64GB eMMC" vs "64GB M.2 SSD" vs
+  "60 GB CFAST" as three unrelated exact-match strings) could do neither. New shared
+  `ingest/storage_facets.py` module extracts both facets from free text: capacity normalizes
+  industry rounding-convention pairs into one canonical tier (60GB/64GB, 120GB/128GB,
+  240GB/256GB, 480GB/512GB, 960GB/1TB all collapse together - different vendors' marketing
+  numbers for the same real capacity class), technology checks for M.2/mSATA/CFAST/eMMC/Micro
+  SD/NVMe/SSD in that priority order (M.2 wins even when the text also says SSD/NVMe/SATA).
+  Getac precomputes both at ingest time (`attributes.storage`/`attributes.storage_tech`, same
+  pattern as its other five attributes) via a new `_storage_clause()` helper in
+  `ingest/parse_getac.py` that isolates the storage-specific snippet first (the full description
+  also states RAM as a GB quantity earlier in the same string, so classifying the whole thing
+  risked grabbing the wrong number). JLT/Winmate have no precomputed attributes on their real
+  per-SKU option rows, so `app.py` derives both facets on the fly at dropdown-build time
+  (`api_search_options`) and match time (`api_search_base_units`, via a new
+  `STORAGE_FACET_CATEGORIES` map) using the identical extractor functions, so the two can't drift
+  out of sync. Re-ingested Getac (336/370 rows gained `storage_tech`; the other 34 - all
+  ZX10G2/ZX80 Android tablets - only say generic "Storage" in their source text, no technology
+  stated, same as JLT/Winmate rows with no technology keyword). Full audit re-run after the
+  change: 0 issues across 633 brand-scoped values (down from 660 pre-split, since collapsing 48
+  raw storage descriptions into 8 capacity + 7 technology values is the whole point). Verified
+  live and via direct API calls: Storage Technology = "M.2" returns 14 matches spanning both
+  JLT and Winmate across every capacity from 64GB to 512GB; Storage Capacity = "64GB" returns 27
+  matches spanning SSD/eMMC/CFAST/M.2/unspecified technology.
 
 ## 2026-08-16
 

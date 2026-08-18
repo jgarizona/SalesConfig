@@ -34,6 +34,7 @@ Quote ID/lock rules:
 import csv
 import io
 import json
+import re
 import secrets
 import sys
 from datetime import datetime, timedelta
@@ -50,6 +51,7 @@ import parse_vmt        # noqa: E402
 import parse_winmate     # noqa: E402
 import parse_getac       # noqa: E402
 import parse_cipherlab   # noqa: E402
+from storage_facets import extract_storage_capacity, extract_storage_technology  # noqa: E402
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -162,6 +164,13 @@ CATEGORY_ORDER = [
     "Processor Options",
     "RAM Memory Options:",
     "Storage Drive Options:",
+    # "Storage Capacity"/"Storage Technology" are search-only pseudo-
+    # categories (see STORAGE_FACET_CATEGORIES below) - never a real part's
+    # `category` value, only used to order/render them in the Search by
+    # Requirements modal via category_sort_key(). Real Sales-page category
+    # grouping/sorting still uses "Storage Drive Options:" above, unaffected.
+    "Storage Capacity",
+    "Storage Technology",
     "Display options:",
     "Internal Options:",
     "Add On Options:",
@@ -176,17 +185,41 @@ PRICE_FIELDS = ["Floor Price", "MSRP", "Cost", "Current Cost"]
 # Fixed-SKU brands (Getac, CipherLab - see ingest/parse_getac.py and
 # ingest/parse_cipherlab.py) don't decompose into real per-category options,
 # so there's nothing for Search by Requirements to match against for them
-# under normal category/description matching. Their CPU/OS/RAM info lives on
-# the Base Unit row's `attributes` dict instead - this maps a searchable
-# category to the attribute key that can satisfy it as a fallback.
+# under normal category/description matching. Their CPU/OS/RAM/etc info
+# lives on the Base Unit row's `attributes` dict instead - this maps a
+# searchable category to the attribute key that can satisfy it as a
+# fallback. "Storage Capacity"/"Storage Technology" replace what used to be
+# a single "Storage Drive Options:" entry (see STORAGE_FACET_CATEGORIES
+# below and ingest/storage_facets.py's docstring for why).
 ATTRIBUTE_CATEGORY_MAP = {
     "Processor Options": "cpu",
     "Operating System:": "os",
     "RAM Memory Options:": "ram",
-    "Storage Drive Options:": "storage",
+    "Storage Capacity": "storage",
+    "Storage Technology": "storage_tech",
     "Display options:": "display",
     "Internal Wireless": "wireless",
 }
+
+# JLT/Winmate's real "Storage Drive Options:" rows have no precomputed
+# attributes (unlike Getac) - a search on "Storage Capacity"/"Storage
+# Technology" has to derive those facets from each option's free-text
+# description on the fly. Maps the synthetic search category to the
+# extractor that does that (see ingest/storage_facets.py).
+STORAGE_FACET_CATEGORIES = {
+    "Storage Capacity": extract_storage_capacity,
+    "Storage Technology": extract_storage_technology,
+}
+
+
+def _capacity_sort_key(label):
+    """Numeric sort for capacity labels ("16GB", "1TB", ...) - plain string
+    sort would put "1TB" between "128GB" and "16GB"."""
+    m = re.match(r"(\d+)(GB|TB)", label)
+    if not m:
+        return (1, 0)
+    n, unit = int(m.group(1)), m.group(2)
+    return (0, n * 1024 if unit == "TB" else n)
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 
 # Temporary, per the user (2026-08-17): CipherLab's source spreadsheet is a
@@ -663,11 +696,27 @@ def api_search_options():
                     by_category.setdefault(category, set()).add(val)
             continue
 
+        if p["category"] == "Storage Drive Options:":
+            # Split into two independent, loosely-matched facets instead of
+            # one flat exact-description dropdown - see STORAGE_FACET_
+            # CATEGORIES and ingest/storage_facets.py's docstring for why
+            # (per the user, 2026-08-17: capacity search shouldn't care
+            # about technology, and a technology search like "M.2" should
+            # surface every M.2 drive regardless of capacity).
+            for category, extractor in STORAGE_FACET_CATEGORIES.items():
+                val = extractor(p.get("description"))
+                if val:
+                    by_category.setdefault(category, set()).add(val)
+            continue
+
         if not p.get("description"):
             continue
         by_category.setdefault(p["category"], set()).add(p["description"])
 
-    out = {cat: sorted(descs) for cat, descs in by_category.items()}
+    out = {
+        cat: (sorted(descs, key=_capacity_sort_key) if cat == "Storage Capacity" else sorted(descs))
+        for cat, descs in by_category.items()
+    }
     return jsonify(out)
 
 
@@ -709,6 +758,16 @@ def api_search_base_units():
         grouped.setdefault((p["brand"], p["platform"]), []).append(p)
 
     def real_category_met(options, category, desc):
+        if category in STORAGE_FACET_CATEGORIES:
+            # JLT/Winmate's real "Storage Drive Options:" rows have no
+            # precomputed capacity/technology attribute - derive it from
+            # each option's description the same way api_search_options
+            # does when building the dropdown, so the two stay in sync.
+            extractor = STORAGE_FACET_CATEGORIES[category]
+            return any(
+                o["category"] == "Storage Drive Options:" and extractor(o.get("description")) == desc
+                for o in options
+            )
         return any(o["category"] == category and o.get("description") == desc for o in options)
 
     matches = []

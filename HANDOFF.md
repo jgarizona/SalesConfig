@@ -584,6 +584,47 @@ the template's `disabled` branch once a fuller CipherLab catalog is sourced and 
 Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
 already brand-agnostic and needed no changes.
 
+**"Storage Drive Options:" search was split into two independent facets, "Storage Capacity"
+and "Storage Technology" (per the user, 2026-08-17).** The real category still exists unchanged
+on Sales/Technical (JLT/Winmate's actual selectable storage options are untouched) - this only
+changes what a rep searches *on*. Reasoning, straight from the user: searching by capacity
+shouldn't require caring about the underlying technology (SSD vs CFAST vs eMMC vs M.2, etc.),
+and searching by technology (e.g. "M.2") should surface every drive of that type regardless of
+capacity - a single flat dropdown of 48 distinct full descriptions (JLT+Winmate combined) could
+do neither, since "64GB eMMC" and "64GB M.2 SSD" and "60 GB CFAST" were three unrelated exact-
+match strings a rep had to already know to pick between.
+
+New shared module `ingest/storage_facets.py` (`extract_storage_capacity`/
+`extract_storage_technology`) does the splitting, used two different ways:
+- **Getac** precomputes both as `attributes.storage`/`attributes.storage_tech` at ingest time
+  (`ingest/parse_getac.py`), the same way it already does cpu/os/ram/display/wireless - the
+  existing `_storage_clause()` isolates just the storage-related snippet of the description
+  first (e.g. "256GB PCIe SSD" out of the full sentence) before classifying it, since the
+  description also states RAM as a GB quantity earlier in the same string and a generic
+  whole-description classifier would risk grabbing the wrong number.
+- **JLT/Winmate** have no precomputed attributes on their real "Storage Drive Options:" rows,
+  so `app.py` derives both facets from each option's description on the fly, at both dropdown-
+  build time (`api_search_options`) and match time (`api_search_base_units`'s
+  `real_category_met`, via the new `STORAGE_FACET_CATEGORIES` map) - kept in sync by construction
+  since both call the same extractor functions.
+
+Capacity normalization collapses the industry's "same tier, different rounding convention"
+pairs into one canonical label - 60GB/64GB, 120GB/128GB, 240GB/256GB, 480GB/512GB, 960GB/1TB
+are different vendors' marketing numbers for what's functionally the same capacity class, so a
+search on either number now finds both (confirmed against the real data: 8 canonical tiers
+covering all 48 distinct JLT/Winmate descriptions, `Storage Capacity` dropdown shows
+16/32/64/128/256/512GB/1TB/2TB). Technology classification checks for M.2/mSATA/CFAST/eMMC/
+Micro SD/NVMe/SSD (in that priority order - "M.2" wins even on a description that also says
+"SSD"/"NVMe"/"SATA", since a rep filtering by M.2 wants every M.2 drive regardless of which of
+those it also mentions); a description with no technology keyword at all (e.g. plain "128 GB")
+is only findable via Capacity, which is intentional - nothing to search wrongly if the source
+never said what it was made of.
+
+Verified live and via direct API calls against the real catalog: searching Storage Technology =
+"M.2" returns 14 matches spanning both JLT and Winmate platforms at every capacity from 64GB to
+512GB (not narrowed to one capacity); searching Storage Capacity = "64GB" returns 27 matches
+spanning SSD/eMMC/CFAST/M.2/unspecified technology (not narrowed to one technology).
+
 ---
 
 ## 8. Non-obvious rules worth knowing before you touch this

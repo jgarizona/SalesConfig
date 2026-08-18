@@ -10,14 +10,20 @@ combinations Getac doesn't actually sell, so every row becomes a single
 "Base Unit:" record (code = SKU ID) rather than several per-category rows.
 
 Since there's no separate column per spec, this pulls a best-effort CPU,
-OS, RAM, storage, display, and wireless value out of the free-text
-description into an `attributes` dict purely so Search by Requirements has
-something to match against (see app.py's ATTRIBUTE_CATEGORY_MAP) - these
-are NOT selectable options, just search metadata on an otherwise fixed
-SKU. 100% hit rate on all six across the real 370-row catalog as of
-2026-08-17 (verified, not assumed) - if a future price-list refresh
-introduces a genuinely new phrasing these regexes don't cover, a row will
-just silently lack that one attribute rather than error.
+OS, RAM, storage capacity, storage technology, display, and wireless value
+out of the free-text description into an `attributes` dict purely so
+Search by Requirements has something to match against (see app.py's
+ATTRIBUTE_CATEGORY_MAP) - these are NOT selectable options, just search
+metadata on an otherwise fixed SKU. Storage capacity/technology are
+extracted via the shared `storage_facets` module (see its docstring) so
+Getac and JLT/Winmate's search dropdowns use the exact same capacity-tier
+and technology taxonomy, even though JLT/Winmate classify their real
+per-SKU option descriptions on the fly instead of precomputing an
+attribute. 100% hit rate on cpu/os/ram/storage/display/wireless across the
+real 370-row catalog as of 2026-08-17 (verified, not assumed) - if a
+future price-list refresh introduces a genuinely new phrasing these
+regexes don't cover, a row will just silently lack that one attribute
+rather than error.
 
 Usage:
     python parse_getac.py <path-to-xlsx> [--out parts.json]
@@ -30,6 +36,8 @@ import sys
 from pathlib import Path
 
 import openpyxl
+
+from storage_facets import extract_storage_capacity, extract_storage_technology
 
 CPU_PATTERNS = [
     re.compile(r"(?:Intel|AMD)\s+.+?Processor", re.IGNORECASE),
@@ -66,11 +74,27 @@ def extract_ram(description):
     return f"{m.group(1)}GB" if m else None
 
 
-def extract_storage(description):
+_STORAGE_CLAUSE_RE = re.compile(r"\d+\s*(?:GB|TB)\s+(?:PCIe\s+SSD|Storage)", re.IGNORECASE)
+
+
+def _storage_clause(description):
+    """Isolates just the storage-related snippet (e.g. '256GB PCIe SSD') out
+    of the full description before handing it to the shared capacity/
+    technology classifiers - the description also states RAM as a GB
+    quantity earlier in the string ('16GB RAM'), so classifying the *whole*
+    description would risk picking up the wrong number."""
     if not description:
         return None
-    m = re.search(r"(\d+)\s*(GB|TB)\s+(?:PCIe\s+SSD|Storage)", description, re.IGNORECASE)
-    return f"{m.group(1)}{m.group(2).upper()}" if m else None
+    m = _STORAGE_CLAUSE_RE.search(description)
+    return m.group(0) if m else None
+
+
+def extract_storage(description):
+    return extract_storage_capacity(_storage_clause(description))
+
+
+def extract_storage_tech(description):
+    return extract_storage_technology(_storage_clause(description))
 
 
 def extract_display(description):
@@ -151,6 +175,9 @@ def parse_workbook(path, brand="Getac"):
         storage = extract_storage(description)
         if storage:
             attributes["storage"] = storage
+        storage_tech = extract_storage_tech(description)
+        if storage_tech:
+            attributes["storage_tech"] = storage_tech
         display = extract_display(description)
         if display:
             attributes["display"] = display
@@ -189,7 +216,7 @@ def main():
     out_path.write_text(json.dumps(parts, indent=2), encoding="utf-8")
 
     by_platform = {}
-    attr_hits = {"cpu": 0, "os": 0, "ram": 0, "storage": 0, "display": 0, "wireless": 0}
+    attr_hits = {"cpu": 0, "os": 0, "ram": 0, "storage": 0, "storage_tech": 0, "display": 0, "wireless": 0}
     for p in parts:
         by_platform.setdefault(p["platform"], 0)
         by_platform[p["platform"]] += 1

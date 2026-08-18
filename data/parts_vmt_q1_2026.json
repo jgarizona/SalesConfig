@@ -18723,6 +18723,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18743,6 +18744,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18763,6 +18765,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18783,6 +18786,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18803,6 +18807,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18823,6 +18828,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18843,6 +18849,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18863,6 +18870,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18883,6 +18891,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18903,6 +18912,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18923,6 +18933,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -18943,6 +18954,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -18963,6 +18975,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -18983,6 +18996,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19003,6 +19017,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19023,6 +19038,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19043,6 +19059,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19063,6 +19080,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19083,6 +19101,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19103,6 +19122,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19123,6 +19143,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19143,6 +19164,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19163,6 +19185,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19183,6 +19206,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19203,6 +19227,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19223,6 +19248,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19243,6 +19269,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19263,6 +19290,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19283,6 +19311,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19303,6 +19332,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19323,6 +19353,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19343,6 +19374,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19363,6 +19395,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19383,6 +19416,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19403,6 +19437,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19423,6 +19458,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19443,6 +19479,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19463,6 +19500,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -19483,6 +19521,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19503,6 +19542,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19523,6 +19563,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19543,6 +19584,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19563,6 +19605,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19583,6 +19626,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19603,6 +19647,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "13.3\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19623,6 +19668,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19643,6 +19689,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19663,6 +19710,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19683,6 +19731,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19703,6 +19752,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19723,6 +19773,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19743,6 +19794,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19763,6 +19815,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19783,6 +19836,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19803,6 +19857,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19823,6 +19878,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19843,6 +19899,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19863,6 +19920,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19883,6 +19941,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19903,6 +19962,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19923,6 +19983,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19943,6 +20004,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -19963,6 +20025,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -19983,6 +20046,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20003,6 +20067,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20023,6 +20088,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20043,6 +20109,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20063,6 +20130,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20083,6 +20151,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20103,6 +20172,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20123,6 +20193,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20143,6 +20214,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20163,6 +20235,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20183,6 +20256,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20203,6 +20277,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20223,6 +20298,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20243,6 +20319,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20263,6 +20340,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20283,6 +20361,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20303,6 +20382,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20323,6 +20403,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20343,6 +20424,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20363,6 +20445,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20383,6 +20466,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20403,6 +20487,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20423,6 +20508,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20443,6 +20529,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20463,6 +20550,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20483,6 +20571,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20503,6 +20592,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20523,6 +20613,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20543,6 +20634,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "11.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -20563,6 +20655,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20583,6 +20676,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20603,6 +20697,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20623,6 +20718,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20643,6 +20739,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi"
     }
@@ -20663,6 +20760,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20683,6 +20781,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20703,6 +20802,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20723,6 +20823,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20743,6 +20844,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20763,6 +20865,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20783,6 +20886,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20803,6 +20907,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20823,6 +20928,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20843,6 +20949,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20863,6 +20970,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20883,6 +20991,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20903,6 +21012,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20923,6 +21033,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20943,6 +21054,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -20963,6 +21075,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -20983,6 +21096,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21003,6 +21117,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21023,6 +21138,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21043,6 +21159,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21063,6 +21180,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21083,6 +21201,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21103,6 +21222,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21123,6 +21243,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21143,6 +21264,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21163,6 +21285,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21183,6 +21306,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21203,6 +21327,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21223,6 +21348,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21243,6 +21369,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21263,6 +21390,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21283,6 +21411,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21303,6 +21432,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21323,6 +21453,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21343,6 +21474,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21363,6 +21495,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21383,6 +21516,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21403,6 +21537,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21423,6 +21558,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21443,6 +21579,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21463,6 +21600,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21483,6 +21621,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21503,6 +21642,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21523,6 +21663,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21543,6 +21684,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21563,6 +21705,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21583,6 +21726,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21603,6 +21747,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21623,6 +21768,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21643,6 +21789,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21663,6 +21810,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21683,6 +21831,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21703,6 +21852,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21723,6 +21873,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21743,6 +21894,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21763,6 +21915,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21783,6 +21936,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21803,6 +21957,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21823,6 +21978,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -21843,6 +21999,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21863,6 +22020,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21883,6 +22041,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21903,6 +22062,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -21923,6 +22083,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21943,6 +22104,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21963,6 +22125,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -21983,6 +22146,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22003,6 +22167,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22023,6 +22188,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22043,6 +22209,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22063,6 +22230,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22083,6 +22251,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22103,6 +22272,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22123,6 +22293,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22143,6 +22314,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22163,6 +22335,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22183,6 +22356,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22203,6 +22377,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22223,6 +22398,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22243,6 +22419,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22263,6 +22440,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22283,6 +22461,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22303,6 +22482,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22323,6 +22503,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22343,6 +22524,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22363,6 +22545,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22383,6 +22566,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22403,6 +22587,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22423,6 +22608,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.5\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22443,6 +22629,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -22463,6 +22650,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -22483,6 +22671,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22503,6 +22692,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22523,6 +22713,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22543,6 +22734,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -22563,6 +22755,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22583,6 +22776,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22603,6 +22797,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22623,6 +22818,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22643,6 +22839,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22663,6 +22860,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22683,6 +22881,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22703,6 +22902,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22723,6 +22923,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22743,6 +22944,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22763,6 +22965,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22783,6 +22986,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22803,6 +23007,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22823,6 +23028,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -22843,6 +23049,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22863,6 +23070,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -22883,6 +23091,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -22903,6 +23112,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22923,6 +23133,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -22943,6 +23154,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22963,6 +23175,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -22983,6 +23196,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23003,6 +23217,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23023,6 +23238,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23043,6 +23259,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23063,6 +23280,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23083,6 +23301,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23103,6 +23322,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT"
     }
@@ -23123,6 +23343,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23143,6 +23364,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23163,6 +23385,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23183,6 +23406,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23203,6 +23427,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23223,6 +23448,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23243,6 +23469,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23263,6 +23490,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23283,6 +23511,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23303,6 +23532,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23323,6 +23553,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23343,6 +23574,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23363,6 +23595,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23383,6 +23616,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23403,6 +23637,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23423,6 +23658,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "15.6\" Full HD Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23443,6 +23679,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23463,6 +23700,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -23483,6 +23721,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23503,6 +23742,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23523,6 +23763,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23543,6 +23784,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23563,6 +23805,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23583,6 +23826,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23603,6 +23847,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23623,6 +23868,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23643,6 +23889,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23663,6 +23910,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23683,6 +23931,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23703,6 +23952,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23723,6 +23973,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23743,6 +23994,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23763,6 +24015,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23783,6 +24036,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23803,6 +24057,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23823,6 +24078,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23843,6 +24099,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23863,6 +24120,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23883,6 +24141,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "10.1\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -23903,6 +24162,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23923,6 +24183,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23943,6 +24204,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -23963,6 +24225,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA",
       "wireless": "WiFi + BT"
     }
@@ -23983,6 +24246,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24003,6 +24267,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24023,6 +24288,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24043,6 +24309,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24063,6 +24330,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24083,6 +24351,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24103,6 +24372,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24123,6 +24393,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24143,6 +24414,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24163,6 +24435,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24183,6 +24456,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24203,6 +24477,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24223,6 +24498,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24243,6 +24519,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24263,6 +24540,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24283,6 +24561,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24303,6 +24582,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24323,6 +24603,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24343,6 +24624,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24363,6 +24645,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24383,6 +24666,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24403,6 +24687,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24423,6 +24708,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24443,6 +24729,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24463,6 +24750,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24483,6 +24771,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24503,6 +24792,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24523,6 +24813,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24543,6 +24834,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24563,6 +24855,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24583,6 +24876,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24603,6 +24897,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24623,6 +24918,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24643,6 +24939,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24663,6 +24960,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24683,6 +24981,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24703,6 +25002,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24723,6 +25023,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24743,6 +25044,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24763,6 +25065,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24783,6 +25086,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24803,6 +25107,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24823,6 +25128,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -24843,6 +25149,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24863,6 +25170,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24883,6 +25191,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24903,6 +25212,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24923,6 +25233,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -24943,6 +25254,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24963,6 +25275,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -24983,6 +25296,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25003,6 +25317,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25023,6 +25338,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25043,6 +25359,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25063,6 +25380,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25083,6 +25401,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25103,6 +25422,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25123,6 +25443,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25143,6 +25464,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT"
     }
@@ -25163,6 +25485,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25183,6 +25506,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25203,6 +25527,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25223,6 +25548,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25243,6 +25569,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25263,6 +25590,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25283,6 +25611,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "256GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25303,6 +25632,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25323,6 +25653,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25343,6 +25674,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25363,6 +25695,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25383,6 +25716,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 4G LTE"
     }
@@ -25403,6 +25737,7 @@
       "os": "Windows 11 Pro",
       "ram": "16GB",
       "storage": "512GB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
@@ -25423,6 +25758,7 @@
       "os": "Windows 11 Pro",
       "ram": "32GB",
       "storage": "1TB",
+      "storage_tech": "SSD",
       "display": "12.2\" WUXGA Touchscreen",
       "wireless": "WiFi + BT + 5G Sub-6"
     }
