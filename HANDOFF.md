@@ -711,17 +711,24 @@ New `_KEEP_RAW_ALONGSIDE_FACETS` set in `app.py` (currently just `{"Internal Wir
 which real categories get this "facets plus the original" treatment instead of full replacement
 - everything else in `FACET_CATEGORIES` still fully replaces its real category as before.
 
-- **WWAN Generation**: 3G/4G/5G, extracted by simple priority-ordered substring match
-  (LTE counts as 4G).
-- **WWAN Carrier**: named US carriers (AT&T/T-Mobile/Verizon, present on Intel Wireless
-  8265/AX210 module SKUs) or a specific cellular module part number (Telit LN920/FN990, Sierra
-  EM7455/EM7411/EM9291/EM7595, Sierra MC7455/MC7411, Quectel RedCap, MediaTek, HUAWEI).
-  Deliberately does NOT merge EM7455/MC7455 or EM7411/MC7411 - different Sierra Wireless part
-  numbers (M.2 vs mini-PCIe form factor), and nothing in the source text confirms they're
-  interchangeable for search the way "Elkhart Lake" confirmed two CPU spellings were the same
-  chip. A row with a generation but no named carrier/module (common - many just say "4G" or "5G
-  WWAN" with nothing more specific) is only findable via Generation, same pattern as an untagged
-  storage/OS description.
+- **WWAN Generation**: 3G/4G/5G (LTE counts as 4G, extracted by `extract_wwan_generation`),
+  *plus* specific cellular module part numbers - Telit LN920/FN990, Sierra
+  EM7455/EM7411/EM9291/EM7595, Sierra MC7455/MC7411, Quectel RedCap, MediaTek, HUAWEI
+  (`extract_wwan_module`) - sorted after the plain generations (`wwan_generation_sort_key`).
+  Repartitioned here from an original design that put modules in "WWAN Carrier" - per the user
+  (2026-08-18): "the cards are tied to 3g 4g 5g more than the carrier," so a module belongs
+  alongside Generation, not lumped in with actual named carriers. This is why
+  `FACET_CATEGORIES` maps each synthetic category to a *list* of extractors, not a single one -
+  a row can contribute both a generic value ("4G") and a specific one ("Sierra EM7455") to the
+  same dropdown. Deliberately does NOT merge EM7455/MC7455 or EM7411/MC7411 - different Sierra
+  Wireless part numbers (M.2 vs mini-PCIe form factor), and nothing in the source text confirms
+  they're interchangeable for search the way "Elkhart Lake" confirmed two CPU spellings were the
+  same chip.
+- **WWAN Carrier**: only the three actual named US carriers (AT&T/T-Mobile/Verizon, present on
+  Intel Wireless 8265/AX210 module SKUs) - `extract_wwan_carrier`. A row with a generation/module
+  but no named carrier (the common case - most rows just say "4G" or "5G WWAN," or name a module
+  without a carrier) is simply not findable via Carrier, same pattern as an untagged storage/OS
+  description.
 
 Getac's own `attributes.wireless` values are untouched by this - already simple/clean (a handful
 of values like `"WiFi + BT + 5G Sub-6"`), and this only affects JLT/Winmate's real per-SKU

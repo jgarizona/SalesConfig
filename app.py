@@ -54,7 +54,9 @@ import parse_cipherlab   # noqa: E402
 from storage_facets import extract_storage_capacity, extract_storage_technology  # noqa: E402
 from os_facets import extract_os_version, extract_os_edition  # noqa: E402
 from cpu_facets import normalize_cpu_label, cpu_sort_key  # noqa: E402
-from wwan_facets import extract_wwan_generation, extract_wwan_carrier  # noqa: E402
+from wwan_facets import (  # noqa: E402
+    extract_wwan_generation, extract_wwan_module, extract_wwan_carrier, wwan_generation_sort_key,
+)
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -212,31 +214,37 @@ ATTRIBUTE_CATEGORY_MAP = {
 }
 
 # JLT/Winmate's real "Storage Drive Options:"/"Operating System:"/
-# "Processor Options" rows have no precomputed attributes (unlike Getac) -
-# a search on one of these synthetic categories has to derive the facet
-# from each option's free-text description on the fly. Maps synthetic
-# search category -> (real category its options actually live under,
-# extractor function) - see ingest/storage_facets.py, ingest/os_facets.py,
-# ingest/cpu_facets.py. Storage/OS split one real category into two
+# "Processor Options"/"Internal Wireless" rows have no precomputed
+# attributes (unlike Getac) - a search on one of these synthetic categories
+# has to derive the facet from each option's free-text description on the
+# fly. Maps synthetic search category -> (real category its options
+# actually live under, list of extractor functions) - see
+# ingest/storage_facets.py, ingest/os_facets.py, ingest/cpu_facets.py,
+# ingest/wwan_facets.py. Storage/OS split one real category into two
 # synthetic ones; "Processor Options" maps to itself - it's not a split,
-# just deduping near-identical spellings of the same real chip (see
-# cpu_facets.py's docstring) while keeping the same category name.
+# just deduping near-identical spellings of the same real chip. Most
+# entries have exactly one extractor; "WWAN Generation" has two (plain
+# generation + specific module part number) so a row can contribute both a
+# generic "4G" value and a more specific "Sierra EM7455" value to the same
+# dropdown - per the user (2026-08-18), a module identifies a generation
+# more directly than it identifies a carrier, so module names live in
+# Generation, not Carrier (see wwan_facets.py's docstring).
 FACET_CATEGORIES = {
-    "Storage Capacity": ("Storage Drive Options:", extract_storage_capacity),
-    "Storage Technology": ("Storage Drive Options:", extract_storage_technology),
-    "OS Version": ("Operating System:", extract_os_version),
-    "OS Edition": ("Operating System:", extract_os_edition),
-    "Processor Options": ("Processor Options", normalize_cpu_label),
-    "WWAN Generation": ("Internal Wireless", extract_wwan_generation),
-    "WWAN Carrier": ("Internal Wireless", extract_wwan_carrier),
+    "Storage Capacity": ("Storage Drive Options:", [extract_storage_capacity]),
+    "Storage Technology": ("Storage Drive Options:", [extract_storage_technology]),
+    "OS Version": ("Operating System:", [extract_os_version]),
+    "OS Edition": ("Operating System:", [extract_os_edition]),
+    "Processor Options": ("Processor Options", [normalize_cpu_label]),
+    "WWAN Generation": ("Internal Wireless", [extract_wwan_generation, extract_wwan_module]),
+    "WWAN Carrier": ("Internal Wireless", [extract_wwan_carrier]),
 }
 
 # Reverse index: which real categories need facet-splitting instead of
 # being pooled as an exact-match description, and into which synthetic
 # categories each one splits.
 _REAL_CATEGORY_TO_FACETS = {}
-for _synthetic_cat, (_real_cat, _extractor) in FACET_CATEGORIES.items():
-    _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractor))
+for _synthetic_cat, (_real_cat, _extractors) in FACET_CATEGORIES.items():
+    _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractors))
 
 # "Internal Wireless" is the one real category where the facets above are
 # ADDED alongside the original flat description list, not a replacement -
@@ -759,10 +767,11 @@ def api_search_options():
             # technology and vice versa; an OS search shouldn't care about
             # GAC/LTSC licensing channels; a WWAN carrier/module should be
             # searchable separately from its generation).
-            for category, extractor in _REAL_CATEGORY_TO_FACETS[p["category"]]:
-                val = extractor(p.get("description"))
-                if val:
-                    by_category.setdefault(category, set()).add(val)
+            for category, extractors in _REAL_CATEGORY_TO_FACETS[p["category"]]:
+                for extractor in extractors:
+                    val = extractor(p.get("description"))
+                    if val:
+                        by_category.setdefault(category, set()).add(val)
             # Most real categories are fully replaced by their facets - only
             # "Internal Wireless" also keeps its original flat description
             # searchable (see _KEEP_RAW_ALONGSIDE_FACETS above).
@@ -777,6 +786,7 @@ def api_search_options():
         cat: sorted(descs, key=_capacity_sort_key) if cat == "Storage Capacity"
         else sorted(descs, key=_os_version_sort_key) if cat == "OS Version"
         else sorted(descs, key=cpu_sort_key) if cat == "Processor Options"
+        else sorted(descs, key=wwan_generation_sort_key) if cat == "WWAN Generation"
         else sorted(descs)
         for cat, descs in by_category.items()
     }
@@ -827,9 +837,10 @@ def api_search_base_units():
             # it from each option's description the same way
             # api_search_options does when building the dropdown, so the
             # two stay in sync.
-            real_category, extractor = FACET_CATEGORIES[category]
+            real_category, extractors = FACET_CATEGORIES[category]
             return any(
-                o["category"] == real_category and extractor(o.get("description")) == desc
+                o["category"] == real_category
+                and any(extractor(o.get("description")) == desc for extractor in extractors)
                 for o in options
             )
         return any(o["category"] == category and o.get("description") == desc for o in options)

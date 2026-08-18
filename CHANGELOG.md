@@ -102,6 +102,26 @@ Every repository change must be recorded under the date it was made and identify
   `WWAN Generation` dropdown shows `3G, 4G, 5G`; searching Generation="5G" alone returns 6 real
   matches across differently-worded platforms; searching Carrier="AT&T" returns 12 matches; the
   original exact-match "Internal Wireless" search still works unchanged.
+- **[Claude]** **Re-partitioned the WWAN split from the entry above, per the user:** cellular
+  module part numbers (Telit LN920, Sierra EM7455/EM7411/EM9291/EM7595/MC7455/MC7411, Quectel
+  RedCap, MediaTek, HUAWEI) moved out of "WWAN Carrier" into "WWAN Generation" instead, sorted
+  after the plain 3G/4G/5G entries. Rationale, from the user: "the cards are tied to 3g 4g 5g
+  more than the carrier" - a specific module identifies which generation a unit supports more
+  directly than it identifies a telecom carrier, so it belongs alongside Generation, not lumped
+  in with the three actual named carriers (AT&T/T-Mobile/Verizon) that remain in "WWAN Carrier."
+  Required generalizing `FACET_CATEGORIES` in `app.py`: each synthetic category now maps to a
+  *list* of extractor functions instead of one, so a single row can contribute both a generic
+  value (e.g. "4G") and a more specific one (e.g. "Sierra EM7455") to the same "WWAN Generation"
+  dropdown - `ingest/wwan_facets.py` gained `extract_wwan_module` (the part-number patterns,
+  split out of what was `extract_wwan_carrier`) and `wwan_generation_sort_key` (plain generations
+  first in 3G/4G/5G order, module names alphabetically after). Every existing single-extractor
+  `FACET_CATEGORIES` entry (storage, OS, CPU) was updated to wrap its extractor in a one-item
+  list for consistency - no behavior change for those. Full audit re-run: still 0 issues across
+  628 brand-scoped values (same total, just repartitioned - nothing added or removed). Verified
+  live: `WWAN Generation` dropdown now shows `3G, 4G, 5G` followed by the module names
+  (`HUAWEI, MediaTek, Quectel RedCap, Sierra EM7411, ...`); `WWAN Carrier` shows only
+  `AT&T, T-Mobile, Verizon`; searching a module name from the Generation field still returns the
+  same real matches as before (8 for "Sierra EM7455").
 
 ## 2026-08-17
 
