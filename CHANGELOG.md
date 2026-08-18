@@ -11,6 +11,7 @@ Every repository change must be recorded under the date it was made and identify
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
 - **Make JSON catalog writes recoverable and concurrency-safe** — source: 2026-08-15 Codex review. Current status: uploads rewrite the complete catalog JSON directly with no atomic replacement, backup, or write lock. Next action: use atomic writes plus locking/backups now, then migrate to a database when concurrent usage warrants it.
 - **Add automated spreadsheet-ingestion tests** — source: 2026-08-15 Codex review and the handoff's known no-tests limitation. Current status: ingestion is verified manually. Next action: add representative JLT, Winmate, Getac, CipherLab, malformed-workbook, pricing-normalization, blank-preservation, and zero-row test fixtures.
+- **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Worked around by excluding those from Search by Requirements (see 2026-08-17 entry), but their accessories still aren't purchasable as configured add-ons to anything in this app since the base system isn't here to attach them to. Next action: when a fuller CipherLab catalog is sourced, re-run the ingest and confirm these families pick up real Base Unit rows (the exclusion in `api_search_options` self-resolves once that happens — nothing to undo by hand).
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
 - **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand.
@@ -176,6 +177,26 @@ Every repository change must be recorded under the date it was made and identify
   - applies to all six extracted fields, not just cpu, so the same class of bug can't recur in
   ram/storage/display/wireless/os either. Re-ingested; Getac's distinct CPU count went from 22
   to 21 (the duplicate merged away), total row count unchanged at 370.
+- **[Claude]** **Audited every Search by Requirements dropdown value across all 4 brands, per
+  the user's follow-up ask** ("make sure that if you search on an option it will result in one
+  or more systems"), after the Getac bug above. Scripted every value from `/api/search_options`
+  through `/api/search_base_units` (the exact same data path a rep uses) and checked each
+  returns >=1 match with a real part `code`. JLT, Winmate, and Getac: 0 issues across 660
+  brand-scoped values. **CipherLab: 160 dead-end values** (51 "Add On Options:", 109 "Operating
+  System:") that could never return a match, for a different reason than the Getac bug - not a
+  matching-logic bug, a genuine data gap. `CipherLab Price Increase effective 4_10_2026 Product
+  List.xlsx` is a price *increase* list, not a full catalog: a product family whose base-unit
+  price didn't change in this increase (8600, HERA51, and a batch of Wavelink/Ivanti
+  software-license SKUs numbered 901/903/904/etc.) shows up with only its accessories,
+  warranties, or licenses and **no `Base Unit:` row anywhere in the file** - there's no system
+  in this data for those options to ever attach to, so offering them as a search requirement was
+  always a dead end regardless of matching logic. Fixed in `api_search_options` (`app.py`): the
+  dropdown now only pools values from a (brand, platform) that has at least one `Base Unit:` row
+  among approved parts. CipherLab's dropdown count dropped from 702 to 542 (exactly the 160
+  dead-end values). Re-ran the full audit after the fix: 0 issues across 1,202 brand-scoped
+  values and 1,190 unscoped ("Any brand") values. Verified live: CipherLab's "Add On Options:"
+  dropdown no longer offers 8600/HERA51 accessories, only options tied to real in-file systems
+  (e.g. RS38 cradles); searching one returns real CipherLab RS38 matches with prices.
 
 ## 2026-08-16
 

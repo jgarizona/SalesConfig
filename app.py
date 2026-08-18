@@ -619,9 +619,24 @@ def api_search_options():
     approvals = load_approvals()
     approved_parts = [p for p in parts if is_selectable(p, approvals)]
 
+    # Some source spreadsheets aren't a full catalog - e.g. CipherLab's is a
+    # *price increase* list, so a product family whose base unit price didn't
+    # change can appear with only its accessories/warranties/software SKUs
+    # and no "Base Unit:" row at all (confirmed 2026-08-17: 8600, HERA51, and
+    # a batch of Wavelink/Ivanti license SKUs). An option under one of those
+    # platforms can never resolve to a system - Search by Requirements finds
+    # base units, not accessories - so it must not be offered as a
+    # requirement in the first place, or picking it always returns zero
+    # results no matter how correct the matching logic is.
+    platforms_with_base_unit = {
+        (p["brand"], p["platform"]) for p in approved_parts if p["category"] == "Base Unit:"
+    }
+
     by_category = {}
     for p in approved_parts:
         if brand_filter and p["brand"] != brand_filter:
+            continue
+        if (p["brand"], p["platform"]) not in platforms_with_base_unit:
             continue
 
         if p["category"] == "Base Unit:":

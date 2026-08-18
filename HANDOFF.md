@@ -551,6 +551,23 @@ Verified live: searching "Processor Options" = "Intel Core Ultra 5 225H Processo
 returns both Getac platforms that use it (B360G3, V120); searching a CPU that previously
 returned zero results now returns real matches, and Select loads the exact matching SKU.
 
+**Full audit across all 4 brands (2026-08-17, requested by the user after the Getac bug above):**
+scripted every dropdown value from `/api/search_options` (1,362 brand-scoped values, the exact
+same values a rep sees) through `/api/search_base_units` and confirmed each returns >=1 match
+with a real part `code`. JLT (113 values), Winmate (502), and Getac (45, post-fix) came back
+completely clean - 0 issues. **CipherLab had 160 dead-end values** (51 "Add On Options:", 109
+"Operating System:") that always returned zero results no matter what, root-caused to the
+source file itself: `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` is a price
+*increase* list, not a full catalog, so a product family whose base price didn't change (8600,
+HERA51, and a batch of Wavelink/Ivanti software-license SKUs numbered 901/903/904/etc.) shows up
+with only its accessories/warranties/licenses and **no `Base Unit:` row at all** - there's no
+system in this file for those options to ever attach to. Fixed in `api_search_options` (`app.py`):
+the dropdown now only pools option values from a (brand, platform) that has at least one
+`Base Unit:` row among approved parts, so a search term that can never resolve to a system is
+no longer offered as one. CipherLab's dropdown count dropped from 702 to 542 values (exactly the
+160 dead-end ones removed); re-running the full audit afterward (1,202 brand-scoped values, plus
+1,190 more via the unscoped "Any brand" pooling) came back at 0 issues everywhere.
+
 Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
 already brand-agnostic and needed no changes.
 
