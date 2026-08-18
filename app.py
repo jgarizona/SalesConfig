@@ -238,38 +238,50 @@ ATTRIBUTE_CATEGORY_MAP = {
 # "Processor Options"/"Internal Wireless" rows have no precomputed
 # attributes (unlike Getac) - a search on one of these synthetic categories
 # has to derive the facet from each option's free-text description on the
-# fly. Maps synthetic search category -> (real category its options
-# actually live under, list of extractor functions) - see
+# fly. Maps synthetic search category -> (list of real categories its
+# options actually live under, list of extractor functions) - see
 # ingest/storage_facets.py, ingest/os_facets.py, ingest/cpu_facets.py,
 # ingest/wifi_facets.py, ingest/wwan_facets.py. Storage/OS split one real
 # category into two synthetic ones; "Processor Options" maps to itself -
 # it's not a split, just deduping near-identical spellings of the same real
-# chip. "Internal Wireless" also maps to itself - JLT/Winmate's real
-# "Internal Wireless" rows mix WiFi radio + Bluetooth + GPS + WWAN cellular
-# into one free-text description, so the synthetic "Internal Wireless"
-# search field is a *clean WiFi-only* re-derivation of the same real
-# category (extract_wifi_radio), not the raw text - WWAN cellular gets its
-# own three fields below instead (revised 2026-08-18, per the user; this
-# used to keep the raw flat description alongside the WWAN facets, which is
-# exactly what mixed WiFi/WWAN/Carrier together in the dropdown).
+# chip.
+#
+# The four wireless synthetic categories all share the same list of real
+# source categories (_WIRELESS_REAL_CATEGORIES) rather than one real
+# category each, because which real categories actually carry wireless data
+# is brand-dependent: JLT's real "Internal Wireless" rows were split
+# 2026-08-18 into three real categories - "Internal Wireless" (WiFi radio
+# only), "WWAN Card", "WWAN Carrier" - one option per row exactly as
+# before, just re-labeled by content (see the migration note in
+# CHANGELOG.md). Winmate/Getac/CipherLab weren't touched and still have
+# everything under real "Internal Wireless" alone. Scanning all three real
+# categories for every synthetic one means e.g. a JLT row that's now real
+# category "WWAN Card" (because it names a cellular module) but *also*
+# mentions "AX210" in its description still shows up under the "Internal
+# Wireless" WiFi facet too - nothing found via one field became unfindable
+# via another just because of which real category a row's price/code now
+# lives under.
+_WIRELESS_REAL_CATEGORIES = ["Internal Wireless", "WWAN Card", "WWAN Carrier"]
+
 FACET_CATEGORIES = {
-    "Storage Capacity": ("Storage Drive Options:", [extract_storage_capacity]),
-    "Storage Technology": ("Storage Drive Options:", [extract_storage_technology]),
-    "OS Version": ("Operating System:", [extract_os_version]),
-    "OS Edition": ("Operating System:", [extract_os_edition]),
-    "Processor Options": ("Processor Options", [normalize_cpu_label]),
-    "Internal Wireless": ("Internal Wireless", [extract_wifi_radio]),
-    "WWAN Generation": ("Internal Wireless", [extract_wwan_generation]),
-    "WWAN Card": ("Internal Wireless", [extract_wwan_module]),
-    "WWAN Carrier": ("Internal Wireless", [extract_wwan_carrier]),
+    "Storage Capacity": (["Storage Drive Options:"], [extract_storage_capacity]),
+    "Storage Technology": (["Storage Drive Options:"], [extract_storage_technology]),
+    "OS Version": (["Operating System:"], [extract_os_version]),
+    "OS Edition": (["Operating System:"], [extract_os_edition]),
+    "Processor Options": (["Processor Options"], [normalize_cpu_label]),
+    "Internal Wireless": (_WIRELESS_REAL_CATEGORIES, [extract_wifi_radio]),
+    "WWAN Generation": (_WIRELESS_REAL_CATEGORIES, [extract_wwan_generation]),
+    "WWAN Card": (_WIRELESS_REAL_CATEGORIES, [extract_wwan_module]),
+    "WWAN Carrier": (_WIRELESS_REAL_CATEGORIES, [extract_wwan_carrier]),
 }
 
 # Reverse index: which real categories need facet-splitting instead of
 # being pooled as an exact-match description, and into which synthetic
 # categories each one splits.
 _REAL_CATEGORY_TO_FACETS = {}
-for _synthetic_cat, (_real_cat, _extractors) in FACET_CATEGORIES.items():
-    _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractors))
+for _synthetic_cat, (_real_cats, _extractors) in FACET_CATEGORIES.items():
+    for _real_cat in _real_cats:
+        _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractors))
 
 
 def _capacity_sort_key(label):
@@ -854,9 +866,9 @@ def api_search_base_units():
             # it from each option's description the same way
             # api_search_options does when building the dropdown, so the
             # two stay in sync.
-            real_category, extractors = FACET_CATEGORIES[category]
+            real_categories, extractors = FACET_CATEGORIES[category]
             return any(
-                o["category"] == real_category
+                o["category"] in real_categories
                 and any(extractor(o.get("description")) == desc for extractor in extractors)
                 for o in options
             )

@@ -104,6 +104,13 @@ _CARRIER_PATTERNS = [
     ("Verizon", re.compile(r"Verizon", re.IGNORECASE)),
 ]
 
+# A row can say "WWAN"-capable (e.g. an external WWAN antenna connector)
+# without naming a carrier OR a specific module - per the user (2026-08-18),
+# these get a 4th "Generic" carrier value rather than no value at all. Only
+# fires when no named carrier AND no named module matched - a module-only
+# row ("4G WWAN Telit LN920...") is findable via WWAN Card, not this.
+_GENERIC_WWAN_RE = re.compile(r"WWAN", re.IGNORECASE)
+
 
 def extract_wwan_carrier(text):
     if not text:
@@ -111,4 +118,6 @@ def extract_wwan_carrier(text):
     for label, pat in _CARRIER_PATTERNS:
         if pat.search(text):
             return label
+    if _GENERIC_WWAN_RE.search(text) and extract_wwan_module(text) is None:
+        return "Generic"
     return None

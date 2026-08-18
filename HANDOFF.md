@@ -799,6 +799,43 @@ MC7411', 'Telit FN990', 'Telit LN920']`; `WWAN Generation` is back to plain `['4
 on the new fields (`Internal Wireless: "Intel AX210"` → 9 JLT matches, `WWAN Card: "Sierra
 MC7411"` → 1 match, `WWAN Card: "Sierra EM7455"` → 7 Winmate matches).
 
+**The split above was search-facet-only at first; JLT's real catalog `category` field was
+later migrated too (2026-08-18), so Technical (and Sales' main per-platform dropdowns, not
+just Search) also show three separate boxes instead of one mixed one - Winmate was NOT
+touched, per the user (confirmed JLT-only).** A one-time migration script re-labeled 61 JLT
+"Internal Wireless" rows' real `category` field (only that field - code/description/prices
+untouched) across all 15 JLT platforms: 5 rows naming a specific cellular module → real
+category `"WWAN Card"`; 56 rows naming AT&T/T-Mobile/Verizon, or whose only WWAN signal is a
+bare "with External PS_EXT-WWAN/WLAN" antenna-connector mention (no named carrier or module) →
+real category `"WWAN Carrier"` (the antenna-only rows get a new 4th carrier value, `"Generic"`
+- see `extract_wwan_carrier` in `ingest/wwan_facets.py`, checked after the three named carriers
+and only when `extract_wwan_module` found nothing, so a module-named row can't also be tagged
+Generic); everything else (pure WiFi, including "No Radio") stays real category `"Internal
+Wireless"`. Technical needed **zero template changes** - `technical()`'s existing stable sort
+(`plist.sort(key=lambda p: (category_sort_key(p["category"]), p["code"] or ""))`) already
+groups options by real category in `CATEGORY_ORDER` position, so the three boxes appear
+automatically, correctly ordered, the moment the data itself carries the right category name.
+
+This is why `FACET_CATEGORIES` (above) maps every wireless synthetic category to *all three*
+real categories (`_WIRELESS_REAL_CATEGORIES = ["Internal Wireless", "WWAN Card", "WWAN
+Carrier"]`) instead of one real category each: which real categories actually hold wireless
+data is now brand-dependent (JLT: three real categories; Winmate/Getac/CipherLab: still just
+one, "Internal Wireless", untouched) - scanning all three for every synthetic facet means a
+JLT row that's now real category "WWAN Card" but also names "AX210" in its own description
+text is still findable via the "Internal Wireless" WiFi facet, same as before the split.
+
+**Known, disclosed consequence:** re-labeling changes the `brand+platform+category+code` key
+Purchasing's price-upload (`merge_parts`) matches against. A previously-exported Purchasing
+pricing sheet covering one of these 61 rows won't match on re-upload after this change - the
+row is silently skipped (never wrongly overwritten), and a fresh export reflects the corrected
+categories going forward. Checked for saved-quote impact too: quote `selections` are a frozen
+snapshot taken at Save time (`build_snapshot()`), not re-resolved against live category names
+on every view, so no already-saved quote's stored price/description/total changed. The only
+residual risk is cosmetic - re-opening an old saved quote that selected one of these rows for
+further editing might not pre-select it correctly in the now-differently-categorized dropdown;
+checked live data and found exactly 2 affected saved lines, both under seeded test-customer
+quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
+
 ---
 
 ## 8. Non-obvious rules worth knowing before you touch this

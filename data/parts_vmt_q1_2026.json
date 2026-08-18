@@ -194,7 +194,7 @@
   {
     "brand": "JLT",
     "platform": "1014P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -206,7 +206,7 @@
   {
     "brand": "JLT",
     "platform": "1014P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -218,7 +218,7 @@
   {
     "brand": "JLT",
     "platform": "1014P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -254,7 +254,7 @@
   {
     "brand": "JLT",
     "platform": "1014P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -590,7 +590,7 @@
   {
     "brand": "JLT",
     "platform": "1214N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -602,7 +602,7 @@
   {
     "brand": "JLT",
     "platform": "1214N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -614,7 +614,7 @@
   {
     "brand": "JLT",
     "platform": "1214N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -650,7 +650,7 @@
   {
     "brand": "JLT",
     "platform": "1214N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -986,7 +986,7 @@
   {
     "brand": "JLT",
     "platform": "1214P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -998,7 +998,7 @@
   {
     "brand": "JLT",
     "platform": "1214P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -1010,7 +1010,7 @@
   {
     "brand": "JLT",
     "platform": "1214P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -1046,7 +1046,7 @@
   {
     "brand": "JLT",
     "platform": "1214P",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -1058,7 +1058,7 @@
   {
     "brand": "JLT",
     "platform": "1214P",
-    "category": "Internal Wireless",
+    "category": "WWAN Card",
     "code": "MC",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with MC7411 and  External PS_EXT-WWAN/WLAN",
     "Floor Price": 360,
@@ -1322,7 +1322,7 @@
   {
     "brand": "JLT",
     "platform": "6012",
-    "category": "Internal Wireless",
+    "category": "WWAN Card",
     "code": "DB",
     "description": "Intel Wireless AX210  802.11 ac/a/b/g/n Plus Telit LN920 WWAN 4G with External SMA connector",
     "Floor Price": 310,
@@ -1526,7 +1526,7 @@
   {
     "brand": "JLT",
     "platform": "6012A",
-    "category": "Internal Wireless",
+    "category": "WWAN Card",
     "code": "SW",
     "description": "WWAN Sierra wireless EM7455",
     "Floor Price": 340,
@@ -1742,7 +1742,7 @@
   {
     "brand": "JLT",
     "platform": "6015",
-    "category": "Internal Wireless",
+    "category": "WWAN Card",
     "code": "WL",
     "description": "4G WWAN\u2013 Telit LN920 (CE and FCC approved)",
     "Floor Price": null,
@@ -1754,7 +1754,7 @@
   {
     "brand": "JLT",
     "platform": "6015",
-    "category": "Internal Wireless",
+    "category": "WWAN Card",
     "code": "WU",
     "description": "5G WWAN Telit FN990 (CE approved)   A-GPS/GLONASS/BEIDOU",
     "Floor Price": null,
@@ -2042,7 +2042,7 @@
   {
     "brand": "JLT",
     "platform": "1514N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": "$\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 360.00 ",
@@ -2054,7 +2054,7 @@
   {
     "brand": "JLT",
     "platform": "1514N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": "$\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 360.00 ",
@@ -2066,7 +2066,7 @@
   {
     "brand": "JLT",
     "platform": "1514N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": "$\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 360.00 ",
@@ -2102,7 +2102,7 @@
   {
     "brand": "JLT",
     "platform": "1514N",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -2486,7 +2486,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JA",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 130,
@@ -2498,7 +2498,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JT",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 130,
@@ -2510,7 +2510,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JW",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 130,
@@ -2546,7 +2546,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -2966,7 +2966,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IA",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 130,
@@ -2978,7 +2978,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IT",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 130,
@@ -2990,7 +2990,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IW",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 130,
@@ -3026,7 +3026,7 @@
   {
     "brand": "JLT",
     "platform": "Verso +10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -3446,7 +3446,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IA",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 130,
@@ -3458,7 +3458,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IT",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 130,
@@ -3470,7 +3470,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IW",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 130,
@@ -3506,7 +3506,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -3914,7 +3914,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IA",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 130,
@@ -3926,7 +3926,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IT",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 130,
@@ -3938,7 +3938,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IW",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 130,
@@ -3974,7 +3974,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -4382,7 +4382,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IA",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 130,
@@ -4394,7 +4394,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IT",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 130,
@@ -4406,7 +4406,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IW",
     "description": "Intel Wireless 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 130,
@@ -4442,7 +4442,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "IZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -4730,7 +4730,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JA",
     "description": "Intel Wireless 8265 (M2) 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -4742,7 +4742,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JT",
     "description": "Intel Wireless 8265 (M2) 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -4754,7 +4754,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JW",
     "description": "Intel Wireless 8265 (M2) 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -4790,7 +4790,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 10 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -5174,7 +5174,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JA",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -5186,7 +5186,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JT",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/nn with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -5198,7 +5198,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JW",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -5234,7 +5234,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -5270,7 +5270,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -5282,7 +5282,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -5294,7 +5294,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -5330,7 +5330,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 12 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -5738,7 +5738,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JA",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -5750,7 +5750,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JT",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/nn with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -5762,7 +5762,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JW",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -5798,7 +5798,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "JZ",
     "description": "Intel Wireless 8265 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,
@@ -5834,7 +5834,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KA",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *AT&T*",
     "Floor Price": 360,
@@ -5846,7 +5846,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KT",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *T-Mobile*",
     "Floor Price": 360,
@@ -5858,7 +5858,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KW",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with WWAN  *Verizon*",
     "Floor Price": 360,
@@ -5894,7 +5894,7 @@
   {
     "brand": "JLT",
     "platform": "Verso 15 2024",
-    "category": "Internal Wireless",
+    "category": "WWAN Carrier",
     "code": "KZ",
     "description": "Intel Wireless AX210 802.11 ac/a/b/g/n with External PS_EXT-WWAN/WLAN",
     "Floor Price": 125,

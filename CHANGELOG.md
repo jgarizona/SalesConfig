@@ -68,6 +68,51 @@ Every repository change must be recorded under the date it was made and identify
     Wireless" and "WWAN Card" values (e.g. `Internal Wireless: "Intel AX210"` → 9 JLT
     matches, `WWAN Card: "Sierra MC7411"` → 1 match).
 
+- **[Claude]** **Applied the WiFi/WWAN split above to JLT's real catalog data, not just the
+  search facet - Technical (and every other screen) now shows three separate boxes instead of
+  one mixed "Internal Wireless" box, and added a 4th carrier value.** The previous entry only
+  changed how the *Search by Requirements* dropdown derives its values from JLT's raw
+  "Internal Wireless" rows; Technical (and Sales' main per-platform dropdowns) still grouped
+  every option by its real `category` field, which was still the one mixed "Internal Wireless"
+  bucket for every screen except Search. Per the user - confirmed JLT-only, not Winmate - this
+  needed to actually be a real data change: a one-time migration re-labeled each JLT
+  "Internal Wireless" row's real `category` (61 rows across all 15 platforms, only the
+  `category` field touched - code/description/prices untouched) into whichever of three real
+  categories its description actually describes: **"Internal Wireless"** (pure WiFi, no WWAN
+  component - 5 rows now real category "WWAN Card": a row naming a specific cellular module;
+  56 rows now real category "WWAN Carrier": AT&T/T-Mobile/Verizon, or the row's only WWAN
+  signal is a bare "with External PS_EXT-WWAN/WLAN" antenna connector mention with no named
+  carrier or module, which now gets a 4th carrier value, **"Generic"**
+  (`extract_wwan_carrier` in `ingest/wwan_facets.py`, checked after AT&T/T-Mobile/Verizon and
+  only when no module also matched, so a module-named row isn't wrongly tagged Generic too).
+  Technical needed no template changes - it already groups options by real category via a
+  stable sort keyed on `CATEGORY_ORDER` (`app.py`'s `technical()` view), so the three boxes
+  render in the right position and order automatically once the data itself carries the right
+  category. `app.py`'s `FACET_CATEGORIES` was generalized so each synthetic wireless field
+  (Internal Wireless/WWAN Generation/WWAN Card/WWAN Carrier) scans *all three* real wireless
+  categories, not just one - since which real categories actually hold wireless data is now
+  brand-dependent (JLT: three; Winmate/Getac/CipherLab: still just "Internal Wireless") - so a
+  JLT row that's now real category "WWAN Card" but also names "AX210" in its description is
+  still findable via the "Internal Wireless" WiFi facet too, nothing lost by the re-label.
+  - **Known consequence, disclosed rather than silently absorbed:** re-labeling changes the
+    `brand+platform+category+code` key Purchasing's price-upload matches against. Any
+    previously-exported Purchasing pricing sheet covering one of these 61 JLT rows would no
+    longer match if re-uploaded - the row would just be silently skipped (not wrongly
+    overwritten), and any *new* export going forward reflects the corrected categories.
+  - Checked for compatibility impact on already-saved quotes: quote `selections` are frozen
+    snapshots taken at Save time (`build_snapshot()`), not re-resolved against live category
+    names later, so no already-saved quote's stored price/description/total is affected. Only
+    cosmetic risk: re-opening a saved quote that selected one of the recategorized rows for
+    further editing might not correctly pre-select it in the (now differently-categorized)
+    dropdown. Checked live data: exactly 2 saved quotes (`Acme Manufacturing::2/3`, both seeded
+    test data) selected an affected row (`KA`, now "WWAN Carrier") - real quote data unaffected.
+  - Verified via the Flask test client: JLT's `WWAN Carrier` facet is now
+    `['AT&T', 'Generic', 'T-Mobile', 'Verizon']`; `Internal Wireless`/`WWAN Card` facet values
+    unchanged from the previous entry (cross-category scanning confirmed working); live
+    Technical render of JLT 1214P shows, in order, "Internal Wireless" (AX210/No Radio rows
+    only) → "WWAN Card" (the MC7411 row) → "WWAN Carrier" (AT&T/T-Mobile/Verizon/Generic rows)
+    as three separate boxes, each option keeping its own checkbox/code/price.
+
 - **[Claude]** **Fixed a real dead end the user hit live: the "existing quotes" panel under
   Opportunity ID was an interactive "select one to load" dropdown, and picking the wrong thing
   out of it silently blocked Save with no clear explanation.** Reported sequence: rep populates
