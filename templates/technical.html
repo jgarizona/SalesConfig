@@ -76,6 +76,7 @@
       <p class="empty-state">No data ingested for this brand yet.</p>
     {% endif %}
     {% for platform, options in platforms.items() %}
+      {% if not loop.first %}<div class="platform-separator"></div>{% endif %}
       <h2 id="platform-{{ selected_brand }}-{{ platform }}" class="platform-heading">{{ platform }}</h2>
       {% set ns = namespace(current_category="") %}
       {% for opt in options %}

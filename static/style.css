@@ -54,11 +54,16 @@ h2 { font-size: 16px; color: #33415c; margin-top: 28px; }
   font-size: 20px;
   font-weight: bold;
   color: #0b2545;
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 3px solid #d7deea;
+  margin-top: 20px;
 }
-.platform-heading:first-of-type { margin-top: 20px; padding-top: 0; border-top: none; }
+
+.platform-separator {
+  height: 14px;
+  margin-top: 40px;
+  background: #1e90ff;
+  border: 3px solid #0b2545;
+  border-radius: 4px;
+}
 
 .brand-heading {
   font-size: 22px;
