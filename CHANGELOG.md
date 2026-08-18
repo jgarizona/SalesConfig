@@ -78,6 +78,30 @@ Every repository change must be recorded under the date it was made and identify
   canonical labels first, and searching "Intel Atom x6413E (Elkhart Lake)" returns 7 real
   matches spanning 1014P/1214N/1214P/1514N/6012/6015/VM1007E FM07E - platforms that used to be
   split across up to 5 separate, un-mergeable search terms.
+- **[Claude]** **Split WWAN Generation and WWAN Carrier out of "Internal Wireless," per the
+  user** ("wwan is mixed up with wifi... the carrier should be separated from wwan, similar to
+  what you did with storage capacity and storage technology"). 109 distinct real values, jumbling
+  WiFi standard, Bluetooth version, GPS, and cellular generation/carrier all into one free-text
+  string (e.g. `"WLAN (802.11 a/b/g/n/ac) + BT 5.0 + GPS 4G Sierra EM7455"`). Unlike storage/OS/
+  CPU, this did NOT fully replace the real category - a single description here can encode WiFi
+  standard AND Bluetooth version AND GPS AND cellular simultaneously, so removing the flat
+  "Internal Wireless" list the way storage/OS's raw categories were removed would have lost real
+  search capability (e.g. searching by WiFi standard alone). New `ingest/wwan_facets.py` extracts
+  two facets that are *added* alongside the still-intact original list: **WWAN Generation**
+  (3G/4G/5G, LTE counts as 4G) and **WWAN Carrier** (named US carriers AT&T/T-Mobile/Verizon, or
+  a specific cellular module - Telit LN920/FN990, Sierra EM7455/EM7411/EM9291/EM7595/MC7455/
+  MC7411, Quectel RedCap, MediaTek, HUAWEI). Deliberately did NOT merge EM7455/MC7455 or
+  EM7411/MC7411 - different Sierra Wireless part numbers (M.2 vs mini-PCIe), and nothing in the
+  source text confirms they're interchangeable for search, unlike the CPU codename pairs that
+  were confirmed same-chip. New `_KEEP_RAW_ALONGSIDE_FACETS` set in `app.py` (`{"Internal
+  Wireless"}`) marks this category as "facets plus the original," a new mode alongside
+  `FACET_CATEGORIES`'s existing full-replacement mode. Getac's own `attributes.wireless` is
+  untouched (already simple/clean) - this only affects JLT/Winmate's real per-SKU rows. Full
+  audit re-run: 0 issues across 628 brand-scoped values, and "Internal Wireless" itself still has
+  all 109 original values (confirmed nothing was lost). Verified live and via direct API calls:
+  `WWAN Generation` dropdown shows `3G, 4G, 5G`; searching Generation="5G" alone returns 6 real
+  matches across differently-worded platforms; searching Carrier="AT&T" returns 12 matches; the
+  original exact-match "Internal Wireless" search still works unchanged.
 
 ## 2026-08-17
 

@@ -54,6 +54,7 @@ import parse_cipherlab   # noqa: E402
 from storage_facets import extract_storage_capacity, extract_storage_technology  # noqa: E402
 from os_facets import extract_os_version, extract_os_edition  # noqa: E402
 from cpu_facets import normalize_cpu_label, cpu_sort_key  # noqa: E402
+from wwan_facets import extract_wwan_generation, extract_wwan_carrier  # noqa: E402
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -180,6 +181,8 @@ CATEGORY_ORDER = [
     "IP Rating Options:",
     "Power Cable Options:",
     "Internal Wireless",
+    "WWAN Generation",
+    "WWAN Carrier",
     "Operating System:",
     "OS Version",
     "OS Edition",
@@ -224,6 +227,8 @@ FACET_CATEGORIES = {
     "OS Version": ("Operating System:", extract_os_version),
     "OS Edition": ("Operating System:", extract_os_edition),
     "Processor Options": ("Processor Options", normalize_cpu_label),
+    "WWAN Generation": ("Internal Wireless", extract_wwan_generation),
+    "WWAN Carrier": ("Internal Wireless", extract_wwan_carrier),
 }
 
 # Reverse index: which real categories need facet-splitting instead of
@@ -232,6 +237,14 @@ FACET_CATEGORIES = {
 _REAL_CATEGORY_TO_FACETS = {}
 for _synthetic_cat, (_real_cat, _extractor) in FACET_CATEGORIES.items():
     _REAL_CATEGORY_TO_FACETS.setdefault(_real_cat, []).append((_synthetic_cat, _extractor))
+
+# "Internal Wireless" is the one real category where the facets above are
+# ADDED alongside the original flat description list, not a replacement -
+# unlike storage/OS, a single "Internal Wireless" description can encode
+# WiFi standard + Bluetooth version + GPS + cellular all at once, so
+# dropping the raw field would lose real search capability (see
+# ingest/wwan_facets.py's docstring).
+_KEEP_RAW_ALONGSIDE_FACETS = {"Internal Wireless"}
 
 
 def _capacity_sort_key(label):
@@ -740,16 +753,21 @@ def api_search_options():
         if p["category"] in _REAL_CATEGORY_TO_FACETS:
             # Split into independent, loosely-matched facets instead of one
             # flat exact-description dropdown - see FACET_CATEGORIES and
-            # ingest/storage_facets.py's/ingest/os_facets.py's docstrings
-            # for why (per the user, 2026-08-17: a capacity search shouldn't
-            # care about storage technology and vice versa; an OS search
-            # shouldn't care about GAC/LTSC licensing channels or a CPU
-            # model that happens to be mentioned in the same description).
+            # ingest/storage_facets.py's/ingest/os_facets.py's/
+            # ingest/wwan_facets.py's docstrings for why (per the user,
+            # 2026-08-17/18: a capacity search shouldn't care about storage
+            # technology and vice versa; an OS search shouldn't care about
+            # GAC/LTSC licensing channels; a WWAN carrier/module should be
+            # searchable separately from its generation).
             for category, extractor in _REAL_CATEGORY_TO_FACETS[p["category"]]:
                 val = extractor(p.get("description"))
                 if val:
                     by_category.setdefault(category, set()).add(val)
-            continue
+            # Most real categories are fully replaced by their facets - only
+            # "Internal Wireless" also keeps its original flat description
+            # searchable (see _KEEP_RAW_ALONGSIDE_FACETS above).
+            if p["category"] not in _KEEP_RAW_ALONGSIDE_FACETS:
+                continue
 
         if not p.get("description"):
             continue
