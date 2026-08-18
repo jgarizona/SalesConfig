@@ -669,6 +669,33 @@ in that exact order; `OS Edition = GAC` returns exactly the 2 platforms that sho
 correctly excluding the negated-LTSC-mention row from LTSC's results; full audit re-run at 0
 issues across 618 brand-scoped values.
 
+**"Processor Options" got a cleanup too (2026-08-18), but a different kind from storage/OS -
+deduping near-duplicate spellings of the same real chip, not splitting into facets.** CPU model
+names have no predictable structure to regex-extract from the way capacity/version do, so a
+blind fuzzy-match risked merging two genuinely *different* chips - a real near-miss found while
+auditing: "Qualcomm 660"/"Snapdragon 660" is a different, older SoC than "Qualcomm QCS6490",
+despite both being "Qualcomm." `ingest/cpu_facets.py` does this in two tiers: a mechanical pass
+that's always safe (strip ®/™, collapse whitespace, drop a trailing "(Optional)"/"No Longer
+available" annotation) merges purely cosmetic duplicates on its own; a small hand-curated alias
+table (8 groups, built by manually reviewing all 55 distinct real values and confirmed with the
+user before merging any of them) handles the ones where only a human can safely confirm it's the
+same chip - e.g. "Intel 6413E" and "Intel 6413E Elkhart Lake" (Elkhart Lake is Intel's codename
+for the Atom x6413E). One pair deliberately left unmerged despite looking similar: "ARM 2 x A78
+2.0GHz + 4 x A55 2.0GHz" and "ARM Genio 510 2 x A78 2.0GHz + 4 x A55 2.0GH" have identical core
+configs (probably the same MediaTek Genio 510) but that core layout isn't unique to one SoC, so
+it wasn't safe to assume. Per the user, the dropdown sorts the 8 curated/deduped labels first,
+then everything else alphabetically after (`cpu_sort_key`). 55 raw values collapsed to 40
+distinct search values (Any-brand pool, spanning all 4 brands); full audit re-run at 0 issues
+across 607 brand-scoped values. Getac's own `attributes.cpu` values are untouched by this - they
+were already clean (verified during the earlier Getac audit) - this only affects JLT/Winmate's
+real per-SKU "Processor Options" rows, matched via the same `FACET_CATEGORIES` mechanism as
+storage/OS (mapped to itself: `"Processor Options": ("Processor Options", normalize_cpu_label)`,
+since this is a dedup, not a split into two categories). Verified live: the search dropdown
+shows the 8 canonical labels first (e.g. "Intel Atom x6413E (Elkhart Lake)"), searching one
+returns real matches spanning every platform whose raw description used to be a different
+near-duplicate spelling (7 matches across 1014P/1214N/1214P/1514N/6012/6015/VM1007E FM07E for
+the x6413E group, previously split across up to 5 separate unmergeable search terms).
+
 ---
 
 ## 8. Non-obvious rules worth knowing before you touch this

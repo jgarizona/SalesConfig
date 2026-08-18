@@ -53,6 +53,7 @@ import parse_getac       # noqa: E402
 import parse_cipherlab   # noqa: E402
 from storage_facets import extract_storage_capacity, extract_storage_technology  # noqa: E402
 from os_facets import extract_os_version, extract_os_edition  # noqa: E402
+from cpu_facets import normalize_cpu_label, cpu_sort_key  # noqa: E402
 
 # Brand -> parser, so Technical's upload form can route each vendor's
 # spreadsheet to the parser that actually understands its layout instead of
@@ -207,17 +208,22 @@ ATTRIBUTE_CATEGORY_MAP = {
     "Internal Wireless": "wireless",
 }
 
-# JLT/Winmate's real "Storage Drive Options:"/"Operating System:" rows have
-# no precomputed attributes (unlike Getac) - a search on one of these
-# synthetic categories has to derive the facet from each option's free-text
-# description on the fly. Maps synthetic search category -> (real category
-# its options actually live under, extractor function) - see
-# ingest/storage_facets.py and ingest/os_facets.py.
+# JLT/Winmate's real "Storage Drive Options:"/"Operating System:"/
+# "Processor Options" rows have no precomputed attributes (unlike Getac) -
+# a search on one of these synthetic categories has to derive the facet
+# from each option's free-text description on the fly. Maps synthetic
+# search category -> (real category its options actually live under,
+# extractor function) - see ingest/storage_facets.py, ingest/os_facets.py,
+# ingest/cpu_facets.py. Storage/OS split one real category into two
+# synthetic ones; "Processor Options" maps to itself - it's not a split,
+# just deduping near-identical spellings of the same real chip (see
+# cpu_facets.py's docstring) while keeping the same category name.
 FACET_CATEGORIES = {
     "Storage Capacity": ("Storage Drive Options:", extract_storage_capacity),
     "Storage Technology": ("Storage Drive Options:", extract_storage_technology),
     "OS Version": ("Operating System:", extract_os_version),
     "OS Edition": ("Operating System:", extract_os_edition),
+    "Processor Options": ("Processor Options", normalize_cpu_label),
 }
 
 # Reverse index: which real categories need facet-splitting instead of
@@ -752,6 +758,7 @@ def api_search_options():
     out = {
         cat: sorted(descs, key=_capacity_sort_key) if cat == "Storage Capacity"
         else sorted(descs, key=_os_version_sort_key) if cat == "OS Version"
+        else sorted(descs, key=cpu_sort_key) if cat == "Processor Options"
         else sorted(descs)
         for cat, descs in by_category.items()
     }
