@@ -28,6 +28,34 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **New "Purchasing warnings" mechanism: standing, acknowledgeable notices on
+  Purchasing, with an Admin counter for what's still unacknowledged.** Per the user - the
+  Jeeves part-number mismatch finding (see the Jeeves TODO update above) is exactly the kind
+  of "purchasing needs to know this" note that doesn't fit the existing per-part/per-quote
+  Dashboard counts, and needs a way for purchasing to actually see and dismiss it rather than
+  it just sitting in a CHANGELOG entry nobody in Purchasing reads.
+  - New `data/purchasing_warnings.json` (tracked, not gitignored - real application state like
+    `sales_reps.json`/`customers.json`, not a secret or ephemeral file): a list of
+    `{id, message, created_at, acknowledged, acknowledged_at}`. Auto-created on first run via
+    `load_or_create_purchasing_warnings()` (same pattern as `load_or_create_site_access()`),
+    seeded with one warning: the Jeeves USItem#/description mismatch finding, written out in
+    full so Purchasing doesn't have to go dig through CHANGELOG.md to understand it.
+  - **Purchasing** shows every unacknowledged warning as an amber banner at the very top of
+    the page (above the Dashboard stat cards), each with its own **Acknowledge** button
+    (`action=acknowledge_warning`, `app.py`) - clicking it marks that one warning acknowledged
+    and it stops showing, but stays in the file (not deleted) with a timestamp.
+  - **Admin** gets a new 6th stat card, "Purchasing warnings not acknowledged" - amber-styled
+    like the other pending-work cards when the count is above zero, same pattern as
+    "Purchasing action items pending."
+  - New `.banner.warn` CSS class (amber, `static/style.css`) - the existing `.banner`/
+    `.banner.error` only covered success/error, nothing for "important but not wrong."
+  - Verified via the Flask test client and live in the browser: warning renders on Purchasing
+    with a working Acknowledge button; Admin's counter shows 1 before acknowledging, 0 after;
+    acknowledging is idempotent-safe (stores `acknowledged: true` + timestamp, doesn't delete
+    the record). **Reset the seed warning back to unacknowledged before committing** - it was
+    acknowledged once during testing, but the point is for Purchasing to actually see and
+    dismiss it themselves, not have it pre-dismissed by test automation.
+
 - **[Claude]** **Appended each WWAN Card's generation to its name** (e.g. "Sierra EM7411" ->
   "Sierra EM7411 4G"), per the user. Generations were grounded in the actual source text where
   possible - checked every real row mentioning each card name for a 3G/4G/5G mention elsewhere

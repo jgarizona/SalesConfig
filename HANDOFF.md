@@ -561,6 +561,26 @@ Currently seeded with Chad/Glenn/Eric/Test (codes are the last 4 digits of their
 numbers, per the actual user's instruction — only the 4-digit codes are stored, never full
 phone numbers). **This is not authentication** — see §8.
 
+### `purchasing_warnings.json` — standing acknowledgeable notices (added 2026-08-18)
+List of:
+```json
+{
+  "id": "bf4186af9691f39f",
+  "message": "Jeeves Part Number can't be auto-matched from the JLT price book...",
+  "created_at": "2026-08-18T23:21:42",
+  "acknowledged": false,
+  "acknowledged_at": null
+}
+```
+Auto-created on first run (`load_or_create_purchasing_warnings()` in `app.py`, same pattern as
+`load_or_create_site_access()`) with one seed warning about the Jeeves USItem#/description
+mismatch finding. Shown as an amber banner at the top of Purchasing with an **Acknowledge**
+button per warning (`action=acknowledge_warning`) - acknowledging sets `acknowledged: true` +
+a timestamp, it's never deleted. Admin shows a live count of unacknowledged ones as its own
+stat card. **Tracked in git, not gitignored** - unlike `site_access.json` (a secret) or
+`pending_imports/*.json` (ephemeral), this is real durable application state like
+`sales_reps.json`.
+
 ---
 
 ## 7. Multi-brand: what's built and what's real data (all 4 ingested as of 2026-08-16)

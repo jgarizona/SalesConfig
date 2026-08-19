@@ -3,6 +3,17 @@
 {% block content %}
   <h1 id="top">Purchasing Review</h1>
 
+  {% for w in open_warnings %}
+    <div class="banner warn" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+      <span>{{ w.message }}</span>
+      <form method="post" style="flex-shrink:0;">
+        <input type="hidden" name="action" value="acknowledge_warning">
+        <input type="hidden" name="warning_id" value="{{ w.id }}">
+        <button type="submit" style="background:#a85d00; white-space:nowrap;">Acknowledge</button>
+      </form>
+    </div>
+  {% endfor %}
+
   <p class="muted" style="margin-top:-8px;">
     Dashboard - counts below are <strong>quoted line items</strong> (an option a rep has
     actually put on a saved quote) missing that field on the current catalog part, not the

@@ -298,6 +298,11 @@ button:hover, .btn:hover { background: #143a6b; }
   border-color: #f1b0aa;
   color: #a3271e;
 }
+.banner.warn {
+  background: #fff8ef;
+  border-color: #e0a458;
+  color: #a85d00;
+}
 
 .upload-box {
   background: white;

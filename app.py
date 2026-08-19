@@ -119,6 +119,7 @@ APPROVALS_FILE = DATA_DIR / "approvals.json"
 QUOTES_FILE = DATA_DIR / "quotes.json"
 CUSTOMERS_FILE = DATA_DIR / "customers.json"
 SALES_REPS_FILE = DATA_DIR / "sales_reps.json"
+PURCHASING_WARNINGS_FILE = DATA_DIR / "purchasing_warnings.json"
 SITE_ACCESS_FILE = DATA_DIR / "site_access.json"
 REPORTS_DIR = DATA_DIR / "reports"
 # Holds the already-parsed rows of an uploaded pricing sheet between the
@@ -490,6 +491,41 @@ def rep_code_matches(rep_match, code):
     their code even if it's still correct - locking is meant to actually
     stop further use, not just hide the rep from the picker."""
     return rep_match is not None and not rep_match.get("locked") and rep_match["code"] == code
+
+
+# ----------------------------------------------------------- purchasing warnings
+# Standing notices for Purchasing that don't fit the per-part/per-quote
+# flagging the Dashboard already does - things purchasing needs to be told
+# once and acknowledge, not a per-row count. Added 2026-08-18, per the user,
+# seeded with the finding that JLT's option codes don't automatically match
+# Jeeves' USItem# (see CHANGELOG.md's Jeeves TODO entry the same day) - that
+# kind of "here's a gap you need to know about" note is exactly what this is
+# for. Auto-created on first run with that one seed warning, same pattern as
+# load_or_create_site_access().
+
+def load_or_create_purchasing_warnings():
+    if PURCHASING_WARNINGS_FILE.exists():
+        return json.loads(PURCHASING_WARNINGS_FILE.read_text(encoding="utf-8"))
+    warnings = [{
+        "id": secrets.token_hex(8),
+        "message": (
+            "Jeeves Part Number can't be auto-matched from the JLT price book. A real Jeeves "
+            "export was checked against the catalog (2026-08-18): 0 of 85 JLT option codes "
+            "matched Jeeves' USItem# exactly, and only 3 of 125 descriptions matched - Jeeves "
+            "tracks much more granular internal part numbers (e.g. CB-00639-50) than JLT's "
+            "short price-book codes (e.g. \"H\", \"KA\"). Jeeves Part Numbers will need to be "
+            "assigned by hand, part by part - there's no bulk import that can do this safely."
+        ),
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "acknowledged": False,
+        "acknowledged_at": None,
+    }]
+    save_purchasing_warnings(warnings)
+    return warnings
+
+
+def save_purchasing_warnings(warnings):
+    PURCHASING_WARNINGS_FILE.write_text(json.dumps(warnings, indent=2), encoding="utf-8")
 
 
 # --------------------------------------------------------------------- quotes
@@ -1125,6 +1161,17 @@ def purchasing():
             "exportable and re-importable here to adjust prices."
         )
 
+    if action == "acknowledge_warning":
+        warning_id = request.form.get("warning_id", "")
+        warnings = load_or_create_purchasing_warnings()
+        for w in warnings:
+            if w["id"] == warning_id:
+                w["acknowledged"] = True
+                w["acknowledged_at"] = datetime.now().isoformat(timespec="seconds")
+        save_purchasing_warnings(warnings)
+
+    open_warnings = [w for w in load_or_create_purchasing_warnings() if not w["acknowledged"]]
+
     flagged = [
         p for p in parts
         if any(p.get(f) in (None, "") for f in PRICE_FIELDS)
@@ -1171,6 +1218,7 @@ def purchasing():
         total_quotes=len(quotes),
         upload_result=upload_result,
         dashboard_counts=dashboard_counts,
+        open_warnings=open_warnings,
     )
 
 
@@ -1215,6 +1263,7 @@ def admin():
 
     action_items = compute_quote_action_items(parts, quotes)
     unreviewed = compute_unreviewed_base_models(parts, approvals)
+    open_warnings_count = len([w for w in load_or_create_purchasing_warnings() if not w["acknowledged"]])
 
     SAMPLE_TEST_CUSTOMERS = [
         "Acme Manufacturing", "Northwind Logistics", "Sunrise Distribution",
@@ -1336,6 +1385,7 @@ def admin():
         pin_error=pin_error,
         purchasing_pin=load_or_create_site_access()["purchasing_pin"],
         purchasing_pin_error=purchasing_pin_error,
+        open_warnings_count=open_warnings_count,
     )
 
 

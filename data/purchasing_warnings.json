@@ -1,0 +1,9 @@
+[
+  {
+    "id": "bf4186af9691f39f",
+    "message": "Jeeves Part Number can't be auto-matched from the JLT price book. A real Jeeves export was checked against the catalog (2026-08-18): 0 of 85 JLT option codes matched Jeeves' USItem# exactly, and only 3 of 125 descriptions matched - Jeeves tracks much more granular internal part numbers (e.g. CB-00639-50) than JLT's short price-book codes (e.g. \"H\", \"KA\"). Jeeves Part Numbers will need to be assigned by hand, part by part - there's no bulk import that can do this safely.",
+    "created_at": "2026-08-18T23:21:42",
+    "acknowledged": false,
+    "acknowledged_at": null
+  }
+]

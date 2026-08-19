@@ -20,6 +20,10 @@
       <div class="stat-number">{{ unlinked_customers|length }}</div>
       <div class="stat-label">Customers pending HubSpot link</div>
     </div>
+    <div class="stat-card {{ 'warn' if open_warnings_count > 0 else '' }}">
+      <div class="stat-number">{{ open_warnings_count }}</div>
+      <div class="stat-label">Purchasing warnings not acknowledged</div>
+    </div>
   </div>
 
   <h2>Site Access PIN</h2>
