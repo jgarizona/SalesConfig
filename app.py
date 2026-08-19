@@ -138,10 +138,21 @@ PENDING_IMPORTS_DIR = DATA_DIR / "pending_imports"
 
 def load_or_create_site_access():
     if SITE_ACCESS_FILE.exists():
-        return json.loads(SITE_ACCESS_FILE.read_text(encoding="utf-8"))
+        data = json.loads(SITE_ACCESS_FILE.read_text(encoding="utf-8"))
+        # Backfill for files created before the Purchasing PIN existed
+        # (2026-08-18) - an existing install's site_access.json predates
+        # this key, so a plain load would KeyError on ["purchasing_pin"]
+        # elsewhere without this.
+        if "purchasing_pin" not in data:
+            data["purchasing_pin"] = "1111"
+            SITE_ACCESS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return data
     data = {
         "pin": "".join(secrets.choice("0123456789") for _ in range(4)),
         "secret_key": secrets.token_hex(32),
+        # Fixed default (not random like the site PIN) per the user
+        # (2026-08-18) - changeable from Admin same as the site PIN.
+        "purchasing_pin": "1111",
     }
     SITE_ACCESS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return data
@@ -183,6 +194,39 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+
+# ---------------------------------------------------------- purchasing access
+# A second, inner PIN gate scoped to just the Purchasing section - per the
+# user (2026-08-18), even someone who already has the site-wide PIN
+# shouldn't see Purchasing (cost data, purchasing-internal pricing) without
+# this second code too. Same "not real security" caveat as the site PIN and
+# sales-rep codes. Runs as its own before_request AFTER require_site_pin
+# (registered below it) - Flask runs before_request handlers in registration
+# order and stops at the first one that returns a response, so the site PIN
+# is always checked first; this one only ever runs for an already
+# site-authenticated session.
+@app.before_request
+def require_purchasing_pin():
+    if request.endpoint in ("purchasing_login", "static", "login"):
+        return
+    if request.path.startswith("/purchasing") and not session.get("purchasing_authenticated"):
+        return redirect(url_for("purchasing_login", next=request.path))
+
+
+@app.route("/purchasing/login", methods=["GET", "POST"])
+def purchasing_login():
+    error = None
+    next_url = request.values.get("next") or url_for("purchasing")
+    if request.method == "POST":
+        entered = request.form.get("pin", "").strip()
+        current = load_or_create_site_access()["purchasing_pin"]
+        if entered and entered == current:
+            session["purchasing_authenticated"] = True
+            return redirect(request.form.get("next") or url_for("purchasing"))
+        error = "Incorrect PIN."
+    return render_template("purchasing_login.html", error=error, next=next_url)
+
 
 CATEGORY_ORDER = [
     "Base Unit:",
@@ -433,6 +477,13 @@ def load_sales_reps():
 
 def save_sales_reps(reps):
     SALES_REPS_FILE.write_text(json.dumps(reps, indent=2), encoding="utf-8")
+
+
+def rep_code_matches(rep_match, code):
+    """A locked rep (Admin's "Lock" toggle) can't verify/save/copy with
+    their code even if it's still correct - locking is meant to actually
+    stop further use, not just hide the rep from the picker."""
+    return rep_match is not None and not rep_match.get("locked") and rep_match["code"] == code
 
 
 # --------------------------------------------------------------------- quotes
@@ -1123,12 +1174,39 @@ def admin():
             if any(r["name"] == rep_name for r in reps):
                 rep_error = f'"{rep_name}" is already in the list.'
             else:
-                reps.append({"name": rep_name, "code": rep_code, "created_at": datetime.now().isoformat(timespec="seconds")})
+                reps.append({
+                    "name": rep_name, "code": rep_code, "locked": False,
+                    "created_at": datetime.now().isoformat(timespec="seconds"),
+                })
                 save_sales_reps(reps)
 
     if request.method == "POST" and request.form.get("action") == "remove_rep":
         rep_name = request.form.get("rep_name", "").strip()
         reps = [r for r in load_sales_reps() if r["name"] != rep_name]
+        save_sales_reps(reps)
+
+    # Toggles a rep between usable and locked - a locked rep can't be picked
+    # on Sales (excluded from /api/sales_reps) or verify/save/copy a quote
+    # (rep_is_usable() below), but their past quotes stay attributed to them
+    # unchanged (created_by/sales_rep are frozen strings on the quote, not a
+    # live reference to the rep record).
+    if request.method == "POST" and request.form.get("action") == "toggle_rep_lock":
+        rep_name = request.form.get("rep_name", "").strip()
+        reps = load_sales_reps()
+        for r in reps:
+            if r["name"] == rep_name:
+                r["locked"] = not r.get("locked", False)
+        save_sales_reps(reps)
+
+    reset_pin_result = None
+    if request.method == "POST" and request.form.get("action") == "reset_rep_pin":
+        rep_name = request.form.get("rep_name", "").strip()
+        reps = load_sales_reps()
+        new_code = "".join(secrets.choice("0123456789") for _ in range(4))
+        for r in reps:
+            if r["name"] == rep_name:
+                r["code"] = new_code
+                reset_pin_result = {"name": rep_name, "code": new_code}
         save_sales_reps(reps)
 
     pin_error = None
@@ -1139,6 +1217,16 @@ def admin():
         else:
             access = load_or_create_site_access()
             access["pin"] = new_pin
+            save_site_access(access)
+
+    purchasing_pin_error = None
+    if request.method == "POST" and request.form.get("action") == "change_purchasing_pin":
+        new_pin = request.form.get("new_purchasing_pin", "").strip()
+        if not (new_pin.isdigit() and len(new_pin) == 4):
+            purchasing_pin_error = "PIN must be exactly 4 digits."
+        else:
+            access = load_or_create_site_access()
+            access["purchasing_pin"] = new_pin
             save_site_access(access)
 
     all_platforms = sorted({p["platform"] for p in parts})
@@ -1155,8 +1243,11 @@ def admin():
         test_customers=test_customers,
         sales_reps=sorted(load_sales_reps(), key=lambda r: r["name"]),
         rep_error=rep_error,
+        reset_pin_result=reset_pin_result,
         site_pin=load_or_create_site_access()["pin"],
         pin_error=pin_error,
+        purchasing_pin=load_or_create_site_access()["purchasing_pin"],
+        purchasing_pin_error=purchasing_pin_error,
     )
 
 
@@ -1272,7 +1363,8 @@ def api_customers_create():
 
 @app.route("/api/sales_reps")
 def api_sales_reps_list():
-    names = sorted(r["name"] for r in load_sales_reps())
+    # Locked reps are excluded from the picker entirely - see rep_code_matches().
+    names = sorted(r["name"] for r in load_sales_reps() if not r.get("locked"))
     return jsonify(names)
 
 
@@ -1285,6 +1377,8 @@ def api_sales_reps_verify():
     match = next((r for r in reps if r["name"] == name), None)
     if match is None:
         return jsonify({"ok": False, "error": "Unknown rep."}), 404
+    if match.get("locked"):
+        return jsonify({"ok": False, "error": "This rep is locked. Contact an admin."}), 403
     if match["code"] != code:
         return jsonify({"ok": False, "error": "Code doesn't match."}), 401
     return jsonify({"ok": True, "name": name})
@@ -1313,7 +1407,7 @@ def api_quote_save():
     if not sales_rep:
         return jsonify({"error": "Select a Sales Rep first."}), 400
     rep_match = next((r for r in load_sales_reps() if r["name"] == sales_rep), None)
-    if rep_match is None or rep_match["code"] != sales_rep_code:
+    if not rep_code_matches(rep_match, sales_rep_code):
         return jsonify({"error": "Sales rep code doesn't match. Re-enter your 4-digit code."}), 401
 
     customer = (body.get("customer") or "").strip()
@@ -1434,7 +1528,7 @@ def api_quote_copy(opportunity_id, quote_number):
     if not sales_rep:
         return jsonify({"error": "Select a Sales Rep first."}), 400
     rep_match = next((r for r in load_sales_reps() if r["name"] == sales_rep), None)
-    if rep_match is None or rep_match["code"] != sales_rep_code:
+    if not rep_code_matches(rep_match, sales_rep_code):
         return jsonify({"error": "Sales rep code doesn't match. Re-enter your 4-digit code."}), 401
 
     quotes = load_quotes()

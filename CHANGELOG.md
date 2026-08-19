@@ -28,6 +28,38 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Added a second, inner "Purchasing PIN" gate scoped to just the Purchasing
+  section, and extended Admin's Sales Rep management with Lock/Unlock and Reset PIN.** Per the
+  user: even someone who already has the site-wide PIN shouldn't see Purchasing (cost data,
+  purchasing-internal pricing) without a second code. Defaults to `1111` (fixed, not random
+  like the site PIN), changeable from Admin under a new "The Purchasing PIN" section - same
+  UI pattern as the existing Site Access PIN section. Implementation:
+  - `data/site_access.json` gained a `purchasing_pin` key (backfilled automatically for an
+    existing install's file, not just fresh ones).
+  - New `require_purchasing_pin()` `before_request` hook runs *after* the existing site-wide
+    `require_site_pin()` (Flask runs before_request handlers in registration order and stops
+    at the first redirect) - so the site PIN is always required first, and the Purchasing PIN
+    is a strictly additional layer on top, covering all of `/purchasing`, `/purchasing/
+    pricing_gaps`, and `/purchasing/download/<file>`. New `/purchasing/login` route +
+    `templates/purchasing_login.html` (mirrors the existing standalone `login.html`).
+  - **Sales Rep management** (Admin, previously add/remove only) gained **Lock/Unlock** and
+    **Reset PIN** per rep. A locked rep is excluded from the Sales-page rep picker
+    (`/api/sales_reps`) and can't verify/save/copy a quote even with the correct code
+    (`rep_code_matches()` in `app.py`, now the single shared check used by all three call
+    sites) - but their past quotes stay attributed to them unchanged, since `created_by`/
+    `sales_rep` are frozen strings on the quote, not a live reference to the rep record.
+    Reset PIN generates a new random 4-digit code immediately (no re-typing/confirming a new
+    one) and shows it once in a banner for the admin to relay to the rep - the old code stops
+    working the instant it's reset.
+  - Verified via the Flask test client: unauthenticated request to `/purchasing/login` still
+    redirects to the site login first; site-authenticated-only session redirects `/purchasing`
+    and `/purchasing/pricing_gaps` to `/purchasing/login` while `/technical` stays unaffected;
+    wrong PIN rejected, correct PIN (`1111`) grants access; locking a rep removed them from
+    `/api/sales_reps` and made `/api/sales_reps/verify` return 403 even with their correct
+    code; unlocking restored both; Reset PIN changed the stored code and the old code
+    immediately stopped verifying while the new one worked. Also confirmed live in the
+    browser: Lock/Unlock toggle updates the Status column and button label correctly.
+
 - **[Claude]** **Split "Internal Wireless" into a clean WiFi-only search field, plus a new
   standalone "WWAN Card" field.** Reported by the user from a Search by Requirements
   screenshot: JLT's "Internal Wireless" dropdown mixed WiFi radio, WWAN generation, and

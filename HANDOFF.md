@@ -409,8 +409,10 @@ Stat cards + detail tables:
 - Customers pending a HubSpot link (manually-created customers with no `hubspot_id`) + CSV
   report + a "Test customers" sub-section (seed/remove 5 fake customers for testing Customer
   Lookup — tagged `source:"test"` so they're excluded from the pending-link report).
-- **Sales Reps** management: add (name + 4-digit code) / remove. This is where
-  `sales_reps.json` gets edited.
+- **Sales Reps** management: add (name + 4-digit code) / remove / **Lock-Unlock** / **Reset
+  PIN** (the last two added 2026-08-18 - see §8). This is where `sales_reps.json` gets edited.
+- **The Purchasing PIN** (added 2026-08-18): view/change the second PIN gating Purchasing -
+  see §8 for the full mechanism.
 
 ---
 
@@ -867,6 +869,23 @@ quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
   the PIN and the Flask session secret key, is auto-generated on first run, and is **gitignored
   on purpose — this repo is public on GitHub, so that file must never be committed.** If you
   ever regenerate `.gitignore` or restructure `data/`, keep that entry.
+- **Purchasing has a second, inner PIN gate on top of the Site Access PIN** (added 2026-08-18,
+  per the user) — `data/site_access.json`'s `purchasing_pin` key (default `1111`, changeable
+  from Admin), checked by a second `before_request` hook (`require_purchasing_pin()`) that
+  runs after the site-wide one and covers every `/purchasing*` route. Same "not real security"
+  caveat. Session flag is `session["purchasing_authenticated"]`, separate from the site-wide
+  `session["authenticated"]` — logging out via the main `/logout` clears the whole session
+  (`session.clear()`), so it clears Purchasing access too; there's no separate Purchasing
+  logout.
+- **Sales Reps can be locked (added 2026-08-18, per the user), on top of the existing
+  add/remove.** A `locked: true` rep is excluded from the Sales-page rep picker
+  (`/api/sales_reps`) and rejected by verify/save/copy (`rep_code_matches()` in `app.py` -
+  the one shared check all three call sites use) even with the correct code — but their past
+  quotes stay attributed to them (`created_by`/`sales_rep` are frozen strings on the saved
+  quote, not a live reference to the rep record, so locking or even removing a rep later never
+  changes historical quotes). Admin's **Reset PIN** button generates a new random 4-digit code
+  immediately and shows it once in a banner — there's no "admin types the new code" flow, only
+  "generate and reveal."
 - **Quote lock/rev rules:** a quote gets its Quote# the first time it's saved (Rev 0).
   **Every successful Save locks the quote** (added 2026-08-17, per the user — was previously
   a separate manual toggle/Print-only) — a saved quote is treated as "this is what I'm
