@@ -240,6 +240,19 @@ All routes live in `app.py`. Nav bar (`templates/base.html`) links all four.
   filter, since replacing the whole file would have silently deleted every other brand's
   approvals the moment the page stopped rendering all brands at once. If you ever change how
   the approvals form is submitted, keep that scoping (`approvals_brand` hidden field) intact.
+- **"Add a new option" form** (added 2026-08-18, per the user) - a technician can add one new
+  option by hand for a valid JLT-qualified configuration that isn't in the current vendor
+  spreadsheet snapshot (e.g. a WWAN Card add-on for a platform whose price book doesn't list
+  one). `action=add_option` in `technical()`. Always `requires_review: true` and always
+  create-only (an existing `(brand, platform, category, code)` is a rejected error, not an
+  overwrite - unlike the bulk upload path above, which does merge/overwrite on purpose). No
+  template changes were needed to make the new row show up in the right category box - the
+  page already groups by real `category` via a stable sort on `CATEGORY_ORDER` position
+  (`plist.sort(key=lambda p: (category_sort_key(p["category"]), p["code"] or ""))`), so any
+  row that exists with the right `(brand, platform, category)` renders correctly automatically.
+  Prices and the new `jeeves_part_number` field (see §6) are optional - the point is exactly
+  that a technician can add something before Purchasing has priced it, and Purchasing's
+  Dashboard (see below) is what surfaces that gap once the option actually gets quoted.
 
 ### `/sales` — Sales Configurator
 The big one. Top-to-bottom:
@@ -341,6 +354,17 @@ regardless of how big the catalog gets. Every button has a `title` hover tooltip
 what it does (same convention already used elsewhere - Sales' HubSpot badge, the disabled
 search-brand option - not a new pattern).
 
+**Dashboard** (added 2026-08-18, above the button row): 5 stat cards - Missing Jeeves Part #/
+Floor Price/MSRP/Cost/Current Cost. Deliberately scoped to **quoted line items only**
+(`compute_quote_action_items()`/`compute_quote_action_item_counts()` in `app.py`, shared with
+§2 below so the numbers can never drift apart), not the whole 3,551+-part catalog - the user
+confirmed that scope explicitly, since §1 below already covers whole-catalog price gaps and
+this dashboard exists to answer a different question ("what have we actually promised a
+customer that isn't fully priced/numbered yet," not "what's incomplete in the catalog at
+large"). A part missing `jeeves_part_number` shows up here the moment it's quoted, which as of
+2026-08-18 is *every* quoted line (the field is brand new, nothing has one yet) - that's
+accurate, not a bug, and the count will fall as Purchasing assigns real ones.
+
 Two independent sections below that:
 1. **Catalog pricing gaps** — every option missing any of the 4 price fields (Floor Price,
    MSRP, Cost, Current Cost). **No inline editing** (removed 2026-08-18 - see history below) -
@@ -441,13 +465,23 @@ in `app.py` would be a reasonable cleanup):
   "MSRP": 5320,
   "Cost": 1700,
   "Current Cost": 1669.71,
-  "attributes": {}
+  "attributes": {},
+  "jeeves_part_number": null
 }
 ```
 `Floor Price`/`MSRP`/`Cost`/`Current Cost` are `None` when unknown, a number when known, or
 occasionally the literal strings `"Incl"` / `"NC"` (included / no charge) carried straight
 from the vendor spreadsheet — client and server both parse these specially (`moneyValue()`
 in JS, `money_value()` in Python) treating them as 0 for totals.
+
+`jeeves_part_number` (added 2026-08-18) is `None`/absent on every part ingested from a vendor
+spreadsheet - no automated mapping to Jeeves exists (checked directly against a real Jeeves
+export: zero overlap between JLT's option `code` and Jeeves' `USItem#`, only 3/125 exact
+description matches - Jeeves tracks much more granular internal BOM/component part numbers
+than JLT's price-book codes, see CHANGELOG.md's 2026-08-18 entry for the full finding). It's
+only ever set today via Technical's "Add a new option" form (see §5), and is what Purchasing's
+Dashboard counts as "missing" for quoted line items - existing parts don't need a migration
+to add this key, every read path uses `.get("jeeves_part_number")`.
 
 `requires_review` (added 2026-08-16): `false` means the part is from a manufacturer's own
 official catalog and is selectable on Sales automatically - see `is_selectable()` in

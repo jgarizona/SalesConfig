@@ -14,7 +14,7 @@ Every repository change must be recorded under the date it was made and identify
 - **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Per the user, CipherLab is excluded from Search by Requirements entirely until this is fixed at the source (see the second 2026-08-17 entry below) — normal Sales configuration is unaffected, this is search-only. Next action: once a fuller CipherLab catalog is sourced, re-run the ingest and remove `SEARCH_EXCLUDED_BRANDS = {"CipherLab"}` in `app.py` (two usages) and the matching `disabled` branch in `sales.html`'s search-brand-select loop.
 
 - **HubSpot connector** — opportunity/customer lookup, reading deal info, writing quotes back to the deal, sending the customer-facing quote. Sales page currently uses a manually-typed Opportunity ID as a stand-in.
-- **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand. Layout/UX defined 2026-08-18 (see the same-day CHANGELOG entry): "Part # Compare" and "$ Jeeves Compare" buttons exist on Purchasing (top of page) but are stubs — real Jeeves API/database access isn't available yet, so clicking either just shows a "not connected" banner. Blocked on two things before either can do anything real: (1) live Jeeves access, (2) a **Jeeves Part Number mapping for non-JLT parts** — Winmate/Getac/CipherLab parts likely don't have a native Jeeves part number, and per the user (2026-08-18) this is explicitly deferred ("put this in the TODO and we will look at this later"), no field or capture mechanism exists yet. Once both are available: "Part # Compare" checks every catalog part's assigned Jeeves Part Number against Jeeves and lists what's missing/unrecognized; "$ Jeeves Compare" compares local Floor Price/MSRP/Cost/Current Cost against Jeeves' own prices and generates a difference report, exportable and re-importable through the same preview/confirm import flow built the same day for §1's pricing gaps (see `confirm_import`/`cancel_import` in `app.py`).
+- **Jeeves connector** — cost/inventory reconciliation against JLT's accounting system. Purchasing currently fills in missing Cost/Current Cost by hand. Layout/UX defined 2026-08-18 (see the same-day CHANGELOG entry): "Part # Compare" and "$ Jeeves Compare" buttons exist on Purchasing (top of page) but are stubs — real Jeeves API/database access isn't available yet, so clicking either just shows a "not connected" banner. Blocked on two things before either can do anything real: (1) live Jeeves access, (2) a **Jeeves Part Number mapping for non-JLT parts** — Winmate/Getac/CipherLab parts likely don't have a native Jeeves part number, and per the user (2026-08-18) this is explicitly deferred ("put this in the TODO and we will look at this later"), no field or capture mechanism exists yet. Once both are available: "Part # Compare" checks every catalog part's assigned Jeeves Part Number against Jeeves and lists what's missing/unrecognized; "$ Jeeves Compare" compares local Floor Price/MSRP/Cost/Current Cost against Jeeves' own prices and generates a difference report, exportable and re-importable through the same preview/confirm import flow built the same day for §1's pricing gaps (see `confirm_import`/`cancel_import` in `app.py`). **Update 2026-08-18:** the user provided a real Jeeves export (`Jeeves of Pricelist JLT products v3 - for test.xlsx`, 904 rows, columns `USItem#`/`ItemDecsr`/`seItem#`/`sePrice`) - analysis found **zero automated match** is possible against current data: 0/85 exact overlaps between JLT's option `code` and Jeeves' `USItem#`, only 3/125 exact description matches, and `sePrice` is a uniform `8` on every row (confirmed intentional test data, not real pricing). Jeeves tracks far more granular internal BOM/component part numbers (`CB-00639-50`, `SP-00676-50`, etc.) than JLT's price-book codes. The `jeeves_part_number` field (added same day, see §6 of HANDOFF.md) exists now, but only gets populated via Technical's new "Add a new option" form or manual entry - matching against the real Jeeves file still needs a human-in-the-loop workspace (browse/search Jeeves items, pick the right match per JLT option), not a bulk auto-match. Next action once a real (non-$8) Jeeves export is available: build that matching workspace, likely as what "Part # Compare" becomes.
 - ~~**Ingest Winmate, Getac, and CipherLab**~~ — resolved 2026-08-16: dedicated parsers built for all three (`ingest/parse_winmate.py`, `ingest/parse_getac.py`, `ingest/parse_cipherlab.py`), real data ingested (1,060 / 370 / 1,622 parts respectively), catalog now 3,551 parts across all 4 brands.
 - **Third-party add-on ingestion path** — not built yet, and deliberately deferred (per the user, 2026-08-16: "addons will come later in this project"). Manufacturer-catalog parts are now auto-approved (`requires_review: false`, see the 2026-08-16 entry below), but a mount vendor's own catalog (RAM Mounts, Gamber-Johnson, etc.) doesn't self-certify fit with a specific host platform the way an OEM's own spec sheet does — that path needs `requires_review: true` and will go through the existing `approvals.json`/Technical-checkbox flow, which still exists specifically for this.
 - **Real email sending** — the Email button on the Sales page downloads the Excel file and opens the printable view, but doesn't actually send anything (no SMTP/Outlook integration in the app).
@@ -27,6 +27,48 @@ Every repository change must be recorded under the date it was made and identify
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-08-18
+
+- **[Claude]** **Technical can now add a brand-new option by hand (not just approve/upload),
+  and Purchasing gets a real Dashboard of what that surfaces once quoted.** Follows from the
+  1014P WWAN Card discussion: the standard 1014P genuinely doesn't have a WWAN Card option in
+  JLT's price book, and per the user, that's exactly what Technical is for - a technician
+  adding a valid option JLT engineering has qualified but that isn't in the current vendor
+  spreadsheet snapshot yet.
+  - **New "Add a new option" form on Technical** (`app.py`'s `technical()`, `action=add_option`):
+    Platform/Category/Code/Description required, all 4 price fields and a new **Jeeves Part
+    Number** field optional. Always saved with `requires_review: true` (same flag third-party
+    add-ons will use) - it needs a checkbox approval before it's selectable on Sales, same as
+    anything not from the official catalog. Create-only: adding a `(brand, platform, category,
+    code)` that already exists is a rejected error, not a silent overwrite (unlike the bulk
+    vendor-spreadsheet upload path, which intentionally does overwrite/merge).
+  - **New `jeeves_part_number` field** on the part schema (optional, `None` by default) -
+    groundwork for the deferred Jeeves integration, and now also what "Add a new option"
+    captures directly.
+  - **Seeded 4 real add-on options across all 15 JLT platforms** under "Add On Options:", per
+    the user: Tamper Plate, Roxtec, Dome w/SMA, external SMA x3 (60 new rows total: 4 × 15,
+    codes `TP`/`RX`/`DS`/`SX3`). All unapproved, no pricing yet - exactly the scenario this
+    whole feature exists to support.
+  - **`compute_quote_action_items()` (shared by Purchasing's §2 report and the new dashboard)
+    extended from checking just Cost/Current Cost to also checking Jeeves Part Number, Floor
+    Price, and MSRP** - so a technician-added option that gets quoted before Purchasing has
+    priced it or assigned it a Jeeves Part Number shows up immediately, not just once Cost is
+    missing. New `compute_quote_action_item_counts()` gives the per-field breakdown.
+  - **New Dashboard at the top of Purchasing**: 5 stat cards (Missing Jeeves Part #/Floor
+    Price/MSRP/Cost/Current Cost), scoped to **quoted line items only** (not the whole
+    3,551+-part catalog - that's what §1's existing "Catalog pricing gaps" already covers),
+    per the user's explicit scope confirmation. §2's description text and CSV export
+    (`purchasing_quotes_report_*.csv`) updated to reflect the fuller "Missing" reasons.
+  - Verified via the Flask test client: `add_option` correctly created a real row, rejected a
+    duplicate `(brand, platform, category, code)`, and the new row was correctly excluded from
+    `is_selectable()` (unapproved); the seed script added exactly 60 rows (spot-checked no
+    collisions with the existing "No Add Ons" `X` code); the CSV export's `DictWriter` needed a
+    fix (`writerow({k: item[k] for k in fieldnames})` instead of `writerow(item)`) since
+    `action_items` now carries an extra `missing_fields` list key the CSV doesn't include - a
+    real bug caught by testing the export, not by inspection. Dashboard counts verified against
+    live quote data: 84 missing Jeeves Part # (expected - no part has one yet), 27 missing
+    Current Cost (matches §2's pre-existing count), 4/3/5 missing Floor/MSRP/Cost respectively.
+    Confirmed live in the browser: the 4 new add-ons render under 1014P's "Add On Options:"
+    section with unchecked checkboxes, alongside the existing auto-approved "No Add Ons".
 
 - **[Claude]** Reduced the session lifetime (`app.permanent_session_lifetime`) from 7 to 5
   days, per the user, after they asked why reloading Purchasing didn't re-prompt for the PIN

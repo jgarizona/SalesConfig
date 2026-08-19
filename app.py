@@ -546,15 +546,27 @@ def quote_part_number(platform, lines):
 
 
 def compute_quote_action_items(parts, quotes):
-    """Line items in saved quotes whose Cost/Current Cost are still missing in
-    the *current* parts data (not the quote's frozen snapshot) - shared by the
-    Purchasing report and the Admin counter so they never drift apart."""
+    """Line items in saved quotes whose part-level data is still incomplete in
+    the *current* parts data (not the quote's frozen snapshot): a missing
+    Jeeves Part Number, Floor Price, MSRP, Cost, or Current Cost. Originally
+    just Cost/Current Cost - extended 2026-08-18, per the user, once
+    Technical gained the ability to add a not-yet-fully-priced option
+    directly (see "Add Option" on Technical): a technician-added option can
+    get quoted before Purchasing has assigned it a real Jeeves Part Number
+    or any price at all, and this is exactly what's meant to catch that.
+    Shared by the Purchasing report, the Purchasing dashboard counters, and
+    the Admin counter so none of them ever drift apart from each other."""
     action_items = []
     for q in quotes.values():
         brand = q.get("brand", "JLT")
         for line in q["selections"]:
             part = find_part(parts, brand, q["platform"], line["category"], line["code"])
-            missing = [f for f in ("Cost", "Current Cost") if not part or part.get(f) in (None, "")]
+            missing = []
+            if not part or not part.get("jeeves_part_number"):
+                missing.append("Jeeves Part #")
+            for f in ("Floor Price", "MSRP", "Cost", "Current Cost"):
+                if not part or part.get(f) in (None, ""):
+                    missing.append(f)
             if missing:
                 action_items.append({
                     "display_id": display_id(q),
@@ -566,8 +578,20 @@ def compute_quote_action_items(parts, quotes):
                     "code": line["code"],
                     "description": line["description"],
                     "missing": ", ".join(missing),
+                    "missing_fields": missing,
                 })
     return action_items
+
+
+def compute_quote_action_item_counts(action_items):
+    """Per-field breakdown of compute_quote_action_items() for the Purchasing
+    dashboard - "N quoted line items missing X" for each field independently,
+    since a single line item can be missing more than one field at once."""
+    counts = {"Jeeves Part #": 0, "Floor Price": 0, "MSRP": 0, "Cost": 0, "Current Cost": 0}
+    for item in action_items:
+        for f in item["missing_fields"]:
+            counts[f] += 1
+    return counts
 
 
 def compute_unreviewed_base_models(parts, approvals):
@@ -700,6 +724,8 @@ def index():
 @app.route("/technical", methods=["GET", "POST"])
 def technical():
     upload_result = None
+    add_option_error = None
+    add_option_result = None
 
     # Which single brand's platforms/options are shown - the catalog is
     # 3,551 parts across 4 brands now, too much to usefully show at once (and
@@ -728,6 +754,54 @@ def technical():
                     added, updated, skipped = merge_parts(parts, new_rows, allow_new=True)
                     save_parts(parts)
                     upload_result = {"added": added, "updated": updated, "skipped": skipped, "total": len(new_rows), "brand": brand}
+        elif request.form.get("action") == "add_option":
+            # Lets a technician add one new valid option JLT engineering has
+            # signed off on but that isn't in the current vendor price book
+            # snapshot - e.g. an add-on accessory qualified after the last
+            # spreadsheet ingest. Always requires_review=True (same flag
+            # third-party add-ons will use once that path exists) - it needs
+            # the same checkbox approval as anything not from the official
+            # catalog, and it's what lets Purchasing later notice it was
+            # quoted before it had a real Jeeves Part Number/price (see
+            # compute_quote_action_items()). Deliberately create-only - an
+            # existing (brand, platform, category, code) is an error, not a
+            # silent overwrite, unlike the bulk upload path above.
+            brand = request.form.get("add_brand", selected_brand)
+            platform = request.form.get("add_platform", "").strip()
+            category = request.form.get("add_category", "").strip()
+            code = request.form.get("add_code", "").strip()
+            description = request.form.get("add_description", "").strip()
+            jeeves_part_number = request.form.get("add_jeeves_part_number", "").strip() or None
+
+            def _opt_price(field):
+                val = request.form.get(field, "").strip()
+                return val if val else None
+
+            if not (platform and category and code and description):
+                add_option_error = "Platform, Category, Code, and Description are all required."
+            else:
+                parts = load_parts()
+                if find_part(parts, brand, platform, category, code) is not None:
+                    add_option_error = f'"{code}" already exists under {brand} {platform} / {category}.'
+                else:
+                    parts.append({
+                        "brand": brand,
+                        "platform": platform,
+                        "category": category,
+                        "code": code,
+                        "description": description,
+                        "Floor Price": _opt_price("add_floor_price"),
+                        "MSRP": _opt_price("add_msrp"),
+                        "Cost": _opt_price("add_cost"),
+                        "Current Cost": _opt_price("add_current_cost"),
+                        "requires_review": True,
+                        "jeeves_part_number": jeeves_part_number,
+                    })
+                    save_parts(parts)
+                    add_option_result = {
+                        "brand": brand, "platform": platform, "category": category,
+                        "code": code, "description": description,
+                    }
         elif "approved" in request.form or request.form.get("form") == "approvals":
             # Only this one brand's checkboxes were ever rendered (the page
             # is filtered to one brand - see selected_brand above), so a
@@ -759,6 +833,8 @@ def technical():
         for brand in BRANDS
     }
 
+    platforms_for_selected_brand = sorted(brands.get(selected_brand, {}).keys())
+
     return render_template(
         "technical.html",
         brands=brands,
@@ -766,6 +842,9 @@ def technical():
         all_brands=BRANDS,
         approvals=approvals,
         upload_result=upload_result,
+        platforms_for_selected_brand=platforms_for_selected_brand,
+        add_option_error=add_option_error,
+        add_option_result=add_option_result,
     )
 
 
@@ -1074,8 +1153,10 @@ def purchasing():
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             for item in action_items:
-                writer.writerow(item)
+                writer.writerow({k: item[k] for k in fieldnames})
         quotes_report_generated = report_path.name
+
+    dashboard_counts = compute_quote_action_item_counts(action_items)
 
     return render_template(
         "purchasing.html",
@@ -1089,6 +1170,7 @@ def purchasing():
         quotes_report_generated=quotes_report_generated,
         total_quotes=len(quotes),
         upload_result=upload_result,
+        dashboard_counts=dashboard_counts,
     )
 
 

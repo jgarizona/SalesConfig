@@ -3,6 +3,34 @@
 {% block content %}
   <h1 id="top">Purchasing Review</h1>
 
+  <p class="muted" style="margin-top:-8px;">
+    Dashboard - counts below are <strong>quoted line items</strong> (an option a rep has
+    actually put on a saved quote) missing that field on the current catalog part, not the
+    whole 3,551-part catalog. <a href="#section-2">Jump to the detail list &darr;</a>
+  </p>
+  <div class="stat-grid">
+    <div class="stat-card {{ 'warn' if dashboard_counts['Jeeves Part #'] > 0 else '' }}">
+      <div class="stat-number">{{ dashboard_counts['Jeeves Part #'] }}</div>
+      <div class="stat-label">Missing Jeeves Part #</div>
+    </div>
+    <div class="stat-card {{ 'warn' if dashboard_counts['Floor Price'] > 0 else '' }}">
+      <div class="stat-number">{{ dashboard_counts['Floor Price'] }}</div>
+      <div class="stat-label">Missing Floor Price</div>
+    </div>
+    <div class="stat-card {{ 'warn' if dashboard_counts['MSRP'] > 0 else '' }}">
+      <div class="stat-number">{{ dashboard_counts['MSRP'] }}</div>
+      <div class="stat-label">Missing MSRP</div>
+    </div>
+    <div class="stat-card {{ 'warn' if dashboard_counts['Cost'] > 0 else '' }}">
+      <div class="stat-number">{{ dashboard_counts['Cost'] }}</div>
+      <div class="stat-label">Missing Cost</div>
+    </div>
+    <div class="stat-card {{ 'warn' if dashboard_counts['Current Cost'] > 0 else '' }}">
+      <div class="stat-number">{{ dashboard_counts['Current Cost'] }}</div>
+      <div class="stat-label">Missing Current Cost</div>
+    </div>
+  </div>
+
   <div class="quick-links" style="margin-bottom: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
     <form method="post" style="display:inline;">
       <input type="hidden" name="action" value="generate_catalog_report">
@@ -102,8 +130,9 @@
   <h2 id="section-2">2. What's been quoted to Sales — action items</h2>
   <p class="muted">
     {{ total_quotes }} saved quote(s). {{ action_items|length }} line item(s) below belong to a
-    quote sales has already built but still need Cost or Current Cost resolved before purchasing
-    can sign off. <a href="#top">Back to top &uarr;</a>
+    quote sales has already built but still need a Jeeves Part Number, Floor Price, MSRP, Cost,
+    or Current Cost resolved before purchasing can sign off - see the Missing column per row.
+    <a href="#top">Back to top &uarr;</a>
   </p>
 
   {% if quotes_report_generated %}

@@ -58,6 +58,82 @@
     {% endif %}
   </div>
 
+  <div class="upload-box">
+    <form method="post" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+      <input type="hidden" name="view" value="{{ selected_brand }}">
+      <input type="hidden" name="action" value="add_option">
+      <input type="hidden" name="add_brand" value="{{ selected_brand }}">
+      <div style="flex-basis:100%;">
+        <label><strong>Add a new option</strong></label>
+        <p class="muted" style="margin:4px 0 8px;">
+          For a valid option that isn't in {{ selected_brand }}'s current price-book upload yet
+          (e.g. a newly-qualified add-on). Adds it as <strong>{{ selected_brand }}</strong>,
+          unapproved until checked off below - it won't be selectable on Sales until then. If
+          it gets quoted before it has a Jeeves Part Number/full pricing, Purchasing will be
+          flagged on the Purchasing page.
+        </p>
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Platform</label>
+        <input type="text" name="add_platform" list="platform-list" required
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:140px;">
+        <datalist id="platform-list">
+          {% for p in platforms_for_selected_brand %}<option value="{{ p }}">{% endfor %}
+        </datalist>
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Category</label>
+        <input type="text" name="add_category" required placeholder="e.g. Add On Options:"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:170px;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Code</label>
+        <input type="text" name="add_code" required
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:80px;">
+      </div>
+      <div style="flex:1; min-width:200px;">
+        <label class="muted" style="display:block;">Description</label>
+        <input type="text" name="add_description" required
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Floor Price</label>
+        <input type="text" name="add_floor_price" placeholder="optional"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:90px;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">MSRP</label>
+        <input type="text" name="add_msrp" placeholder="optional"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:90px;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Cost</label>
+        <input type="text" name="add_cost" placeholder="optional"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:90px;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Current Cost</label>
+        <input type="text" name="add_current_cost" placeholder="optional"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:90px;">
+      </div>
+      <div>
+        <label class="muted" style="display:block;">Jeeves Part #</label>
+        <input type="text" name="add_jeeves_part_number" placeholder="optional"
+               style="padding:8px; border:1px solid #ccd2dc; border-radius:6px; width:120px;">
+      </div>
+      <button type="submit">Add Option</button>
+    </form>
+    {% if add_option_error %}
+      <div class="banner error">{{ add_option_error }}</div>
+    {% elif add_option_result %}
+      <div class="banner">
+        Added <strong>{{ add_option_result.code }}</strong> ({{ add_option_result.description }})
+        under {{ add_option_result.brand }} {{ add_option_result.platform }} /
+        {{ add_option_result.category }} - unapproved, find it below to check it off.
+      </div>
+    {% endif %}
+  </div>
+
   {% set platforms = brands[selected_brand] %}
 
   <div class="jump-nav">
