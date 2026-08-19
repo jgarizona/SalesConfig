@@ -28,6 +28,25 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Seeded the full WWAN Card list (11 cards) across all 15 JLT platforms** -
+  closes the loop on the 1014P WWAN Card gap first flagged a few entries below: building the
+  "Add a new option" form and the accessory add-ons wasn't the same as actually adding the
+  missing WWAN Card options themselves, which the user caught. Per the user, the complete set
+  shown in Search's "WWAN Card" dropdown (HUAWEI, MediaTek, Quectel RedCap, Sierra
+  EM7411/EM7455/EM7595/EM9291/MC7411/MC7455, Telit FN990/LN920) is valid on every JLT model.
+  One-time seed script, same shape as `add_option` would produce (`requires_review: true`,
+  blank pricing/Jeeves Part #, consistent code per card e.g. `EM7411`/`REDCAP`/`MTK`):
+  - **Skipped 5 (platform, card) combinations that already had a real vendor row** so as not
+    to create a redundant duplicate next to an already-priced SKU - matched by running the
+    existing `extract_wwan_module()` against each platform's real "WWAN Card" descriptions
+    (1214P already has MC7411 as code `MC`; 6012 has Telit LN920 as `DB`; 6012A has Sierra
+    EM7455 as `SW`; 6015 has both Telit FN990 `WL` and Telit LN920 `WU`).
+  - **Added 160 rows** (15 platforms × 11 cards, minus those 5 already-real ones) - purely
+    additive, only new rows, nothing existing touched.
+  - Verified via the Flask test client and live in the browser: 1014P (which had zero WWAN
+    Card rows before this) now shows all 11, unapproved; 1214P shows its 1 pre-existing
+    auto-approved MC7411 row alongside the 10 new unapproved ones, with no duplicate MC7411.
+
 - **[Claude]** **Technical can now add a brand-new option by hand (not just approve/upload),
   and Purchasing gets a real Dashboard of what that surfaces once quoted.** Follows from the
   1014P WWAN Card discussion: the standard 1014P genuinely doesn't have a WWAN Card option in

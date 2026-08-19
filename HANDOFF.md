@@ -117,7 +117,7 @@ what currently stands in for that.
 
 **Current status:** rough working prototype. All 4 screens (Technical, Sales, Purchasing,
 Admin) are functional against real pricing data for all 4 brands (JLT/Winmate/Getac/
-CipherLab, 3,551 parts total, see §7). No database, no auth, no HubSpot — all
+CipherLab, 3,771 parts total as of 2026-08-18, see §7). No database, no auth, no HubSpot — all
 noted below.
 
 ---
@@ -500,7 +500,9 @@ present anywhere in CipherLab's source data). Not selectable fields, not shown o
 `app.py`'s `ATTRIBUTE_CATEGORY_MAP` is what lets Search by Requirements match against them as
 if they were real Processor/OS/RAM/Storage/Display/Wireless options.
 
-Currently 3,551 rows: 499 JLT, 1,060 Winmate, 370 Getac, 1,622 CipherLab.
+Currently 3,771 rows (2026-08-18): 719 JLT (499 from the original vendor ingest + 220 added
+by hand via Technical's "Add a new option" - 60 accessory add-ons + 160 WWAN Card entries, see
+§5/§8), 1,060 Winmate, 370 Getac, 1,622 CipherLab.
 
 ### `approvals.json` — Technical sign-off
 List of 4-element arrays: `[brand, platform, category, code]`. Presence in this list is what
@@ -566,7 +568,7 @@ phone numbers). **This is not authentication** — see §8.
 `BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
 roster shown in every Brand dropdown. All four now have a real parser (`app.py`'s `PARSERS`
 dict routes Technical's upload form to the right one per brand) and real ingested data - see
-`ingest/` in §4 for what each parser does. Total catalog: 3,551 parts (breakdown in §6).
+`ingest/` in §4 for what each parser does. Total catalog: 3,771 parts (breakdown in §6).
 
 Two genuinely different *kinds* of vendor data turned up, not just different spreadsheet
 layouts of the same kind:
