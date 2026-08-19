@@ -28,6 +28,18 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Corrected "Quectel RedCap" to "Quectel RedCap RG255C" everywhere** - per the
+  user, there's no separate bare "Quectel RedCap" product, the two labels from the earlier
+  same-day WWAN Card work were redundant. Merged `ingest/wwan_facets.py`'s two Quectel
+  patterns into one (`Quectel\s*RedCap(\s*RG255C)?`, always labeled "Quectel RedCap RG255C"),
+  and fixed the 15 seeded JLT WWAN Card rows' `description` (one per platform, code
+  `REDCAP`) to match. Winmate's real "Quectel RedCap" rows needed no data edit - only the
+  extractor's label changed, and their live-derived Search facet value picked up the rename
+  automatically (verified: `['HUAWEI', 'MediaTek', 'Quectel RedCap RG255C', ...]`). Confirmed
+  the seeded JLT rows are still correctly excluded from Search (unapproved,
+  `is_selectable() == False`) - that's the intended pending-review state, not a bug. Confirmed
+  live in the browser: 1014P's WWAN Card list now reads "Quectel RedCap RG255C".
+
 - **[Claude]** **Cleaned up the real WWAN Carrier rows' description text to just the carrier
   name** - the user caught that recategorizing these rows (see the earlier same-day entry)
   only changed their `category` field; Technical still showed the full original sentence

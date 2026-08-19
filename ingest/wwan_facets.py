@@ -67,9 +67,11 @@ def wwan_generation_sort_key(label):
 
 # Specific cellular module/card part numbers - NOT named carriers, see
 # module docstring for why these feed their own "WWAN Card" category rather
-# than "WWAN Carrier". The RG255C-specific pattern must stay ahead of the
-# bare "Quectel RedCap" one so a row naming the submodel gets the precise
-# label instead of the generic family name.
+# than "WWAN Carrier". Per the user (2026-08-18): "Quectel RedCap" always
+# means the RG255C part - there's no separate bare "Quectel RedCap" product,
+# so a row naming either the plain family name or the specific submodel gets
+# the same full label, unlike the Sierra/Telit entries which stay split by
+# real distinct part number.
 _MODULE_PATTERNS = [
     ("Telit LN920", re.compile(r"Telit\s*LN920", re.IGNORECASE)),
     ("Telit FN990", re.compile(r"Telit\s*FN990", re.IGNORECASE)),
@@ -80,8 +82,7 @@ _MODULE_PATTERNS = [
     ("Sierra EM7411", re.compile(r"(?:Sierra\s*)?EM7411", re.IGNORECASE)),
     ("Sierra MC7411", re.compile(r"(?:Sierra\s*)?MC7411", re.IGNORECASE)),
     ("Sierra MC7421", re.compile(r"(?:Sierra\s*)?MC7421", re.IGNORECASE)),
-    ("Quectel RedCap RG255C", re.compile(r"Quectel\s*RedCap\s*RG255C", re.IGNORECASE)),
-    ("Quectel RedCap", re.compile(r"Quectel\s*RedCap", re.IGNORECASE)),
+    ("Quectel RedCap RG255C", re.compile(r"Quectel\s*RedCap(\s*RG255C)?", re.IGNORECASE)),
     ("MediaTek", re.compile(r"MediaTek|\bMTK\b", re.IGNORECASE)),
     ("HUAWEI", re.compile(r"HUAWEI", re.IGNORECASE)),
 ]
