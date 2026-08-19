@@ -28,6 +28,12 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** Reduced the session lifetime (`app.permanent_session_lifetime`) from 7 to 5
+  days, per the user, after they asked why reloading Purchasing didn't re-prompt for the PIN
+  post-change - confirmed that was expected (a session that already passed a PIN stays valid
+  until the session itself expires; changing the PIN only affects sessions that haven't
+  entered one yet) and this was the follow-up they wanted rather than a bigger behavior change
+  (forced re-challenge on every visit, or invalidating existing sessions on PIN change).
 - **[Claude]** **Added a second, inner "Purchasing PIN" gate scoped to just the Purchasing
   section, and extended Admin's Sales Rep management with Lock/Unlock and Reset PIN.** Per the
   user: even someone who already has the site-wide PIN shouldn't see Purchasing (cost data,

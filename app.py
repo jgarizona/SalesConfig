@@ -164,7 +164,13 @@ def save_site_access(data):
 
 _site_access = load_or_create_site_access()
 app.secret_key = _site_access["secret_key"]
-app.permanent_session_lifetime = timedelta(days=7)
+# Governs both the site-wide session and the Purchasing session (same cookie,
+# one lifetime - session.permanent is set once at site login, purchasing
+# access just adds a flag to that same session rather than starting a
+# separate one). Flask refreshes this on every request by default, so in
+# practice it's "expires N days after the last visit," not N days after
+# login. Reduced from 7 to 5 days per the user (2026-08-18).
+app.permanent_session_lifetime = timedelta(days=5)
 
 
 @app.before_request

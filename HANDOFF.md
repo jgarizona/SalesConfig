@@ -876,7 +876,11 @@ quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
   caveat. Session flag is `session["purchasing_authenticated"]`, separate from the site-wide
   `session["authenticated"]` — logging out via the main `/logout` clears the whole session
   (`session.clear()`), so it clears Purchasing access too; there's no separate Purchasing
-  logout.
+  logout. Both flags live in the **same** session cookie, so they share one expiry
+  (`app.permanent_session_lifetime`, 5 days as of 2026-08-18, refreshed on every request by
+  Flask's default behavior - i.e. "5 days after the last visit," not 5 days after login) -
+  changing a PIN does **not** retroactively log out a session that already passed the old one;
+  it only affects sessions that haven't entered a PIN yet.
 - **Sales Reps can be locked (added 2026-08-18, per the user), on top of the existing
   add/remove.** A `locked: true` rep is excluded from the Sales-page rep picker
   (`/api/sales_reps`) and rejected by verify/save/copy (`rep_code_matches()` in `app.py` -
