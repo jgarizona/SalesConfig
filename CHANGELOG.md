@@ -28,6 +28,24 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Cleaned up the real WWAN Carrier rows' description text to just the carrier
+  name** - the user caught that recategorizing these rows (see the earlier same-day entry)
+  only changed their `category` field; Technical still showed the full original sentence
+  ("Intel Wireless AX210 ac/a/b/g/n with WWAN *AT&T*") instead of a clean "AT&T", inconsistent
+  with the newly-added WWAN Card rows which show clean names. Ran a one-time script setting
+  `description = extract_wwan_carrier(description)` for all 56 real JLT "WWAN Carrier" rows
+  across all 15 platforms - `AT&T`/`T-Mobile`/`Verizon`/`Generic` replacing the original
+  sentence; nothing else (code, price, category) touched. **Caught and fixed a real regression
+  from this**: `extract_wwan_carrier`'s "Generic" detection required the literal substring
+  "WWAN" in the text, which no longer exists once the description *is* "Generic" - the very
+  next Search facet computation lost "Generic" entirely (0 matches instead of 12). Fixed by
+  making `extract_wwan_carrier` idempotent on its own output (`ingest/wwan_facets.py` -
+  `_GENERIC_WWAN_RE` now also matches a description that's exactly "Generic"). Verified via
+  the Flask test client after the fix: `WWAN Carrier` facet back to `['AT&T', 'Generic',
+  'T-Mobile', 'Verizon']`, `Generic` search back to 12 matches, `WWAN Card`/`Internal Wireless`
+  facets unaffected; confirmed live in the browser that 1014P's WWAN Carrier box now reads
+  cleanly (AT&T / T-Mobile / Verizon / Generic).
+
 - **[Claude]** **Seeded the full WWAN Card list (11 cards) across all 15 JLT platforms** -
   closes the loop on the 1014P WWAN Card gap first flagged a few entries below: building the
   "Add a new option" form and the accessory add-ons wasn't the same as actually adding the

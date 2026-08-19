@@ -109,10 +109,17 @@ _CARRIER_PATTERNS = [
 # these get a 4th "Generic" carrier value rather than no value at all. Only
 # fires when no named carrier AND no named module matched - a module-only
 # row ("4G WWAN Telit LN920...") is findable via WWAN Card, not this.
-_GENERIC_WWAN_RE = re.compile(r"WWAN", re.IGNORECASE)
+_GENERIC_WWAN_RE = re.compile(r"WWAN|^Generic$", re.IGNORECASE)
 
 
 def extract_wwan_carrier(text):
+    """Idempotent on its own output - JLT's real WWAN Carrier rows had their
+    description field cleaned up (2026-08-18) to just the carrier name
+    itself ("AT&T", "Generic", etc., replacing the original full sentence),
+    and this function still needs to recognize that already-clean text on
+    every later call (Search facet computation reruns it against whatever
+    the current description is - see FACET_CATEGORIES in app.py), not just
+    the original raw vendor text with "WWAN" and no carrier/module named."""
     if not text:
         return None
     for label, pat in _CARRIER_PATTERNS:
