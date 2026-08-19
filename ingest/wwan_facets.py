@@ -71,20 +71,27 @@ def wwan_generation_sort_key(label):
 # means the RG255C part - there's no separate bare "Quectel RedCap" product,
 # so a row naming either the plain family name or the specific submodel gets
 # the same full label, unlike the Sierra/Telit entries which stay split by
-# real distinct part number.
+# real distinct part number. Labels carry a trailing generation suffix (also
+# per the user, 2026-08-18) - each grounded in the actual source text where
+# a generation appeared alongside that card name elsewhere in the same
+# description (e.g. Winmate's raw "3G-Module (HUAWEI)" / "4G (MediaTek ROW
+# only)"), except MC7411/MC7421 (4G) and MC7421's own existence, which are
+# inferred from the real module family (Sierra Wireless AirPrime MC74xx is
+# LTE Cat 6, same generation as its EM7411/EM7455 siblings) rather than
+# confirmed in any source spreadsheet text - flag for correction if wrong.
 _MODULE_PATTERNS = [
-    ("Telit LN920", re.compile(r"Telit\s*LN920", re.IGNORECASE)),
-    ("Telit FN990", re.compile(r"Telit\s*FN990", re.IGNORECASE)),
-    ("Sierra EM7595", re.compile(r"(?:Sierra\s*)?EM7595", re.IGNORECASE)),
-    ("Sierra EM9291", re.compile(r"(?:Sierra\s*)?EM9291", re.IGNORECASE)),
-    ("Sierra EM7455", re.compile(r"(?:Sierra\s*)?EM7455", re.IGNORECASE)),
-    ("Sierra MC7455", re.compile(r"(?:Sierra\s*)?MC7455", re.IGNORECASE)),
-    ("Sierra EM7411", re.compile(r"(?:Sierra\s*)?EM7411", re.IGNORECASE)),
-    ("Sierra MC7411", re.compile(r"(?:Sierra\s*)?MC7411", re.IGNORECASE)),
-    ("Sierra MC7421", re.compile(r"(?:Sierra\s*)?MC7421", re.IGNORECASE)),
-    ("Quectel RedCap RG255C", re.compile(r"Quectel\s*RedCap(\s*RG255C)?", re.IGNORECASE)),
-    ("MediaTek", re.compile(r"MediaTek|\bMTK\b", re.IGNORECASE)),
-    ("HUAWEI", re.compile(r"HUAWEI", re.IGNORECASE)),
+    ("Telit LN920 4G", re.compile(r"Telit\s*LN920", re.IGNORECASE)),
+    ("Telit FN990 5G", re.compile(r"Telit\s*FN990", re.IGNORECASE)),
+    ("Sierra EM7595 4G", re.compile(r"(?:Sierra\s*)?EM7595", re.IGNORECASE)),
+    ("Sierra EM9291 5G", re.compile(r"(?:Sierra\s*)?EM9291", re.IGNORECASE)),
+    ("Sierra EM7455 4G", re.compile(r"(?:Sierra\s*)?EM7455", re.IGNORECASE)),
+    ("Sierra MC7455 4G", re.compile(r"(?:Sierra\s*)?MC7455", re.IGNORECASE)),
+    ("Sierra EM7411 4G", re.compile(r"(?:Sierra\s*)?EM7411", re.IGNORECASE)),
+    ("Sierra MC7411 4G", re.compile(r"(?:Sierra\s*)?MC7411", re.IGNORECASE)),
+    ("Sierra MC7421 4G", re.compile(r"(?:Sierra\s*)?MC7421", re.IGNORECASE)),
+    ("Quectel RedCap RG255C 5G", re.compile(r"Quectel\s*RedCap(\s*RG255C)?", re.IGNORECASE)),
+    ("MediaTek 4G", re.compile(r"MediaTek|\bMTK\b", re.IGNORECASE)),
+    ("HUAWEI 3G", re.compile(r"HUAWEI", re.IGNORECASE)),
 ]
 
 

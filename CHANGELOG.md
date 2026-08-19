@@ -28,6 +28,30 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-18
 
+- **[Claude]** **Appended each WWAN Card's generation to its name** (e.g. "Sierra EM7411" ->
+  "Sierra EM7411 4G"), per the user. Generations were grounded in the actual source text where
+  possible - checked every real row mentioning each card name for a 3G/4G/5G mention elsewhere
+  in the same description (`extract_wwan_generation` cross-referenced against
+  `extract_wwan_module` across every Internal Wireless/WWAN Card/WWAN Carrier row): 5G -
+  Quectel RedCap RG255C, Sierra EM9291, Telit FN990; 4G - Sierra EM7411/EM7455/EM7595/MC7455,
+  Telit LN920, MediaTek; 3G - HUAWEI (Winmate's raw text literally says "3G-Module (HUAWEI)").
+  **Sierra MC7411/MC7421 are the one exception** - no source text states their generation
+  anywhere; labeled 4G by inference only (same LTE Cat 6 module family as EM7411/EM7455, per
+  general knowledge of the real Sierra Wireless AirPrime MC74xx line), flagged in
+  `ingest/wwan_facets.py`'s comment as worth confirming with whoever specs these if it needs
+  to be authoritative. `_MODULE_PATTERNS` labels updated in place (regex matching logic
+  unchanged - only the returned label string changed, so Winmate's real rows needed no data
+  edit, same as the earlier RG255C fix). Updated the 165 real JLT "WWAN Card" rows' description
+  text to match (160 seeded + the 5 pre-existing real vendor rows) via
+  `extract_wwan_module(current_description)` - safe because the regex patterns match on the
+  base part number substring regardless of whether the current description is the old clean
+  label or the original full vendor sentence. Verified idempotent this time (learned from the
+  "Generic" regression a few entries up) - re-ran the facet computation after the change and
+  confirmed no value dropped out. Verified live in the browser: 1014P's WWAN Card list now
+  reads "Sierra EM7411 4G", "Sierra EM9291 5G", "Quectel RedCap RG255C 5G", "HUAWEI 3G", etc.,
+  and existing Technical approvals (9 of the 11 cards + all 4 Add On Options, checked live by
+  the user while testing this feature) were unaffected by the rename.
+
 - **[Claude]** **Corrected "Quectel RedCap" to "Quectel RedCap RG255C" everywhere** - per the
   user, there's no separate bare "Quectel RedCap" product, the two labels from the earlier
   same-day WWAN Card work were redundant. Merged `ingest/wwan_facets.py`'s two Quectel
