@@ -250,24 +250,7 @@ CATEGORY_ORDER = [
     "Storage Technology",
     "Display options:",
     "Internal Options:",
-    # CANBUS/DIDO/LAN (Winmate) and Camera/Data Collection:/Data Collection:
-    # (2)/Dock (Winmate + JLT's "Dock") were real category values already
-    # present in the ingested catalog but missing from this list entirely
-    # until 2026-08-19 - since Search by Requirements only ever offers a
-    # category as a search field if it's listed here (`categoryOrder.forEach`
-    # in sales.html), these were completely unsearchable despite being real,
-    # selectable Sales options, which is what the user meant by "Add a new
-    # option"'s category dropdown (drawn from actual data) not matching
-    # Search's category list (drawn from this constant) - the fix is this
-    # list being incomplete, not either dropdown being wrong.
-    "CANBUS",
-    "DIDO",
-    "LAN",
     "Add On Options:",
-    "Camera",
-    "Data Collection:",
-    "Data Collection: (2)",
-    "Dock",
     "IP Rating Options:",
     "Power Cable Options:",
     "Internal Wireless",
@@ -893,11 +876,24 @@ def technical():
 
     # For "Add a new option": every brand's platform list (so the Platform
     # checkboxes can be swapped client-side when Vendor changes, without a
-    # round trip) and the full set of real category names already used
-    # anywhere in the catalog (so Category is a dropdown of things that
-    # genuinely exist, not free text a technician has to spell correctly).
+    # round trip) and the curated CATEGORY_ORDER vocabulary (not raw catalog
+    # data - reverted 2026-08-19, per the user, after first trying the
+    # opposite fix of adding every raw category to CATEGORY_ORDER, which
+    # wrongly changed Search too). Some vendors' real ingested data contains
+    # narrow, collision-prone pass-through categories (Winmate's CANBUS/
+    # DIDO/LAN/Camera/Data Collection:/Data Collection: (2), JLT's Dock -
+    # see ingest/category_map.py's docstring for why those were never
+    # folded into the canonical vocabulary) that a technician should never
+    # be offered as a category to add a *new* option under. Also excludes
+    # CATEGORY_ORDER's own search-only pseudo-categories (Storage Capacity/
+    # Storage Technology/WWAN Generation/OS Version/OS Edition - see the
+    # comment above CATEGORY_ORDER) since no real part can ever have one of
+    # those as its actual category.
     platforms_by_brand = {b: sorted(brands.get(b, {}).keys()) for b in BRANDS}
-    all_categories = sorted({p["category"] for p in parts}, key=category_sort_key)
+    _search_only_pseudo_categories = {
+        "Storage Capacity", "Storage Technology", "WWAN Generation", "OS Version", "OS Edition",
+    }
+    all_categories = [c for c in CATEGORY_ORDER if c not in _search_only_pseudo_categories]
 
     return render_template(
         "technical.html",

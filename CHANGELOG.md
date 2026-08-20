@@ -28,27 +28,26 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-19
 
-- **[Claude]** **Fixed `CATEGORY_ORDER` being missing 7 real category names, which is why
-  "Add a new option"'s Category dropdown didn't match Search by Requirements' category list**
-  - the user caught this by comparing the two directly. Root cause: `CATEGORY_ORDER` (`app.py`)
-  is the single canonical list Search by Requirements uses to decide which categories are even
-  offered as search fields (`categoryOrder.forEach` in `sales.html`) - but it was never
-  updated when Winmate was ingested to include several of Winmate's real category names (and
-  one of JLT's), so those categories were **completely unsearchable** despite being real,
-  selectable Sales options. Meanwhile "Add a new option"'s Category dropdown draws from actual
-  catalog data (`all_categories` in `app.py`), which correctly included them - so the two
-  lists disagreed, and Search was the one silently missing real data, not Add Option showing
-  something wrong. Added all 7 to `CATEGORY_ORDER` in sensible positions: `CANBUS`/`DIDO`/
-  `LAN` (Winmate interface options - CANBUS bus, digital I/O, gigaLAN/PSE) near `Internal
-  Options:`; `Camera`/`Data Collection:`/`Data Collection: (2)`/`Dock` (Winmate barcode/NFC/
-  RFID/fingerprint readers and camera hardware, plus JLT's docking-station accessories) near
-  `Add On Options:`. Verified via the Flask test client: `CATEGORY_ORDER` now has zero real
-  categories missing (checked by diffing it against every distinct `category` value actually
-  in the catalog); Winmate's Search facets now include all 6 of its previously-invisible
-  categories with real values (e.g. `CANBUS: ['CANBUS', 'No CANBUS']`), JLT's `Dock` facet
-  shows its 3 real values; confirmed live in the browser that both "Add a new option"'s
-  Category dropdown and Technical's own per-platform category grouping now show these in the
-  same order as everywhere else, instead of an arbitrary tail-end position.
+- **[Claude]** **"Add a new option"'s Category dropdown vs. Search by Requirements' category
+  list mismatch - corrected after getting the fix backwards the first time.** The user pointed
+  out the two didn't match (comparing them directly). First attempt (same day, since reverted
+  below): assumed `CATEGORY_ORDER` was *missing* 7 real category names (Winmate's `CANBUS`/
+  `DIDO`/`LAN`/`Camera`/`Data Collection:`/`Data Collection: (2)`, JLT's `Dock`) and added them
+  to it - but `CATEGORY_ORDER` is also what Search by Requirements uses to decide which fields
+  to offer, so this **wrongly changed Search too**, which the user explicitly did not want
+  touched. Corrected: **reverted `CATEGORY_ORDER` back to its original contents**, and instead
+  scoped "Add a new option"'s Category dropdown down to that same original curated list (minus
+  its search-only pseudo-categories - Storage Capacity/Storage Technology/WWAN Generation/OS
+  Version/OS Edition, which no real part can ever have as its actual category). The dropdown
+  now reflects exactly what the user marked up as correct: `Base Unit:` through `Operating
+  System:`, with none of the narrow vendor pass-through categories that `ingest/
+  category_map.py` deliberately keeps separate from the canonical vocabulary (see that file's
+  docstring - those categories reuse tiny codes like `X`/`A`/`1`/`2` that collided when
+  folded into a shared bucket before, confirmed 2026-08-15). Verified via the Flask test
+  client: `CATEGORY_ORDER` back to its pre-2026-08-19 contents exactly (diffed against the
+  commit before this change); Add Option's Category dropdown now lists exactly the 13 curated
+  categories; confirmed live in the browser on Winmate (which has all 7 of the excluded raw
+  categories in its real data) that none of them appear in the dropdown.
 
 - **[Claude]** **Reworked Technical's "Add a new option" form after live feedback from the
   user testing it.** Several real problems with the first version:
@@ -61,9 +60,11 @@ Every repository change must be recorded under the date it was made and identify
     mis-position. Vendor changes swap which platform-group is visible via a small JS toggle
     (`onAddVendorChange()`) - one checkbox group per brand is always rendered, only the
     matching one is shown.
-  - **Category is now a dropdown** of every real category name already used anywhere in the
-    catalog (`all_categories` in `app.py`, sorted via the existing `category_sort_key`) instead
-    of free text a technician had to spell/capitalize correctly.
+  - **Category is now a dropdown** instead of free text a technician had to spell/capitalize
+    correctly - originally sourced from every real category name used anywhere in the catalog,
+    corrected the same day (see the entry above) to the curated `CATEGORY_ORDER` vocabulary
+    instead, once that turned out to include vendor-internal categories that shouldn't be
+    offered for a *new* option.
   - **Removed all four price fields (Floor Price/MSRP/Cost/Current Cost) from the form
     entirely** - per the user, Technical should never touch pricing, that's Purchasing's job.
     `add_option`'s backend no longer reads them from the request at all; every new option is

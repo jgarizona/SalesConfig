@@ -195,13 +195,14 @@ Git/
 │                              # data loss during ingest before it was caught). Those
 │                              # deliberately-uncollapsed categories (CANBUS/DIDO/LAN/Camera/
 │                              # Data Collection:/Data Collection: (2), plus JLT's own Dock)
-│                              # were left to "just sort last" per this file's own docstring -
-│                              # that was fine for Technical/Sales display, but silently made
-│                              # them unsearchable via Search by Requirements (which only
-│                              # offers categories listed in CATEGORY_ORDER itself), caught by
-│                              # the user 2026-08-19. Fixed by actually adding all 7 to
-│                              # CATEGORY_ORDER in app.py - this file's category_map.py
-│                              # needed no change, the gap was purely in app.py.
+│                              # are left to "just sort last" per this file's own docstring,
+│                              # unsearchable via Search by Requirements (which only offers
+│                              # categories listed in CATEGORY_ORDER) - and per the user
+│                              # (2026-08-19), that's intentional: these narrow, collision-prone
+│                              # categories should stay out of both Search and Technical's "Add
+│                              # a new option" dropdown (see §5), not get added to
+│                              # CATEGORY_ORDER. An earlier same-day attempt did add them to
+│                              # CATEGORY_ORDER, which wrongly changed Search too - reverted.
 ├── templates/                # Jinja2 templates, one per screen + shared partials
 │   ├── base.html             #   Nav bar, page shell
 │   ├── technical.html        #   Technical Review screen
@@ -263,8 +264,14 @@ All routes live in `app.py`. Nav bar (`templates/base.html`) links all four.
     rest `display:none`) - lets a technician add the same option to several platforms in one
     submission, and creates one part row per checked platform, partial-success-safe (a
     platform that already has that exact code is skipped and reported separately, the rest
-    still get created). **Category** is a `<select>` populated from `all_categories` - every
-    real category name already used anywhere in the catalog, not free text.
+    still get created). **Category** is a `<select>` populated from `all_categories` in
+    `app.py` - **`CATEGORY_ORDER` itself (minus its search-only pseudo-categories), not every
+    real category name used anywhere in the catalog.** An earlier same-day version drew this
+    list from raw catalog data instead, which pulled in Winmate's narrow, deliberately-
+    uncollapsed pass-through categories (CANBUS/DIDO/LAN/Camera/Data Collection:/Data
+    Collection: (2), JLT's Dock - see `ingest/category_map.py`'s note in §4) as choices for a
+    *new* option, which the user flagged as wrong - those stay out of both this dropdown and
+    Search by Requirements on purpose.
   - **No price fields at all** (removed 2026-08-19, per the user - "Technical people should
     never do anything with price") - `add_option` always creates Floor Price/MSRP/Cost/Current
     Cost as `None`/blank unconditionally, doesn't even read them from the request.
