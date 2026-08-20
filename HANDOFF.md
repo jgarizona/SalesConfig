@@ -240,19 +240,39 @@ All routes live in `app.py`. Nav bar (`templates/base.html`) links all four.
   filter, since replacing the whole file would have silently deleted every other brand's
   approvals the moment the page stopped rendering all brands at once. If you ever change how
   the approvals form is submitted, keep that scoping (`approvals_brand` hidden field) intact.
-- **"Add a new option" form** (added 2026-08-18, per the user) - a technician can add one new
-  option by hand for a valid JLT-qualified configuration that isn't in the current vendor
-  spreadsheet snapshot (e.g. a WWAN Card add-on for a platform whose price book doesn't list
-  one). `action=add_option` in `technical()`. Always `requires_review: true` and always
-  create-only (an existing `(brand, platform, category, code)` is a rejected error, not an
-  overwrite - unlike the bulk upload path above, which does merge/overwrite on purpose). No
-  template changes were needed to make the new row show up in the right category box - the
-  page already groups by real `category` via a stable sort on `CATEGORY_ORDER` position
-  (`plist.sort(key=lambda p: (category_sort_key(p["category"]), p["code"] or ""))`), so any
-  row that exists with the right `(brand, platform, category)` renders correctly automatically.
-  Prices and the new `jeeves_part_number` field (see §6) are optional - the point is exactly
-  that a technician can add something before Purchasing has priced it, and Purchasing's
-  Dashboard (see below) is what surfaces that gap once the option actually gets quoted.
+- **"Add a new option" form** (added 2026-08-18, reworked 2026-08-19 after live user feedback)
+  - a technician can add one new option by hand for a valid vendor-qualified configuration
+  that isn't in the current vendor spreadsheet snapshot (e.g. a WWAN Card add-on for a
+  platform whose price book doesn't list one). `action=add_option` in `technical()`. Always
+  `requires_review: true` and create-only per platform (an existing `(brand, platform,
+  category, code)` is skipped and reported, not overwritten - unlike the bulk upload path
+  above, which does merge/overwrite on purpose).
+  - **Vendor** is a real `<select>` (`add_brand`); **Platform** is a checkbox list
+    (`add_platforms`, `request.form.getlist`) scoped to whichever Vendor is selected via a
+    small JS toggle (`onAddVendorChange()` in `technical.html` - one platform-checkbox group
+    per brand is always rendered server-side, only the matching one is `display:flex`, the
+    rest `display:none`) - lets a technician add the same option to several platforms in one
+    submission, and creates one part row per checked platform, partial-success-safe (a
+    platform that already has that exact code is skipped and reported separately, the rest
+    still get created). **Category** is a `<select>` populated from `all_categories` - every
+    real category name already used anywhere in the catalog, not free text.
+  - **No price fields at all** (removed 2026-08-19, per the user - "Technical people should
+    never do anything with price") - `add_option` always creates Floor Price/MSRP/Cost/Current
+    Cost as `None`/blank unconditionally, doesn't even read them from the request.
+  - No template changes were needed to make a new row show up in the right category box - the
+    page already groups by real `category` via a stable sort on `CATEGORY_ORDER` position
+    (`plist.sort(key=lambda p: (category_sort_key(p["category"]), p["code"] or ""))`), so any
+    row that exists with the right `(brand, platform, category)` renders correctly
+    automatically. The new `jeeves_part_number` field (see §6) stays optional - the point is
+    exactly that a technician can add something before Purchasing has priced it or assigned it
+    a real part number, and Purchasing's Dashboard/warnings (see below) are what surface that
+    gap once the option actually gets quoted.
+  - **Watch for this CSS trap if you touch this template again**: a `style` attribute with two
+    declarations for the *same* property (e.g. a conditional `display:none;` followed by an
+    unconditional `display:flex;`) always resolves to the *last* one, regardless of the
+    condition - this silently broke the Vendor→Platform-group toggle once already (every
+    vendor's platforms showed at once). Make the whole property value conditional in one
+    declaration instead of stacking two.
 
 ### `/sales` — Sales Configurator
 The big one. Top-to-bottom:

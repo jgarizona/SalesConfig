@@ -26,6 +26,49 @@ Every repository change must be recorded under the date it was made and identify
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
+## 2026-08-19
+
+- **[Claude]** **Reworked Technical's "Add a new option" form after live feedback from the
+  user testing it.** Several real problems with the first version:
+  - The Platform field was free text with an HTML `<datalist>` popup, which rendered off the
+    left edge of the page for the user during testing - a real browser positioning bug, not
+    just a style nitpick. Replaced entirely with a **Platform checkbox list** scoped to
+    whichever **Vendor** is selected (Vendor is now its own real `<select>`, not a hidden field
+    tied to whichever brand happened to be showing on the page) - a technician can now add the
+    same option to several platforms at once in one submission, and there's no popup to
+    mis-position. Vendor changes swap which platform-group is visible via a small JS toggle
+    (`onAddVendorChange()`) - one checkbox group per brand is always rendered, only the
+    matching one is shown.
+  - **Category is now a dropdown** of every real category name already used anywhere in the
+    catalog (`all_categories` in `app.py`, sorted via the existing `category_sort_key`) instead
+    of free text a technician had to spell/capitalize correctly.
+  - **Removed all four price fields (Floor Price/MSRP/Cost/Current Cost) from the form
+    entirely** - per the user, Technical should never touch pricing, that's Purchasing's job.
+    `add_option`'s backend no longer reads them from the request at all; every new option is
+    always created with all four blank, unconditionally.
+  - **Relabeled "Code" with an inline tooltip** clarifying it's the short internal catalog
+    identifier used to select the option (e.g. `"H"`, `"KA"`, `"TP"`) - not the same thing as
+    the Jeeves Part Number field next to it, after the user asked "what is code, do you mean
+    part number?". Both fields still exist; they mean different things and both stay.
+  - Backend (`technical()` in `app.py`) now takes `add_platforms` (a list via
+    `request.form.getlist`) instead of a single `add_platform`, and creates one new part row
+    per selected platform in one request - partial success is supported (a platform that
+    already has that exact `(brand, platform, category, code)` is skipped and reported
+    separately, the rest still get created), not all-or-nothing.
+  - **Caught and fixed a real CSS bug of my own while verifying this live**: the
+    per-vendor platform-group `<div>` had both `display:none` (conditional) and `display:flex`
+    (unconditional) in the same inline `style` attribute - the later declaration always wins
+    for the same CSS property, so every vendor's platforms showed at once regardless of which
+    Vendor was selected. Fixed by making the whole `display` value conditional
+    (`display:{% if ... %}flex{% else %}none{% endif %}`) instead of stacking two separate
+    declarations for the same property.
+  - Verified via the Flask test client: a two-platform submission created exactly 2 rows
+    (both unapproved); resubmitting including one already-added platform correctly skipped
+    just that one and added the new third platform, with both outcomes reported separately.
+    Verified live in the browser: Category dropdown lists real categories (including ones from
+    Getac/CipherLab's own vocabulary); switching Vendor from JLT to Winmate correctly swapped
+    the visible platform checkboxes with no other vendor's platforms showing.
+
 ## 2026-08-18
 
 - **[Claude]** **New "Purchasing warnings" mechanism: standing, acknowledgeable notices on

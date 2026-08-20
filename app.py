@@ -800,44 +800,49 @@ def technical():
             # catalog, and it's what lets Purchasing later notice it was
             # quoted before it had a real Jeeves Part Number/price (see
             # compute_quote_action_items()). Deliberately create-only - an
-            # existing (brand, platform, category, code) is an error, not a
-            # silent overwrite, unlike the bulk upload path above.
+            # existing (brand, platform, category, code) is skipped, not
+            # silently overwritten, unlike the bulk upload path above.
+            # No price fields at all here, per the user (2026-08-18):
+            # Technical never touches pricing - that's Purchasing's job,
+            # and is exactly what the "unpriced, needs review" state and the
+            # Purchasing Dashboard/warnings exist to surface.
             brand = request.form.get("add_brand", selected_brand)
-            platform = request.form.get("add_platform", "").strip()
+            add_platforms = [p.strip() for p in request.form.getlist("add_platforms") if p.strip()]
             category = request.form.get("add_category", "").strip()
             code = request.form.get("add_code", "").strip()
             description = request.form.get("add_description", "").strip()
             jeeves_part_number = request.form.get("add_jeeves_part_number", "").strip() or None
 
-            def _opt_price(field):
-                val = request.form.get(field, "").strip()
-                return val if val else None
-
-            if not (platform and category and code and description):
-                add_option_error = "Platform, Category, Code, and Description are all required."
+            if not (add_platforms and category and code and description):
+                add_option_error = "Vendor, at least one Platform, Category, Code, and Description are all required."
             else:
                 parts = load_parts()
-                if find_part(parts, brand, platform, category, code) is not None:
-                    add_option_error = f'"{code}" already exists under {brand} {platform} / {category}.'
-                else:
+                added_platforms = []
+                skipped_platforms = []
+                for platform in add_platforms:
+                    if find_part(parts, brand, platform, category, code) is not None:
+                        skipped_platforms.append(platform)
+                        continue
                     parts.append({
                         "brand": brand,
                         "platform": platform,
                         "category": category,
                         "code": code,
                         "description": description,
-                        "Floor Price": _opt_price("add_floor_price"),
-                        "MSRP": _opt_price("add_msrp"),
-                        "Cost": _opt_price("add_cost"),
-                        "Current Cost": _opt_price("add_current_cost"),
+                        "Floor Price": None,
+                        "MSRP": None,
+                        "Cost": None,
+                        "Current Cost": None,
                         "requires_review": True,
                         "jeeves_part_number": jeeves_part_number,
                     })
+                    added_platforms.append(platform)
+                if added_platforms:
                     save_parts(parts)
-                    add_option_result = {
-                        "brand": brand, "platform": platform, "category": category,
-                        "code": code, "description": description,
-                    }
+                add_option_result = {
+                    "brand": brand, "category": category, "code": code, "description": description,
+                    "added_platforms": added_platforms, "skipped_platforms": skipped_platforms,
+                }
         elif "approved" in request.form or request.form.get("form") == "approvals":
             # Only this one brand's checkboxes were ever rendered (the page
             # is filtered to one brand - see selected_brand above), so a
@@ -869,7 +874,13 @@ def technical():
         for brand in BRANDS
     }
 
-    platforms_for_selected_brand = sorted(brands.get(selected_brand, {}).keys())
+    # For "Add a new option": every brand's platform list (so the Platform
+    # checkboxes can be swapped client-side when Vendor changes, without a
+    # round trip) and the full set of real category names already used
+    # anywhere in the catalog (so Category is a dropdown of things that
+    # genuinely exist, not free text a technician has to spell correctly).
+    platforms_by_brand = {b: sorted(brands.get(b, {}).keys()) for b in BRANDS}
+    all_categories = sorted({p["category"] for p in parts}, key=category_sort_key)
 
     return render_template(
         "technical.html",
@@ -878,7 +889,8 @@ def technical():
         all_brands=BRANDS,
         approvals=approvals,
         upload_result=upload_result,
-        platforms_for_selected_brand=platforms_for_selected_brand,
+        platforms_by_brand=platforms_by_brand,
+        all_categories=all_categories,
         add_option_error=add_option_error,
         add_option_result=add_option_result,
     )
