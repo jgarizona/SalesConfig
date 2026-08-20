@@ -192,7 +192,16 @@ Git/
 │                              # so cross-brand sort/search line up. Deliberately does NOT
 │                              # collapse categories whose raw codes aren't globally unique
 │                              # within a platform (see §6/§7 - this caused real, once-silent
-│                              # data loss during ingest before it was caught).
+│                              # data loss during ingest before it was caught). Those
+│                              # deliberately-uncollapsed categories (CANBUS/DIDO/LAN/Camera/
+│                              # Data Collection:/Data Collection: (2), plus JLT's own Dock)
+│                              # were left to "just sort last" per this file's own docstring -
+│                              # that was fine for Technical/Sales display, but silently made
+│                              # them unsearchable via Search by Requirements (which only
+│                              # offers categories listed in CATEGORY_ORDER itself), caught by
+│                              # the user 2026-08-19. Fixed by actually adding all 7 to
+│                              # CATEGORY_ORDER in app.py - this file's category_map.py
+│                              # needed no change, the gap was purely in app.py.
 ├── templates/                # Jinja2 templates, one per screen + shared partials
 │   ├── base.html             #   Nav bar, page shell
 │   ├── technical.html        #   Technical Review screen

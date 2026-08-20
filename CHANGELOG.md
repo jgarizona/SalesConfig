@@ -28,6 +28,28 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-19
 
+- **[Claude]** **Fixed `CATEGORY_ORDER` being missing 7 real category names, which is why
+  "Add a new option"'s Category dropdown didn't match Search by Requirements' category list**
+  - the user caught this by comparing the two directly. Root cause: `CATEGORY_ORDER` (`app.py`)
+  is the single canonical list Search by Requirements uses to decide which categories are even
+  offered as search fields (`categoryOrder.forEach` in `sales.html`) - but it was never
+  updated when Winmate was ingested to include several of Winmate's real category names (and
+  one of JLT's), so those categories were **completely unsearchable** despite being real,
+  selectable Sales options. Meanwhile "Add a new option"'s Category dropdown draws from actual
+  catalog data (`all_categories` in `app.py`), which correctly included them - so the two
+  lists disagreed, and Search was the one silently missing real data, not Add Option showing
+  something wrong. Added all 7 to `CATEGORY_ORDER` in sensible positions: `CANBUS`/`DIDO`/
+  `LAN` (Winmate interface options - CANBUS bus, digital I/O, gigaLAN/PSE) near `Internal
+  Options:`; `Camera`/`Data Collection:`/`Data Collection: (2)`/`Dock` (Winmate barcode/NFC/
+  RFID/fingerprint readers and camera hardware, plus JLT's docking-station accessories) near
+  `Add On Options:`. Verified via the Flask test client: `CATEGORY_ORDER` now has zero real
+  categories missing (checked by diffing it against every distinct `category` value actually
+  in the catalog); Winmate's Search facets now include all 6 of its previously-invisible
+  categories with real values (e.g. `CANBUS: ['CANBUS', 'No CANBUS']`), JLT's `Dock` facet
+  shows its 3 real values; confirmed live in the browser that both "Add a new option"'s
+  Category dropdown and Technical's own per-platform category grouping now show these in the
+  same order as everywhere else, instead of an arbitrary tail-end position.
+
 - **[Claude]** **Reworked Technical's "Add a new option" form after live feedback from the
   user testing it.** Several real problems with the first version:
   - The Platform field was free text with an HTML `<datalist>` popup, which rendered off the

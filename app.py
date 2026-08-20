@@ -250,7 +250,24 @@ CATEGORY_ORDER = [
     "Storage Technology",
     "Display options:",
     "Internal Options:",
+    # CANBUS/DIDO/LAN (Winmate) and Camera/Data Collection:/Data Collection:
+    # (2)/Dock (Winmate + JLT's "Dock") were real category values already
+    # present in the ingested catalog but missing from this list entirely
+    # until 2026-08-19 - since Search by Requirements only ever offers a
+    # category as a search field if it's listed here (`categoryOrder.forEach`
+    # in sales.html), these were completely unsearchable despite being real,
+    # selectable Sales options, which is what the user meant by "Add a new
+    # option"'s category dropdown (drawn from actual data) not matching
+    # Search's category list (drawn from this constant) - the fix is this
+    # list being incomplete, not either dropdown being wrong.
+    "CANBUS",
+    "DIDO",
+    "LAN",
     "Add On Options:",
+    "Camera",
+    "Data Collection:",
+    "Data Collection: (2)",
+    "Dock",
     "IP Rating Options:",
     "Power Cable Options:",
     "Internal Wireless",
