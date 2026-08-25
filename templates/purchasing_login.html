@@ -72,6 +72,17 @@
       font-size: 13px;
       margin-bottom: 14px;
     }
+    /* Same treatment as base.html's nav-bar version-tag and login.html -
+       see login.html's comment for why this belongs on every
+       interaction-required screen, not just pages already past a PIN gate. */
+    .version-tag {
+      position: fixed;
+      right: 14px;
+      bottom: 10px;
+      font-size: 10px;
+      color: #7e94b8;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -88,5 +99,6 @@
       <button type="submit">Enter</button>
     </form>
   </div>
+  <div class="version-tag" title="Running git commit - compare against GitHub main">{{ app_version }}</div>
 </body>
 </html>

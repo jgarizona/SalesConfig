@@ -28,6 +28,26 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Added the version-tag (git commit hash, `app.py`'s `_get_app_version()`) to
+  both PIN-gate login screens (`login.html`, `purchasing_login.html`), per the user: any
+  screen requiring interaction should show it, not just pages already past a PIN gate.**
+  Neither template extends `base.html` (both are fully standalone documents, e.g. for the
+  centered-card layout), so neither had it before - added the same markup/style directly to
+  both instead, positioned `fixed` bottom-right since there's no nav bar to sit inside of. No
+  Python changes needed: `app_version` is already injected into every template's context by
+  the existing `@app.context_processor`, not just ones extending `base.html`. Verified live on
+  both `/login` and `/purchasing/login`.
+  **Related, surfaced while investigating a "something broke" report this same session (see
+  the conversation, not reproduced as an actual code bug - the real issue was a
+  misinterpreted screen reset after a hard refresh):** the version tag's value lags by one
+  commit while a session is actively committing changes, because `_get_app_version()` runs
+  `git rev-parse --short HEAD` once at process-restart time, and the dev-server's reloader
+  restarts on file *content* changes, not on `git commit` (which doesn't touch file mtimes).
+  So it always reflects whichever commit was current *before* the edit that's about to be
+  committed, not the one just committed. Confirmed directly: the running server's actual
+  served behavior (a brand-new route, a template's newest markup) was fully current while the
+  tag still showed an older hash. Not a bug to fix - just a real caveat worth knowing before
+  trusting that number mid-session; between sessions (no pending edits) it's accurate.
 - **[Claude]** **Create Quote now sets the Opportunity ID hint badge to "Manual quote: not
   tied to Hbst yet", per the user.** Had to set it *after* `clearQuote()` (which runs
   `updateOpportunityHint()` via `setButtonStates()`), not before - `oppInput` now has a value
