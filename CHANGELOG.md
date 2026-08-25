@@ -28,6 +28,13 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Added a "← Back to Sales Configurator" link on the Purchasing PIN screen,
+  per the user getting stuck there with no way out except typing a URL by hand.** Goes
+  straight to `/sales`, not back through the site login - reaching `/purchasing/login` at all
+  already requires an authenticated site session (`require_purchasing_pin` in `app.py` only
+  ever runs after `require_site_pin` has already passed), so re-prompting the site PIN too
+  would just be redundant, not a real second gate. Verified live: clicked the link from
+  `/purchasing/login` and landed on `/sales` in one step, no PIN re-entry.
 - **[Claude]** **Added the version-tag (git commit hash, `app.py`'s `_get_app_version()`) to
   both PIN-gate login screens (`login.html`, `purchasing_login.html`), per the user: any
   screen requiring interaction should show it, not just pages already past a PIN gate.**
