@@ -56,8 +56,8 @@
           <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
         </div>
         <div class="qh-buttons">
-          <button type="button" id="btn-populate-opp" class="btn" style="display:none;">Create Quote</button>
-          <button type="button" id="btn-query-hubspot" class="btn" style="display:none;">Query Hbst</button>
+          <button type="button" id="btn-populate-opp" class="btn">Create Quote</button>
+          <button type="button" id="btn-query-hubspot" class="btn">Query Hbst</button>
           <button type="button" id="btn-quote-lookup" class="btn">Find Saved Quote</button>
         </div>
       </div>
@@ -563,6 +563,15 @@
       updateCustomerAcceptVisibility();
       updateOpportunityHint();
       updateConfigAcceptState();
+      // Called here, not just at each individual call site that changes
+      // customerSource/selectedCustomer - some of those (acceptCustomer())
+      // call updateOpportunityButtonsVisibility() *before* this function,
+      // while selectedCustomer is still stale. Since this function is the
+      // one thing every one of those call sites already calls last, doing
+      // it here guarantees a correct read regardless of caller order -
+      // this exact ordering bug already bit Query Hbst's disabled state
+      // once (see CHANGELOG.md's 2026-08-25 entry).
+      updateOpportunityButtonsVisibility();
     }
 
     // Call before setCustomer() at any "the rep is choosing/confirming a
@@ -593,33 +602,33 @@
       btnCustomerAccept.classList.toggle("flash", pending && repVerified);
     }
 
+    // Create Quote, Query Hbst, and Find Saved Quote are all visible from
+    // page load, always - per the user (2026-08-25), these three being the
+    // one inconsistent exception on this page (two of them used to vanish
+    // with display:none until a customer was picked, unlike every other
+    // progressively-enabled control here - Customer Lookup, Save, Lock,
+    // etc. - which are always visible and only ever gated by .disabled)
+    // caused real confusion: a rep couldn't tell the options even existed.
+    // Both are simply disabled until a customer is selected now, same
+    // treatment as everything else.
+    //
     // "Create Quote" (renamed 2026-08-25, was "Populate") fills Opportunity
     // ID with the customer name as a starting point - needed for BOTH
     // customer paths today, not just Manual: there is no real HubSpot
     // connector yet, so a "lookup" (simulated HubSpot) customer has no more
-    // of a real deal ID behind it than a manually-typed one does. Hiding it
-    // for "lookup" originally (2026-08-17) left no way to get an Opportunity
-    // ID at all for that path short of typing directly into the field - a
-    // real dead end the user hit in testing. "Query Hbst" (added 2026-08-25)
-    // is meant to become the real tool for the "lookup" path once a Private
-    // App token exists (see hubspot_client.py) - THAT'S when Create Quote
-    // should go back to Manual-only, not before, or "lookup" customers would
-    // hit the same dead end again the moment Query Hbst comes back
-    // "not connected" (which is all it can do without a token).
+    // of a real deal ID behind it than a manually-typed one does. "Query
+    // Hbst" (added 2026-08-25) is meant to become the real tool for the
+    // "lookup" path once a Private App token exists (see hubspot_client.py)
+    // - THAT'S when Create Quote's availability could reasonably narrow to
+    // Manual-only, not before, or "lookup" customers would hit a dead end
+    // the moment Query Hbst comes back "not connected" (all it can do
+    // without a token).
     function updateOpportunityButtonsVisibility() {
       const isSimulatedHubspot = customerSource === "lookup";
       const isManual = customerSource === "manual";
-      const showButtons = isManual || isSimulatedHubspot;
 
-      btnPopulateOpp.style.display = showButtons ? "inline-block" : "none";
-      btnPopulateOpp.disabled = !repVerified;
-      btnQueryHubspot.style.display = showButtons ? "inline-block" : "none";
-      // Matches btnPopulateOpp's own disabled check above: showButtons is
-      // already false unless customerSource is "manual"/"lookup", and
-      // selectedCustomer is always kept in sync with customerSource by
-      // acceptCustomer()/setCustomer() - a separate selectedCustomer check
-      // here would just be redundant, not extra safety.
-      btnQueryHubspot.disabled = !repVerified;
+      btnPopulateOpp.disabled = !repVerified || !selectedCustomer;
+      btnQueryHubspot.disabled = !repVerified || !selectedCustomer;
 
       if (isManual) {
         customerSourceBadge.textContent = "Manual — not in HubSpot";

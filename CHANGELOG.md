@@ -28,6 +28,25 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Create Quote and Query Hbst are now always visible on page load, disabled
+  rather than hidden until a customer's picked - per the user.** These two were the one
+  inconsistent exception on this page: every other progressively-enabled control (Customer
+  Lookup, Manual Customer, Save, Lock, etc.) is always visible and only ever gated by
+  `.disabled`, but these two used `display:none` until `customerSource` was set, so a rep
+  couldn't tell the options existed at all before picking a customer - exactly the earlier
+  "options should be identified" complaint. Removed the static `style="display:none"` from
+  both buttons' HTML and dropped the display-toggling half of
+  `updateOpportunityButtonsVisibility()` entirely; both are now gated purely by `disabled =
+  !repVerified || !selectedCustomer`, matching Find Saved Quote's own always-visible treatment.
+  **Fixed the underlying ordering bug properly this time, instead of routing around it again:**
+  since `disabled` now genuinely needs `selectedCustomer` (unlike the last fix, which removed
+  that check specifically because of this same ordering issue), the call to
+  `updateOpportunityButtonsVisibility()` was moved to run *inside* `setCustomer()` itself,
+  which every call site that changes `selectedCustomer` already calls last - guaranteeing a
+  correct read regardless of caller order, rather than relying on each call site getting the
+  order right individually. Verified live end-to-end: fresh page load shows all three buttons
+  immediately (Create Quote/Query Hbst correctly disabled); rep verified alone still leaves
+  them disabled; selecting a customer enables both.
 - **[Claude]** **Added a "← Back to Sales Configurator" link on the Purchasing PIN screen,
   per the user getting stuck there with no way out except typing a URL by hand.** Goes
   straight to `/sales`, not back through the site login - reaching `/purchasing/login` at all
