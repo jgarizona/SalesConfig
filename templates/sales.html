@@ -523,15 +523,25 @@
     // state, so a rep doesn't have to scroll to the bottom every time after
     // changing an option. Keep both in sync here rather than duplicating
     // this logic anywhere else.
+    //
+    // Intended flow, per the user: Sales Rep -> Customer -> Opportunity ID ->
+    // *then* Accept Configuration. Search by Requirements is deliberately
+    // exempt (gated on repVerified alone, see btnOpenSearch in
+    // setButtonStates()) - it's a lookup tool, not part of committing a
+    // specific quote, so it's fine to use as soon as a rep is verified.
     function updateConfigAcceptState() {
+      const flowReady = repVerified && !!selectedCustomer && !!oppInput.value.trim();
       [btnAcceptConfig, btnAcceptConfigTop].forEach(btn => {
-        btn.disabled = !repVerified || configAccepted;
-        btn.classList.toggle("flash", repVerified && !configAccepted);
+        btn.disabled = !flowReady || configAccepted;
+        btn.classList.toggle("flash", flowReady && !configAccepted);
       });
       [configAcceptStatus, configAcceptStatusTop].forEach(status => {
         if (configAccepted) {
           status.textContent = "✓ Configuration accepted — Save is enabled.";
           status.style.color = "#1e5631";
+        } else if (!flowReady) {
+          status.textContent = "Select a customer and enter an Opportunity ID first.";
+          status.style.color = "";
         } else {
           status.textContent = "Review your selections below, then Accept to enable Save.";
           status.style.color = "";
@@ -550,6 +560,7 @@
       customerInput.value = selectedCustomer;
       updateCustomerAcceptVisibility();
       updateOpportunityHint();
+      updateConfigAcceptState();
     }
 
     // Call before setCustomer() at any "the rep is choosing/confirming a
@@ -1093,7 +1104,7 @@
       buildCategorySelects(platformSelect.value);
       oppInput.addEventListener("blur", refreshExistingQuotes);
       oppInput.addEventListener("change", clearQuote);
-      oppInput.addEventListener("input", updateOpportunityHint);
+      oppInput.addEventListener("input", () => { updateOpportunityHint(); updateConfigAcceptState(); });
 
       btnSave.addEventListener("click", saveQuote);
       btnLock.addEventListener("click", toggleLock);

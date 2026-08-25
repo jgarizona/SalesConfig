@@ -28,6 +28,21 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Gated Accept Configuration on Customer + Opportunity ID, not just the Sales
+  Rep, per the user hitting this live.** The intended flow is Sales Rep -> Customer ->
+  Opportunity ID -> Accept Configuration, but `updateConfigAcceptState()` only ever checked
+  `repVerified` - the user verified their rep and watched Accept Configuration immediately
+  start flashing before picking a customer at all. Added a `flowReady = repVerified &&
+  selectedCustomer && oppInput.value.trim()` check; wired `updateConfigAcceptState()` into
+  both mutation points that weren't already covered (`setCustomer()`, and typing directly into
+  the Opportunity ID field - `oppInput`'s existing `input` listener only called
+  `updateOpportunityHint()`). The status text under the button now says "Select a customer and
+  enter an Opportunity ID first" instead of always suggesting selections were ready to accept.
+  **Search by Requirements deliberately stays gated on `repVerified` alone** - per the user,
+  it's a lookup tool usable any time after the rep code, not part of committing a specific
+  quote. Verified live end-to-end: rep+code alone leaves Accept Configuration disabled/not
+  flashing while Search unlocks; customer picked with no Opportunity ID still leaves it
+  disabled; entering the Opportunity ID immediately flips it to enabled+flashing.
 - **[Claude]** **Added a hover hint pointing at the Sales Rep gate, per the user hitting this
   live: selecting a rep, then clicking a still-disabled control (Customer Lookup) before
   entering the 4-digit code, got no feedback at all.** Root cause investigated directly in a
