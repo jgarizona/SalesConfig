@@ -28,6 +28,41 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Found and fixed the real root cause behind this whole session's "can't tell
+  what's clickable" reports: `.qh-buttons .btn` never had a `:disabled` rule at all.** Confirmed
+  directly via `getComputedStyle()`, not assumed - a disabled button in this family (Customer
+  Lookup, Manual Customer, Clear, Create Quote, Query Hbst, Find Saved Quote) rendered
+  pixel-identical to an enabled one (same `#eef1f6` background, same text color), unlike every
+  other button family on this page (`.accept-btn`, `.qh-idbar .btn`, `.wselect-trigger`), which
+  all correctly grey out. Added `.qh-buttons .btn:disabled` with real muted styling, matching
+  the established convention.
+  **Also, per the user: removed the Opportunity ID row's inconsistent blinking** (Create Quote
+  only flashed on the manual path, Find Saved Quote always flashed, Query Hbst was never
+  included in the flash logic at all - three different behaviors for three buttons that are
+  conceptually one group) **and replaced it with a permanent, distinct blue color**
+  (`.btn-opp-action`, reusing the existing `#4c8dff` from `.qh-idbar .btn` rather than a new
+  color) applied to all three unconditionally. Enabled = blue, disabled = the same grey every
+  other button now correctly shows. Verified live: fresh load has all three grey/disabled;
+  verifying the rep alone leaves Create Quote/Query Hbst grey (Find Saved Quote turns blue,
+  since it's never customer-gated); selecting a customer turns all three blue.
+- **[Claude]** **Find Saved Quote now checks HubSpot first, then the local cache, and presents
+  both to pick from - per the user.** There's no native "saved quote" concept in HubSpot (the
+  native Quote object was already ruled out, see `HANDOFF.md` §9), so "check HubSpot" reuses
+  the same open-Deal lookup `Query Hbst` already does (`/api/hubspot/deals_for_customer`) -
+  a Deal is exactly what a rep would otherwise go find with that separate button anyway. Fires
+  both the HubSpot and local (`/api/quotes/all`) requests in parallel for speed; "HubSpot
+  first" is honored as **display order** (a "From HubSpot" section renders above "Saved
+  locally"), not by making the rep wait through two sequential round trips. Picking a HubSpot
+  result fills the Opportunity ID with that Deal's ID (same as Query Hbst); picking a local one
+  loads/copies it exactly as before. Added `.lookup-section-heading` CSS to separate the two
+  sections inside the existing flex-wrap results panel.
+  **A bug surfaced and was fixed during testing:** the "No saved quotes match." fallback was
+  wrongly suppressed whenever HubSpot returned its not-configured error (an error note isn't
+  real content, but the code treated it like some) - fixed so the local-empty message shows
+  regardless of what HubSpot's section did. Verified live via a controlled fetch override
+  (real customer data doesn't currently produce a true zero-local-results case, since at least
+  one manual-customer orphaned quote always exists in the seed data): both notes now render
+  together correctly.
 - **[Claude]** **Flash Customer Lookup and Manual Customer once the rep is verified and no
   customer is picked yet, per the user.** Same complaint as the earlier Sales-Rep-gate hint,
   one step later: a rep clears the gate and sees two identically-styled enabled buttons with

@@ -56,9 +56,9 @@
           <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
         </div>
         <div class="qh-buttons">
-          <button type="button" id="btn-populate-opp" class="btn">Create Quote</button>
-          <button type="button" id="btn-query-hubspot" class="btn">Query Hbst</button>
-          <button type="button" id="btn-quote-lookup" class="btn">Find Saved Quote</button>
+          <button type="button" id="btn-populate-opp" class="btn btn-opp-action">Create Quote</button>
+          <button type="button" id="btn-query-hubspot" class="btn btn-opp-action">Query Hbst</button>
+          <button type="button" id="btn-quote-lookup" class="btn btn-opp-action">Find Saved Quote</button>
         </div>
       </div>
       <div id="quote-lookup-panel" class="lookup-panel" style="display:none;"></div>
@@ -522,13 +522,11 @@
       const showHubspotNote = needsHint && customerSource === "manual";
       opportunityHubspotNote.style.display = showHubspotNote ? "inline-block" : "none";
 
-      // Flash both buttons the hint badge is pointing at - a badge alone was
-      // easy to miss. Populate only flashes when it's actually visible
-      // (manual path only, see updateOpportunityButtonsVisibility()); Lookup Saved
-      // Quote is always a valid next step regardless of customer source, so
-      // it flashes for either path.
-      btnPopulateOpp.classList.toggle("flash", needsHint && customerSource === "manual");
-      btnQuoteLookup.classList.toggle("flash", needsHint);
+      // Used to flash Create Quote/Find Saved Quote here (inconsistently -
+      // Create Quote only for the manual path, Find Saved Quote always,
+      // and Query Hbst never got included at all) - removed 2026-08-25 per
+      // the user, replaced with the permanent .btn-opp-action color on all
+      // three instead of a state-dependent animation.
     }
 
     // Two Accept Configuration buttons (top, near Save/Lock/etc - and
@@ -954,50 +952,105 @@
       // so it sees everything, same as before this feature existed.
       const scoped = customerSource === "lookup" && selectedCustomer;
       const url = scoped ? `/api/quotes/all?customer=${encodeURIComponent(selectedCustomer)}` : "/api/quotes/all";
-      const res = await fetch(url);
-      const all = await res.json();
+
+      // Per the user (2026-08-25): Find Saved Quote should check HubSpot
+      // first, then the local cache, and present everything to pick from.
+      // There's no native "saved quote" concept in HubSpot (see HANDOFF.md
+      // §9 - the native Quote object was ruled out entirely), so "check
+      // HubSpot" means the same open-Deal lookup Query Hbst already does -
+      // surfaced here too since a Deal is exactly what a rep would
+      // otherwise go find with that separate button. Fired in parallel
+      // with the local fetch for speed; "HubSpot first" is honored as
+      // display order (its section renders above the local one), not by
+      // making the rep wait through two sequential round trips.
+      const localPromise = fetch(url).then(r => r.json());
+      const hubspotPromise = selectedCustomer
+        ? fetch(`/api/hubspot/deals_for_customer?name=${encodeURIComponent(selectedCustomer)}`)
+            .then(async r => ({ ok: r.ok, data: await r.json() }))
+        : Promise.resolve(null);
+      const [all, hubspotResult] = await Promise.all([localPromise, hubspotPromise]);
+
+      const hubspotDeals = (hubspotResult && hubspotResult.ok) ? hubspotResult.data.deals : [];
+      const hubspotError = (hubspotResult && !hubspotResult.ok) ? hubspotResult.data.error : null;
 
       // Distinct from the per-keystroke "No saved quotes match." inside the
       // panel below (that one reacts to the filter text) - this is the
-      // one-time "we asked, there's genuinely nothing" result for whatever
-      // was loaded before any filtering, surfaced in the same badge Query
-      // Hbst uses for its own no-match case, per the user.
-      if (all.length === 0) {
+      // one-time "we asked, there's genuinely nothing anywhere" result for
+      // what was loaded before any filtering, surfaced in the same badge
+      // Query Hbst uses for its own no-match case.
+      if (all.length === 0 && hubspotDeals.length === 0) {
         opportunityHintBadge.textContent = "No saved quote found";
         opportunityHintBadge.className = "source-badge hint show";
       }
 
       function render() {
         const q = filterInput.value.trim().toLowerCase();
-        const filtered = !q ? all : all.filter(item =>
+        const filteredLocal = !q ? all : all.filter(item =>
           (item.customer || "").toLowerCase().includes(q) ||
           item.opportunity_id.toLowerCase().includes(q) ||
           item.platform.toLowerCase().includes(q) ||
           item.display_id.toLowerCase().includes(q)
         );
+        const filteredHubspot = !q ? hubspotDeals : hubspotDeals.filter(d =>
+          (d.name || "").toLowerCase().includes(q)
+        );
         resultsDiv.innerHTML = "";
-        if (filtered.length === 0) {
-          resultsDiv.innerHTML = '<span class="muted">No saved quotes match.</span>';
-          return;
-        }
-        filtered.forEach(item => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "btn quote-chip";
-          const cust = item.customer ? item.customer + " — " : "";
-          const isForeign = scoped && item.customer !== selectedCustomer;
-          btn.textContent = `${cust}${item.display_id}${item.locked ? " 🔒" : ""} — ${item.platform}` +
-            (isForeign ? " (copy config to " + selectedCustomer + ")" : "");
-          btn.addEventListener("click", () => {
-            if (isForeign) {
-              copyQuoteConfigToCurrentCustomer(item.opportunity_id, item.quote_number);
-            } else {
-              loadQuote(item.opportunity_id, item.quote_number);
-            }
-            quoteLookupPanel.style.display = "none";
+
+        if (filteredHubspot.length > 0) {
+          const heading = document.createElement("div");
+          heading.className = "lookup-section-heading";
+          heading.textContent = "From HubSpot";
+          resultsDiv.appendChild(heading);
+          filteredHubspot.forEach(deal => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn quote-chip";
+            const amount = deal.amount ? ` — $${deal.amount}` : "";
+            btn.textContent = `${deal.name}${amount}${deal.stage ? " (" + deal.stage + ")" : ""}`;
+            btn.addEventListener("click", () => {
+              oppInput.value = deal.id;
+              clearQuote();
+              refreshExistingQuotes();
+              quoteLookupPanel.style.display = "none";
+            });
+            resultsDiv.appendChild(btn);
           });
-          resultsDiv.appendChild(btn);
-        });
+        } else if (hubspotError) {
+          const note = document.createElement("div");
+          note.className = "muted";
+          note.textContent = "HubSpot: " + hubspotError;
+          resultsDiv.appendChild(note);
+        }
+
+        if (filteredLocal.length > 0) {
+          const heading = document.createElement("div");
+          heading.className = "lookup-section-heading";
+          heading.textContent = "Saved locally";
+          resultsDiv.appendChild(heading);
+          filteredLocal.forEach(item => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn quote-chip";
+            const cust = item.customer ? item.customer + " — " : "";
+            const isForeign = scoped && item.customer !== selectedCustomer;
+            btn.textContent = `${cust}${item.display_id}${item.locked ? " 🔒" : ""} — ${item.platform}` +
+              (isForeign ? " (copy config to " + selectedCustomer + ")" : "");
+            btn.addEventListener("click", () => {
+              if (isForeign) {
+                copyQuoteConfigToCurrentCustomer(item.opportunity_id, item.quote_number);
+              } else {
+                loadQuote(item.opportunity_id, item.quote_number);
+              }
+              quoteLookupPanel.style.display = "none";
+            });
+            resultsDiv.appendChild(btn);
+          });
+        } else {
+          // Shows regardless of what the HubSpot section above did (results,
+          // an error note, or nothing) - an error note isn't "content" that
+          // should silently stand in for "local has nothing either".
+          resultsDiv.insertAdjacentHTML("beforeend", '<span class="muted">No saved quotes match.</span>');
+        }
       }
       filterInput.addEventListener("input", render);
       filterInput.focus();
