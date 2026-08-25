@@ -28,6 +28,28 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Reused the revision browser's read-only summary panel for the live,
+  not-yet-saved configuration too - shown right after Accept Configuration, per the user
+  liking that panel's look and wanting the same treatment there.** Extracted the shared
+  rendering (`buildConfigSummaryHtml()` in `sales.html`) so both the historical-revision view
+  and this new live-config view come from one function instead of duplicating the markup -
+  the historical one (`updateRevisionNav()`) was refactored to use it too, not just the new
+  case. New `#accepted-config-summary` panel (separate element from `#revision-viewer`,
+  same `.lookup-panel`/`.revision-table` styling) sits directly under the bottom Accept
+  Configuration button, populated by reading the live category widgets the same way
+  `recalcDisplay()` already does for the on-screen totals/draft part number. Hidden again by
+  `onUserChange()` the moment anything changes - a stale "accepted" summary for selections
+  that no longer match would be actively misleading, not just outdated - and by
+  `showQuote()`/`clearQuote()` when a different quote loads.
+  **Formatting, per the user's exact spec:** the draft part number is now its own bold, larger
+  line at the top of the summary (previously buried mid-sentence next to Floor/MSRP); the
+  Base Unit row gets the same larger/bold treatment (new `.config-summary-baseunit` class,
+  15px bold vs. the table's base 12px) since it's the one row that anchors the whole
+  configuration; every other row stays at that uniform 12px - already true before, unaffected.
+  Verified live: Accept Configuration on a fresh default config shows the panel immediately
+  with the correct bold part number and bold Base Unit row; simulating an edit afterward
+  hides it again; the historical revision browser (re-tested against a fresh two-revision
+  quote after the refactor) still renders correctly with the same new formatting.
 - **[Claude]** **Built real quote revision history and a browser for it, resolving a known
   limitation.** The user asked for up/down-arrow revision browsing next to Copy to New
   Opportunity; before building it, checked how Save actually works and found saving a new

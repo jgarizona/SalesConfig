@@ -126,6 +126,7 @@
         <button type="button" id="btn-accept-config" class="btn accept-btn" disabled>Accept Configuration</button>
         <span id="config-accept-status" class="config-accept-status">Review your selections above, then Accept to enable Save.</span>
       </div>
+      <div id="accepted-config-summary" class="lookup-panel" style="display:none;"></div>
     </div>
 
     <div id="search-overlay" class="search-overlay" style="display:none;">
@@ -244,6 +245,7 @@
     const btnRevDown = document.getElementById("btn-rev-down");
     const revNavLabel = document.getElementById("rev-nav-label");
     const revisionViewer = document.getElementById("revision-viewer");
+    const acceptedConfigSummary = document.getElementById("accepted-config-summary");
     const btnCustomerLookup = document.getElementById("btn-customer-lookup");
     const btnCustomerNew = document.getElementById("btn-customer-new");
     const btnCustomerClear = document.getElementById("btn-customer-clear");
@@ -456,6 +458,10 @@
       configAccepted = false;
       updateConfigAcceptState();
       markDirty();
+      // Whatever summary was showing no longer reflects the current
+      // selections once something's changed - it needs a fresh Accept to
+      // come back, same as Save does.
+      hideAcceptedConfigSummary();
     }
 
     function markDirty() {
@@ -580,6 +586,7 @@
       if (!repVerified) return;
       configAccepted = true;
       setButtonStates();
+      showAcceptedConfigSummary();
     }
 
     function setCustomer(name) {
@@ -683,6 +690,7 @@
       quoteStatus.className = "quote-status " + (q.locked ? "locked" : "saved");
       setButtonStates();
       loadQuoteRevisions(q.opportunity_id, q.quote_number);
+      hideAcceptedConfigSummary();
     }
 
     // Changing the Opportunity ID text means we might be talking about a
@@ -697,6 +705,7 @@
       quoteRevisions = [];
       revisionIndex = -1;
       updateRevisionNav();
+      hideAcceptedConfigSummary();
     }
 
     // ------------------------------------------------------ revision browser
@@ -711,6 +720,30 @@
       quoteRevisions = res.ok ? await res.json() : [];
       revisionIndex = quoteRevisions.length - 1;
       updateRevisionNav();
+    }
+
+    // Shared by the revision browser and the "just accepted" summary (added
+    // 2026-08-25, per the user liking the revision browser's look and
+    // wanting the same treatment after Accept Configuration) - one
+    // rendering path for "here is a specific configuration, read-only",
+    // whether that configuration is a stored past revision or the live
+    // in-progress one. metaHtml is an optional line above everything else
+    // (used for the revision browser's "Viewing Rev N..." note; omitted for
+    // the accepted-config case, which doesn't need it). Base Unit gets its
+    // own larger/bold row per the user - every other row stays uniform.
+    function buildConfigSummaryHtml(metaHtml, brand, platform, partNumber, floorTotal, msrpTotal, rows) {
+      const lineRows = rows.map(s => {
+        const isBaseUnit = s.category === "Base Unit:";
+        return `<tr class="${isBaseUnit ? "config-summary-baseunit" : ""}">
+          <td>${s.category}</td><td>${s.code || ""}</td><td>${s.description || ""}</td>
+        </tr>`;
+      }).join("");
+      return `
+        ${metaHtml ? `<div class="muted" style="margin-bottom:6px;">${metaHtml}</div>` : ""}
+        <div class="config-summary-partnum">Part # (draft): ${partNumber}</div>
+        <div class="config-summary-meta">${brand} ${platform} — Floor ${formatMoney(floorTotal)} / MSRP ${formatMoney(msrpTotal)}</div>
+        <table class="revision-table"><tbody>${lineRows}</tbody></table>
+      `;
     }
 
     function updateRevisionNav() {
@@ -734,24 +767,50 @@
         return;
       }
       revisionViewer.style.display = "block";
-      const lineRows = rev.selections.map(s =>
-        `<tr><td>${s.category}</td><td>${s.code || ""}</td><td>${s.description || ""}</td></tr>`
-      ).join("");
-      revisionViewer.innerHTML = `
-        <div class="muted" style="margin-bottom:6px;">
-          Viewing Rev ${rev.rev_number} of ${rev.display_id} — saved ${rev.updated_at} by ${rev.sales_rep || "?"}
-          — read-only, use the arrows or Save's own flow to return to the current revision.
-        </div>
-        <div><strong>${rev.brand} ${rev.platform}</strong> — Part #: ${rev.part_number}
-          — Floor $${rev.floor_total} / MSRP $${rev.msrp_total}</div>
-        <table class="revision-table"><tbody>${lineRows}</tbody></table>
-      `;
+      const meta = `Viewing Rev ${rev.rev_number} of ${rev.display_id} — saved ${rev.updated_at} by ${rev.sales_rep || "?"}
+        — read-only, use the arrows or Save's own flow to return to the current revision.`;
+      revisionViewer.innerHTML = buildConfigSummaryHtml(
+        meta, rev.brand, rev.platform, rev.part_number, rev.floor_total, rev.msrp_total, rev.selections
+      );
     }
 
     function navigateRevision(direction) {
       if (quoteRevisions.length <= 1) return;
       revisionIndex = (revisionIndex + direction + quoteRevisions.length) % quoteRevisions.length;
       updateRevisionNav();
+    }
+
+    // Reads the live, not-yet-saved category widgets directly - same
+    // technique recalcDisplay() already uses for the live totals/draft part
+    // number, kept separate rather than having recalcDisplay() also build
+    // this (it runs on every single option change, this only needs to run
+    // once per Accept click).
+    function buildLiveConfigRows() {
+      const widgets = categoryContainer.querySelectorAll(".wselect");
+      return Array.from(widgets).map(w => {
+        const opt = w._getSelected();
+        return { category: w.dataset.category, code: opt.code, description: opt.description };
+      });
+    }
+
+    function showAcceptedConfigSummary() {
+      const widgets = categoryContainer.querySelectorAll(".wselect");
+      let floorTotal = 0, msrpTotal = 0;
+      widgets.forEach(w => {
+        const opt = w._getSelected();
+        floorTotal += moneyValue(opt["Floor Price"]);
+        msrpTotal += moneyValue(opt["MSRP"]);
+      });
+      const rows = buildLiveConfigRows();
+      const partNumber = [platformSelect.value, ...rows.map(r => r.code)].join("-");
+      acceptedConfigSummary.innerHTML = buildConfigSummaryHtml(
+        null, brandSelect.value, platformSelect.value, partNumber, floorTotal, msrpTotal, rows
+      );
+      acceptedConfigSummary.style.display = "block";
+    }
+
+    function hideAcceptedConfigSummary() {
+      acceptedConfigSummary.style.display = "none";
     }
 
     function showMessage(msg, isError) {

@@ -568,6 +568,15 @@ button:hover, .btn:hover { background: #143a6b; }
 .revision-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .revision-table td { padding: 4px 6px; border-bottom: 1px solid #e2e7f0; }
 .revision-table td:first-child { color: #6b7688; white-space: nowrap; }
+/* Base Unit is the one row that anchors the whole configuration - made to
+   stand out from the otherwise-uniform row size, per the user (2026-08-25).
+   Every other row in this table stays at the base 12px above. */
+.revision-table tr.config-summary-baseunit td { font-size: 15px; font-weight: bold; color: #0b2545; }
+
+/* Shared by the revision browser and the post-Accept-Configuration summary
+   (added 2026-08-25) - see buildConfigSummaryHtml() in sales.html. */
+.config-summary-partnum { font-size: 16px; font-weight: bold; color: #0b2545; margin-bottom: 2px; }
+.config-summary-meta { font-size: 12px; color: #6b7688; margin-bottom: 8px; }
 
 .lookup-panel {
   background: #f7f8fa;
