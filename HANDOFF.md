@@ -1040,16 +1040,24 @@ quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
 
 ## 9. HubSpot / Jeeves — what stands in for them today
 
-**Update, same day:** the code below is now written (`hubspot_client.py`, plus new routes in
-`app.py`) but deliberately **dormant** — nothing in the UI calls any of it yet, per the user
-("do not change where the buttons point to... effectively not active"). It exists so the
-integration is ready and reviewable the moment a real Private App token exists, not so it can
-be tested today — there is no token yet (`data/hubspot_config.json`'s `access_token` is
-`null`), so every function in `hubspot_client.py` currently raises `HubSpotNotConfigured` if
-called. The Sales page's "Upload Hspt" button and free-typed Opportunity ID field still point
-at exactly what they always have (`api_quote_upload()`'s stub, local `customers.json`/
-`quotes.json` lookups) — confirmed unchanged by curling both the old stub and the new dormant
-route side by side during this same session.
+**Update, same day:** the code below was first written (`hubspot_client.py`, plus new routes in
+`app.py`) deliberately **dormant**, per the user ("do not change where the buttons point
+to... effectively not active") — it existed so the integration was ready and reviewable the
+moment a real Private App token exists, not so it could be tested that day. There is still no
+token (`data/hubspot_config.json`'s `access_token` is `null`), so every function in
+`hubspot_client.py` still raises `HubSpotNotConfigured` if called — nothing below changes that.
+
+**Later the same day, the user explicitly asked for the first piece of this to actually be
+wired to the UI** (Sales' Opportunity ID row: `Populate` → **Create Quote**, plus a new
+**Query Hbst** button, plus `Lookup Saved Quote` → **Find Saved Quote**) — see
+`CHANGELOG.md`'s dated entry for the full spec (the exact three button labels, and the three
+distinct messages the Opportunity ID hint badge now shows: "HubSpot isn't connected yet" / "No
+Request found in Hbst" / "No saved quote found"). Query Hbst is real, tested code that calls
+the dormant integration for real over the network — it just can't succeed yet without a token,
+which is itself a correctly-surfaced state ("HubSpot isn't connected yet"), not a stub. The
+Sales page's "Upload Hspt" button and the rest of the free-typed Opportunity ID flow are
+untouched and still point at exactly what they always have (`api_quote_upload()`'s stub) —
+only the Opportunity ID row's three buttons changed.
 
 **What's actually unverified in the new code, because there is nothing to test against yet:**
 - `hubspot_client.ASSOCIATION_TYPE_LINE_ITEM_TO_DEAL` (`20`) and

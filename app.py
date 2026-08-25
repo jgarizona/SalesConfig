@@ -1850,6 +1850,23 @@ def api_hubspot_company_deals(company_id):
         return jsonify({"error": str(exc)}), 502
 
 
+@app.route("/api/hubspot/deals_for_customer")
+def api_hubspot_deals_for_customer():
+    """Backs the Sales page's "Query Hbst" button (added 2026-08-25) -
+    takes just a customer name, since the browser doesn't track a HubSpot
+    company ID today, and resolves name -> company -> open deals in one
+    round trip."""
+    name = (request.args.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required."}), 400
+    try:
+        return jsonify(hubspot_client.find_open_deals_for_customer_name(name))
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+
 @app.route("/api/quotes/<path:opportunity_id>/<int:quote_number>/hubspot/push", methods=["POST"])
 def api_quote_hubspot_push(opportunity_id, quote_number):
     quotes = load_quotes()

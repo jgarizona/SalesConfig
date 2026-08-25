@@ -165,6 +165,22 @@ def search_customers(query, limit=10):
 
 # --------------------------------------------------------------- 2. deal lookup
 
+def find_open_deals_for_customer_name(name):
+    """The "Query Hbst" button (added 2026-08-25) calls this with just a
+    customer name - Sales doesn't track a HubSpot company ID in the
+    browser today, so this resolves name -> company -> open deals in one
+    call instead of making the frontend orchestrate both steps. Takes the
+    first company match if more than one comes back; there's no picker UI
+    for that yet, since there's nothing to test one against without a
+    Private App token."""
+    companies = search_customers(name, limit=1)
+    if not companies:
+        return {"matched_company": False, "company": None, "deals": []}
+    company = companies[0]
+    deals = get_open_deals_for_company(company["id"])
+    return {"matched_company": True, "company": company, "deals": deals}
+
+
 def get_open_deals_for_company(company_id):
     """Follows HubSpot's real association graph rather than searching by
     name - see HANDOFF.md §9 for why a name search was ruled out. Returns

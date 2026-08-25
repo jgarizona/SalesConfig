@@ -56,8 +56,9 @@
           <input type="text" id="opportunity-id" placeholder="e.g. a customer/deal name or ID">
         </div>
         <div class="qh-buttons">
-          <button type="button" id="btn-populate-opp" class="btn" style="display:none;">Populate</button>
-          <button type="button" id="btn-quote-lookup" class="btn">Lookup Saved Quote</button>
+          <button type="button" id="btn-populate-opp" class="btn" style="display:none;">Create Quote</button>
+          <button type="button" id="btn-query-hubspot" class="btn" style="display:none;">Query Hbst</button>
+          <button type="button" id="btn-quote-lookup" class="btn">Find Saved Quote</button>
         </div>
       </div>
       <div id="quote-lookup-panel" class="lookup-panel" style="display:none;"></div>
@@ -233,6 +234,7 @@
     const btnCustomerAccept = document.getElementById("btn-customer-accept");
     const btnQuoteLookup = document.getElementById("btn-quote-lookup");
     const btnPopulateOpp = document.getElementById("btn-populate-opp");
+    const btnQueryHubspot = document.getElementById("btn-query-hubspot");
     const customerSourceBadge = document.getElementById("customer-source-badge");
     const opportunityHintBadge = document.getElementById("opportunity-hint-badge");
     const opportunityHubspotNote = document.getElementById("opportunity-hubspot-note");
@@ -491,7 +493,7 @@
       updateConfigAcceptState();
 
       updateCustomerAcceptVisibility();
-      updatePopulateVisibility();
+      updateOpportunityButtonsVisibility();
       updateOpportunityHint();
     }
 
@@ -503,7 +505,7 @@
       opportunityHintBadge.textContent = needsHint ? "Select one →" : "";
       opportunityHintBadge.className = "source-badge hint" + (needsHint ? " show" : "");
       // Only for the "manual" path (typed + Accept) - a "lookup" selection is
-      // simulating a real HubSpot pull (see updatePopulateVisibility()), so
+      // simulating a real HubSpot pull (see updateOpportunityButtonsVisibility()), so
       // showing "not connected" there would contradict the customer badge
       // right above it.
       const showHubspotNote = needsHint && customerSource === "manual";
@@ -511,7 +513,7 @@
 
       // Flash both buttons the hint badge is pointing at - a badge alone was
       // easy to miss. Populate only flashes when it's actually visible
-      // (manual path only, see updatePopulateVisibility()); Lookup Saved
+      // (manual path only, see updateOpportunityButtonsVisibility()); Lookup Saved
       // Quote is always a valid next step regardless of customer source, so
       // it flashes for either path.
       btnPopulateOpp.classList.toggle("flash", needsHint && customerSource === "manual");
@@ -591,21 +593,33 @@
       btnCustomerAccept.classList.toggle("flash", pending && repVerified);
     }
 
-    // Populate fills Opportunity ID with the customer name as a starting
-    // point - needed for BOTH customer paths today, not just Manual: there
-    // is no real HubSpot connector yet, so a "lookup" (simulated HubSpot)
-    // customer has no more of a real deal ID behind it than a manually-typed
-    // one does. Hiding it for "lookup" originally (2026-08-17) left no way
-    // to get an Opportunity ID at all for that path short of typing directly
-    // into the field - a real dead end the user hit in testing. Once a real
-    // connector exists and can supply a genuine deal ID for "lookup"
-    // customers, THAT'S when this should go back to Manual-only.
-    function updatePopulateVisibility() {
+    // "Create Quote" (renamed 2026-08-25, was "Populate") fills Opportunity
+    // ID with the customer name as a starting point - needed for BOTH
+    // customer paths today, not just Manual: there is no real HubSpot
+    // connector yet, so a "lookup" (simulated HubSpot) customer has no more
+    // of a real deal ID behind it than a manually-typed one does. Hiding it
+    // for "lookup" originally (2026-08-17) left no way to get an Opportunity
+    // ID at all for that path short of typing directly into the field - a
+    // real dead end the user hit in testing. "Query Hbst" (added 2026-08-25)
+    // is meant to become the real tool for the "lookup" path once a Private
+    // App token exists (see hubspot_client.py) - THAT'S when Create Quote
+    // should go back to Manual-only, not before, or "lookup" customers would
+    // hit the same dead end again the moment Query Hbst comes back
+    // "not connected" (which is all it can do without a token).
+    function updateOpportunityButtonsVisibility() {
       const isSimulatedHubspot = customerSource === "lookup";
       const isManual = customerSource === "manual";
+      const showButtons = isManual || isSimulatedHubspot;
 
-      btnPopulateOpp.style.display = (isManual || isSimulatedHubspot) ? "inline-block" : "none";
+      btnPopulateOpp.style.display = showButtons ? "inline-block" : "none";
       btnPopulateOpp.disabled = !repVerified;
+      btnQueryHubspot.style.display = showButtons ? "inline-block" : "none";
+      // Matches btnPopulateOpp's own disabled check above: showButtons is
+      // already false unless customerSource is "manual"/"lookup", and
+      // selectedCustomer is always kept in sync with customerSource by
+      // acceptCustomer()/setCustomer() - a separate selectedCustomer check
+      // here would just be redundant, not extra safety.
+      btnQueryHubspot.disabled = !repVerified;
 
       if (isManual) {
         customerSourceBadge.textContent = "Manual — not in HubSpot";
@@ -626,7 +640,7 @@
       // Accept Configuration click before the *next* save is allowed.
       configAccepted = false;
       customerSource = "";
-      updatePopulateVisibility();
+      updateOpportunityButtonsVisibility();
       setCustomer(q.customer || "");
       const lockedTxt = q.locked ? " (LOCKED)" : "";
       quoteStatus.textContent = `Quote ${q.display_id}${lockedTxt} — saved ${q.updated_at}`;
@@ -678,10 +692,10 @@
         btn.textContent = c.name;
         btn.addEventListener("click", () => {
           // Picking a customer via Customer Lookup simulates a HubSpot pull
-          // (no real connector yet - see updatePopulateVisibility()), so this
+          // (no real connector yet - see updateOpportunityButtonsVisibility()), so this
           // is always "lookup" regardless of the record's real `source` field.
           customerSource = "lookup";
-          updatePopulateVisibility();
+          updateOpportunityButtonsVisibility();
           resetOpportunityIfCustomerChanging(c.name);
           setCustomer(c.name);
           customerPanel.style.display = "none";
@@ -705,7 +719,7 @@
     // that's clicked (or Enter is pressed as a shortcut for the same thing).
     async function acceptCustomer() {
       const name = customerInput.value.trim();
-      if (!name) { customerSource = ""; updatePopulateVisibility(); resetOpportunityIfCustomerChanging(""); setCustomer(""); return; }
+      if (!name) { customerSource = ""; updateOpportunityButtonsVisibility(); resetOpportunityIfCustomerChanging(""); setCustomer(""); return; }
       if (name === selectedCustomer) { updateCustomerAcceptVisibility(); return; }
 
       const res = await fetch("/api/customers", {
@@ -715,7 +729,7 @@
       const data = await res.json();
       if (!res.ok) { showMessage(data.error || "Could not create customer.", true); return; }
       customerSource = "manual";
-      updatePopulateVisibility();
+      updateOpportunityButtonsVisibility();
       resetOpportunityIfCustomerChanging(data.name);
       setCustomer(data.name);
       showMessage("Added customer " + data.name + ".", false);
@@ -726,6 +740,43 @@
       oppInput.value = selectedCustomer;
       clearQuote();
       refreshExistingQuotes();
+    }
+
+    // "Query Hbst" - added 2026-08-25, calls the dormant HubSpot integration
+    // (see hubspot_client.py / HANDOFF.md §9). Works for either customer
+    // path: passes just the customer name and lets the backend resolve it
+    // (search HubSpot Companies by name, then follow that company's real
+    // Associations graph to its open Deals) rather than requiring this page
+    // to already know a HubSpot company ID, which it doesn't track today.
+    // Can't be exercised end-to-end without a Private App token - until one
+    // exists, every call hits the "not configured" branch below, which is
+    // itself a real, correct result to show, not an error being hidden.
+    // If more than one open deal comes back, this takes the first one - no
+    // picker UI yet (nothing to test one against without a token; revisit
+    // once real multi-deal results are possible).
+    async function queryHubspotDeal() {
+      if (!selectedCustomer) return;
+      showMessage("Querying HubSpot…", false);
+      const res = await fetch(`/api/hubspot/deals_for_customer?name=${encodeURIComponent(selectedCustomer)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        opportunityHintBadge.textContent = "HubSpot isn't connected yet";
+        opportunityHintBadge.className = "source-badge hint show";
+        showMessage(data.error || "HubSpot query failed.", true);
+        return;
+      }
+      if (!data.matched_company || data.deals.length === 0) {
+        opportunityHintBadge.textContent = "No Request found in Hbst";
+        opportunityHintBadge.className = "source-badge hint show";
+        showMessage("No matching HubSpot deal found for " + selectedCustomer + ".", true);
+        return;
+      }
+
+      oppInput.value = data.deals[0].id;
+      clearQuote();
+      refreshExistingQuotes();
+      showMessage(`Found HubSpot deal "${data.deals[0].name}" — Opportunity ID filled in.`, false);
     }
 
     function focusManualCustomer() {
@@ -744,7 +795,7 @@
       customerSource = "";
       resetOpportunityIfCustomerChanging("");
       setCustomer("");
-      updatePopulateVisibility();
+      updateOpportunityButtonsVisibility();
       showMessage("", false);
       customerInput.focus();
     }
@@ -874,6 +925,16 @@
       const url = scoped ? `/api/quotes/all?customer=${encodeURIComponent(selectedCustomer)}` : "/api/quotes/all";
       const res = await fetch(url);
       const all = await res.json();
+
+      // Distinct from the per-keystroke "No saved quotes match." inside the
+      // panel below (that one reacts to the filter text) - this is the
+      // one-time "we asked, there's genuinely nothing" result for whatever
+      // was loaded before any filtering, surfaced in the same badge Query
+      // Hbst uses for its own no-match case, per the user.
+      if (all.length === 0) {
+        opportunityHintBadge.textContent = "No saved quote found";
+        opportunityHintBadge.className = "source-badge hint show";
+      }
 
       function render() {
         const q = filterInput.value.trim().toLowerCase();
@@ -1118,6 +1179,7 @@
       btnCustomerAccept.addEventListener("click", acceptCustomer);
       btnQuoteLookup.addEventListener("click", openQuoteLookup);
       btnPopulateOpp.addEventListener("click", populateOpportunityId);
+      btnQueryHubspot.addEventListener("click", queryHubspotDeal);
       btnAcceptConfig.addEventListener("click", acceptConfiguration);
       btnAcceptConfigTop.addEventListener("click", acceptConfiguration);
       btnOpenSearch.addEventListener("click", openSearchModal);
@@ -1166,7 +1228,7 @@
       });
 
       loadSalesReps();
-      updatePopulateVisibility();
+      updateOpportunityButtonsVisibility();
 
       // One delegated listener for every wrapping-select widget (category
       // dropdowns + Search modal fields), instead of one per widget - those

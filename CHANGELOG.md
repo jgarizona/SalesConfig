@@ -28,6 +28,43 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Renamed Populate/Lookup Saved Quote and added a third button, "Query Hbst",
+  which is the first piece of the dormant HubSpot integration actually wired to the UI - per
+  the user's explicit spec.** The Opportunity ID button row is now **Create Quote** (was
+  Populate, same unchanged behavior - just fills the field with the customer name, no HubSpot
+  connector needed), **Query Hbst** (new), and **Find Saved Quote** (was Lookup Saved Quote,
+  same unchanged behavior). Query Hbst calls the dormant HubSpot integration for real: a new
+  `hubspot_client.find_open_deals_for_customer_name()` takes just a customer name (the browser
+  has never tracked a HubSpot company ID, so this resolves name -> company -> open deals in
+  one round trip via a new `/api/hubspot/deals_for_customer` route) rather than requiring the
+  frontend to already have a company ID. Shown for both customer paths (Manual and
+  Customer-Lookup/simulated-HubSpot), same as Create Quote, and for the same reason recorded
+  in the existing 2026-08-17 comment: narrowing either to Manual-only has to wait until Query
+  Hbst can actually succeed for the "lookup" path, or it recreates the exact dead end that
+  comment already describes fixing once before.
+  Per the user's exact spec: the Opportunity ID hint badge (the "Select one →" pill) now also
+  carries the *result* of the last lookup attempted, not just the "what to do next" hint -
+  **"HubSpot isn't connected yet"** if Query Hbst can't even check (no Private App token -
+  this is what it shows today, verified live, and is a distinct, honest state from the next
+  one), **"No Request found in Hbst"** if it checked and found nothing, and **"No saved quote
+  found"** if Find Saved Quote's initial (unfiltered) load comes back empty - distinct from the
+  existing per-keystroke "No saved quotes match." inside that panel, which reacts to the
+  filter text instead.
+  A real ordering bug surfaced and was fixed during this: `acceptCustomer()` calls the renamed
+  `updateOpportunityButtonsVisibility()` (was `updatePopulateVisibility()`, extended to cover
+  both buttons) *before* `setCustomer()` updates `selectedCustomer`, so an initial `disabled =
+  !repVerified || !selectedCustomer` check on Query Hbst evaluated against the stale (empty)
+  value. Fixed by dropping the `selectedCustomer` check entirely, matching Create Quote's own
+  existing `disabled` condition (`!repVerified` alone) - the button is only ever visible once
+  `customerSource` is "manual"/"lookup", which only happens in lockstep with `selectedCustomer`
+  being set, so the extra check was redundant, not extra safety, once traced through.
+  Verified live end-to-end, not just written: rep+customer selected -> both new/renamed
+  buttons show enabled; clicking Query Hbst with no token configured produces the real 503 from
+  `hubspot_client.HubSpotNotConfigured` and shows the honest "not connected" badge text (not
+  the empty-result text); clicking Find Saved Quote for a customer with a genuine zero-result
+  set (verified via a controlled fetch override, since the seeded seed data always has at
+  least one orphaned manual-customer quote that satisfies the existing scoping rule) shows
+  "No saved quote found".
 - **[Claude]** **Gated Accept Configuration on Customer + Opportunity ID, not just the Sales
   Rep, per the user hitting this live.** The intended flow is Sales Rep -> Customer ->
   Opportunity ID -> Accept Configuration, but `updateConfigAcceptState()` only ever checked
