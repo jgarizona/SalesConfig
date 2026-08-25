@@ -550,6 +550,27 @@ def display_id(q):
     return f"{q['opportunity_id']}-{q['quote_number']}-{q['rev_number']}"
 
 
+def revision_snapshot(q):
+    """Captures everything about a quote that actually changes between
+    revisions - added 2026-08-25 to fix the known limitation that a new
+    revision used to overwrite the previous one's data in place, with
+    nothing kept to browse back through (see CHANGELOG.md's Pending/TODO).
+    Deliberately excludes `locked` - that's a current-quote-level concept,
+    not something meaningful to track per historical revision."""
+    return {
+        "rev_number": q["rev_number"],
+        "customer": q.get("customer", ""),
+        "brand": q.get("brand", "JLT"),
+        "platform": q["platform"],
+        "selections": q["selections"],
+        "floor_total": q["floor_total"],
+        "msrp_total": q["msrp_total"],
+        "part_number": q["part_number"],
+        "sales_rep": q.get("sales_rep", ""),
+        "updated_at": q["updated_at"],
+    }
+
+
 def next_quote_number(quotes, opportunity_id):
     nums = [q["quote_number"] for q in quotes.values() if q["opportunity_id"] == opportunity_id]
     return max(nums, default=0) + 1
@@ -1560,6 +1581,26 @@ def api_quote_get(opportunity_id, quote_number):
     return jsonify(out)
 
 
+@app.route("/api/quotes/<path:opportunity_id>/<int:quote_number>/revisions")
+def api_quote_revisions(opportunity_id, quote_number):
+    """Backs the revision browser next to Copy to New Opportunity (added
+    2026-08-25). Returns the real stored history for quotes saved since
+    revision_snapshot() started running - a quote saved entirely before
+    that will only show whatever revisions accumulated from the next time
+    it was edited onward, since nothing earlier was ever kept to recover."""
+    quotes = load_quotes()
+    q = quotes.get(lineage_key(opportunity_id, quote_number))
+    if q is None:
+        return jsonify({"error": "not found"}), 404
+    revisions = q.get("revisions") or [revision_snapshot(q)]
+    out = []
+    for r in revisions:
+        r = dict(r)
+        r["display_id"] = f"{opportunity_id}-{quote_number}-{r['rev_number']}"
+        out.append(r)
+    return jsonify(out)
+
+
 @app.route("/api/quotes/save", methods=["POST"])
 def api_quote_save():
     body = request.get_json(force=True)
@@ -1596,6 +1637,13 @@ def api_quote_save():
             return jsonify({"error": "Quote not found."}), 404
         if q["locked"]:
             return jsonify({"error": "This quote is locked. Unlock it before making changes."}), 400
+        # Backfill for a quote saved before revision history existed
+        # (2026-08-25) - captures the state about to be superseded so
+        # everything from this point forward is real history, even though
+        # whatever was already overwritten before this feature existed
+        # can't be recovered. A no-op for any quote that already has this.
+        if "revisions" not in q:
+            q["revisions"] = [revision_snapshot(q)]
         # Rev bumps on any REAL content change to an already-saved quote,
         # regardless of lock history - the original rule ("only bump if the
         # quote was ever locked") didn't match what a rep actually expects:
@@ -1620,6 +1668,8 @@ def api_quote_save():
         q["part_number"] = part_number
         q["sales_rep"] = sales_rep
         q["updated_at"] = now
+        if config_changed:
+            q["revisions"].append(revision_snapshot(q))
     else:
         quote_number = next_quote_number(quotes, opportunity_id)
         key = lineage_key(opportunity_id, quote_number)
@@ -1641,6 +1691,7 @@ def api_quote_save():
             "created_at": now,
             "updated_at": now,
         }
+        q["revisions"] = [revision_snapshot(q)]
         quotes[key] = q
 
     # Every save locks the quote (added 2026-08-17, per the user) - a saved
@@ -1722,6 +1773,7 @@ def api_quote_copy(opportunity_id, quote_number):
         "created_at": now,
         "updated_at": now,
     }
+    new_q["revisions"] = [revision_snapshot(new_q)]
     quotes[lineage_key(new_opportunity_id, new_quote_number)] = new_q
     save_quotes(quotes)
 

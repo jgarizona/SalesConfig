@@ -541,6 +541,34 @@ button:hover, .btn:hover { background: #143a6b; }
 .qh-idbar .btn:hover:not(:disabled) { background: #6ba1ff; }
 .qh-idbar .btn:disabled { background: #dfe3ea; color: #9aa3b2; cursor: not-allowed; }
 
+/* Revision browser (added 2026-08-25) - sits between the Rev # box and
+   Copy to New Opportunity. Small square arrow buttons + a compact label,
+   not full-width .qh-idbar .btn treatment since these aren't a primary
+   action. */
+.rev-nav { display: flex; align-items: center; gap: 4px; margin-right: 4px; }
+.rev-nav-btn {
+  background: #eef1f6 !important;
+  color: #0b2545 !important;
+  border: 1px solid #ccd2dc !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  min-width: auto !important;
+  line-height: 1 !important;
+}
+.rev-nav-btn:hover:not(:disabled) { background: #e2e7f0 !important; }
+.rev-nav-btn:disabled { background: #eef1f6 !important; color: #c3cad6 !important; cursor: not-allowed; }
+.rev-nav-label {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #6b7688;
+  white-space: nowrap;
+  min-width: 62px;
+  text-align: center;
+}
+.revision-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.revision-table td { padding: 4px 6px; border-bottom: 1px solid #e2e7f0; }
+.revision-table td:first-child { color: #6b7688; white-space: nowrap; }
+
 .lookup-panel {
   background: #f7f8fa;
   border: 1px solid #dfe3ea;

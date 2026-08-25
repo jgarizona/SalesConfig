@@ -20,7 +20,7 @@ Every repository change must be recorded under the date it was made and identify
 - **Third-party add-on ingestion path** — not built yet, and deliberately deferred (per the user, 2026-08-16: "addons will come later in this project"). Manufacturer-catalog parts are now auto-approved (`requires_review: false`, see the 2026-08-16 entry below), but a mount vendor's own catalog (RAM Mounts, Gamber-Johnson, etc.) doesn't self-certify fit with a specific host platform the way an OEM's own spec sheet does — that path needs `requires_review: true` and will go through the existing `approvals.json`/Technical-checkbox flow, which still exists specifically for this.
 - **Real email sending** — the Email button on the Sales page downloads the Excel file and opens the printable view, but doesn't actually send anything (no SMTP/Outlook integration in the app).
 - ~~**Data drift risk**~~ — resolved 2026-08-14: both Technical's and Purchasing's Upload buttons now merge (never blindly overwrite), so a vendor refresh can't erase prices purchasing already filled in.
-- **Quote revision history** — only the current revision of a quote is stored; prior revisions aren't kept anywhere once overwritten.
+- ~~**Quote revision history**~~ — resolved 2026-08-25: `app.py`'s `revision_snapshot()` now stores each real revision in a `revisions` list on save, and Sales has a browser for it (see the same-day CHANGELOG entry). A quote saved entirely before this landed only has history starting from the next time it's edited - whatever was already overwritten before this feature existed can't be recovered.
 - ~~**Customer/opportunity lookup UI**~~ — resolved 2026-08-15: Customer and saved-quote lookup have real search-as-you-type panels; Manual Customer and Copy no longer use browser prompt() dialogs.
 - **Architecture decision (§6 of the project brief)** — single-agent vs multi-agent, agents vs skills, still open.
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
@@ -28,6 +28,41 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Built real quote revision history and a browser for it, resolving a known
+  limitation.** The user asked for up/down-arrow revision browsing next to Copy to New
+  Opportunity; before building it, checked how Save actually works and found saving a new
+  revision overwrote the previous one's data in place (`rev_number` was just a counter) - only
+  the latest revision's data existed anywhere, so there was nothing to browse back through.
+  Flagged this to the user rather than build a non-functional shell; they chose real storage
+  ("customer can have old revisions and if we don't have them stored how can we verify if they
+  are real").
+  **Backend:** new `revision_snapshot()` in `app.py` captures everything that changes between
+  revisions (`selections`, `brand`, `platform`, totals, `part_number`, `sales_rep`,
+  `updated_at` - deliberately not `locked`, a current-quote concept). Appended to a new
+  `revisions` list on every save that's a real content change (mirroring the existing
+  `config_changed` check), on every new quote, and on every Copy to New Opportunity. Backfills
+  lazily for a quote saved before this existed - captures its current state the next time it's
+  edited, so nothing more gets lost from that point forward, though whatever was already
+  overwritten earlier can't be recovered. New `GET
+  /api/quotes/<opportunity_id>/<quote_number>/revisions` route serves the list.
+  **Frontend:** two small arrow buttons + a "Rev N (i/total)" label next to Copy to New
+  Opportunity, plus real keyboard support - Up/Down move through revisions, Left acts as Down
+  and Right acts as Up (per the user's exact spec), wrapping at either end (highest + up =
+  lowest, lowest + down = highest). Keyboard handling is skipped entirely whenever focus is in
+  an input/textarea/select, so it can't hijack normal typing or cursor movement elsewhere on
+  the page. Browsing is purely read-only - a detail panel (part number, totals, full selection
+  list) shows for whichever revision isn't the current one; it never touches `loadedQuote` or
+  the live category dropdowns, and the panel hides automatically when back at the latest
+  revision since the main page already shows that one.
+  **Verified live end-to-end, not just written:** created a real two-revision test quote via
+  direct API calls with a genuinely different Storage Drive Options code between saves,
+  confirmed the `/revisions` endpoint returns two distinct stored snapshots (not the same data
+  twice), then loaded it in the browser and confirmed: initial load starts at the latest
+  revision; clicking down shows the older revision's real (different) part number and totals;
+  clicking down again wraps correctly back to latest; the same wrapping works via keyboard
+  (`ArrowDown`/`ArrowLeft` then `ArrowRight` exactly matched the expected ping-pong between
+  both revisions); and focusing the Opportunity ID field and pressing arrow keys left the
+  revision display completely unchanged, confirming normal text-field behavior isn't broken.
 - **[Claude]** **Found and fixed the real root cause behind this whole session's "can't tell
   what's clickable" reports: `.qh-buttons .btn` never had a `:disabled` rule at all.** Confirmed
   directly via `getComputedStyle()`, not assumed - a disabled button in this family (Customer

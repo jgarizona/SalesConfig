@@ -585,6 +585,23 @@ a quote can have both the pricing export and the rep's final document attached a
 times; each entry records `note_id`, `file_id`, `filename`, `sent_at`. No read path depends on
 these existing today — they're additive, same treatment as `jeeves_part_number` got.
 
+`revisions` (added 2026-08-25, resolves the "quote revision history" limitation that used to
+be listed in `CHANGELOG.md`'s Pending/TODO): a list of snapshots, one per real revision this
+quote has ever had, built by `revision_snapshot()` in `app.py` and appended to on every save
+that actually changes `selections`/`brand`/`platform` (a no-op re-save doesn't add one). Each
+entry is `{rev_number, customer, brand, platform, selections, floor_total, msrp_total,
+part_number, sales_rep, updated_at}` — deliberately excludes `locked`, since that's a
+current-quote-level concept, not something meaningful per historical revision. Backfilled
+lazily: a quote saved before this feature existed gets `revisions: [snapshot of its current
+state]` seeded the next time it's edited, so history is real and complete from that point
+forward — whatever was already overwritten before this landed can't be recovered, and never
+will be for quotes that are never touched again. Sales' revision browser (next to Copy to New
+Opportunity: two arrow buttons + a "Rev N (i/total)" label, plus Up/Down/Left/Right arrow keys
+- Left acts as Down, Right acts as Up, both wrap at either end) fetches this via `GET
+/api/quotes/<opportunity_id>/<quote_number>/revisions` and is purely a read-only look back —
+browsing never touches `loadedQuote` or the live category dropdowns; it only shows a detail
+panel for whichever revision isn't the latest one (the main page already displays the latest).
+
 ### `customers.json` — local customer stand-in (no CRM yet)
 List of:
 ```json
