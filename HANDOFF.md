@@ -1032,20 +1032,110 @@ quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
 
 ## 9. HubSpot / Jeeves — what stands in for them today
 
-Nothing is connected. Every place a real integration will eventually plug in has an explicit
-placeholder, not a silent gap:
+Nothing is connected yet, but as of 2026-08-25 a concrete HubSpot integration plan exists —
+worked out interactively with the user and verified against JLT's real, live HubSpot portal
+(portal ID `145967326`, `app-eu1.hubspot.com`, owner `jeff.gilbert@jltmobile.com`), not
+assumed from docs alone. This section is the durable record of that plan; a richer visual
+version (block diagram, a request/response table per interaction, and a copy-paste Private
+App setup checklist for a non-technical HubSpot admin) is published at
+`https://claude.ai/code/artifact/574c8387-7674-4b36-bbf7-61c91a798e41` — treat that as a
+reference rendering of what's written here, not the source of truth, since a future agent
+may not have access to open it.
+
+Current placeholders, unchanged until the plan below is built:
 - **Opportunity ID**: manually typed (§5/§8).
 - **Customer**: local `customers.json` with a `source`/`hubspot_id` field ready for real data
   once a connector exists (§6) — `hubspot_id` is never set by anything today.
 - **Upload button** (Sales, per-quote): calls a real endpoint
   (`/api/quotes/.../upload`) that always returns
   `{"status": "not_connected", "message": "HubSpot isn't connected yet..."}`. The button and
-  wiring exist; there's nothing on the other end.
+  wiring exist; there's nothing on the other end. This is what interaction 5 below replaces.
 - **Email button** (Sales): downloads the real Excel export and opens the real printable
   view, but does not send anything — there's no SMTP/Outlook integration in the app itself.
 - **Jeeves** (JLT's accounting/inventory system — exact product name still unconfirmed per
   the original brief): Purchasing's manual price-fill workflow is the stand-in. No connector
-  research has happened in this codebase at all.
+  research has happened in this codebase at all, beyond the Company-level fields noted below.
+
+**Confirmed live against the real portal, not assumed:**
+- The native **Quote** object (HubSpot's own e-sign/payment quote, requires Revenue Hub
+  Professional or Enterprise) came back `writeAccess: NOT_AVAILABLE` on this account — either
+  the license isn't there or the permission isn't granted. **Decision: don't build against
+  it.** Deal, Line Item, Contact, and Company are all standard objects, usable on ordinary
+  Sales Hub — read access is already open, write needs the scope grant described below, not a
+  license purchase.
+- **Deal already has custom fields that look purpose-built for this**: `unit_part_number__c`
+  ("Model Part Number") and `unit_quantity__c` ("Unit Quantity"). Before anything writes to
+  them, confirm with Jeff whether another process already populates them — don't assume
+  they're free just because the configurator doesn't know about them yet.
+- **Company already carries a Jeeves ERP linkage**: `jeeves_customer_id__c`,
+  `jeeves_customersuid__c` ("Jeeves Customer Number"), `jeeves_internal_company_id__c`. This
+  is a *customer*-level mapping, already live, separate from — and does not solve — the
+  *part-number*-level Jeeves mismatch already documented in the 2026-08-18 entry below (zero
+  overlap between JLT price-book codes and Jeeves `USItem#`).
+- The portal's UI runs on `app-eu1.hubspot.com`, suggesting EU data hosting. **Confirm the
+  correct API base URL with HubSpot support/docs before writing any client code** — some
+  EU-hosted portals need a different base than the standard `api.hubapi.com`; getting this
+  wrong fails every call silently in a confusing way.
+
+**Planned architecture (nothing below is built yet):**
+
+Auth is a HubSpot **Private App** access token, not OAuth — a portal-wide credential that
+isn't tied to any individual salesperson's HubSpot login or record-visibility settings (this
+was raised explicitly as a concern: basing program access on one rep's personal permissions
+would be fragile and inefficient). Created once, by a HubSpot **Super Admin** — not a
+visibility-restricted seat, since a restricted creator's account could limit what the
+resulting token can see — via **Settings → Integrations → Private Apps → Create a private
+app**, granting exactly these 11 scopes: `crm.objects.contacts.read/write`,
+`crm.objects.companies.read/write`, `crm.objects.deals.read/write`,
+`crm.objects.line_items.read/write`, `crm.objects.notes.read/write`, and `files`. The
+resulting token (`pat-...`) is stored server-side only — gitignored, same treatment as
+`site_access.json` — and never sent to the browser. **This is the single blocking
+prerequisite**: no code below can be written or tested without it.
+
+A new `hubspot_client.py` module (doesn't exist yet) is the only code that would ever call
+HubSpot directly — token custody and request/response mapping live there, nowhere else.
+`app.py` would get new routes calling into it; the Sales screen's existing stubs (the
+free-typed Opportunity ID field, the "Upload Hspt" button that currently just reports "not
+connected") would be wired to those routes instead of their current no-op behavior.
+
+Five concrete interactions share that plumbing, differing only in payload:
+1. **Customer/Company lookup** — `POST /crm/v3/objects/contacts/search`. Replaces
+   `customers.json`'s local name search; fills the already-existing `hubspot_id` field.
+2. **Deal lookup** — deliberately not a name search (too error-prone). Resolve the customer
+   to a Company ID first (step 1), then `GET
+   /crm/v4/objects/company/{companyId}/associations/deal` to follow HubSpot's actual
+   association graph, batch-read the results (`POST /crm/v3/objects/deals/batch/read`), and
+   filter to open `dealstage`s. Replaces the free-typed Opportunity ID field with a real Deal
+   ID. Zero associated deals means this customer has no open HubSpot Deal yet — see the open
+   decision below.
+3. **Push quote → line items + amount** — `POST
+   /crm/v3/objects/line_items/batch/create` (associated to the Deal) plus a `PATCH` on the
+   Deal's `amount`. Store each returned line-item ID on the local quote record so a later
+   revision updates instead of duplicating.
+4. **Attach the pricing export** — the real `.xlsx` bytes already produced by the existing
+   `/api/quotes/<opportunity_id>/<quote_number>/export.xlsx` route (see §6/app.py), sent via
+   `POST /files/v3/files` then `POST /crm/v3/objects/notes` (`hs_attachment_ids`) associated
+   to the Deal. `.xlsx` was chosen deliberately over a PDF — see below.
+5. **Attach the rep's final customer-facing quote** — same mechanism as #4, for whatever file
+   format the rep builds by hand starting from the exported spreadsheet (Word/PDF/polished
+   Excel, doesn't matter which). This is what the existing "Upload Hspt" button becomes.
+
+**Explicitly not pursued, and why:**
+- The native Quote object — blocked on this account (see above); would only be worth
+  revisiting if Jeff confirms Revenue Hub is licensed *and* specifically wants HubSpot's own
+  e-sign/payment quote screen instead of this app's export-then-attach flow.
+- A server-generated PDF — there is no PDF generation anywhere in this app today. "Print
+  (PDF)" is `quote_print.html` (see `app.py`'s `quote_print` route) rendered plain and printed
+  via the browser's own Print dialog; it also locks the quote as a side effect if not already
+  locked. Building a real PDF generator (e.g. `weasyprint`) was considered and explicitly
+  deferred in favor of attaching the `.xlsx` export instead, per the user, since the `.xlsx`
+  already exists and a PDF blob was called out as less preferable.
+
+**Open scope decision, not yet made:** whether a rep should be able to create a new Deal from
+inside the configurator when Customer Lookup finds no open Deal (interaction 2, zero
+results), or whether that stays a manual step in HubSpot — the original project brief assumed
+"HubSpot is the front door," i.e. a Deal always originates there first. Needs a decision from
+Jeff before interaction 2 is built, not just a technical default.
 
 ---
 
