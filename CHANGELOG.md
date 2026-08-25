@@ -28,6 +28,27 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Added a hover hint pointing at the Sales Rep gate, per the user hitting this
+  live: selecting a rep, then clicking a still-disabled control (Customer Lookup) before
+  entering the 4-digit code, got no feedback at all.** Root cause investigated directly in a
+  real browser (not assumed): a genuinely `disabled` HTML control fires **zero** mouse events
+  on click - not even `mousedown` - confirmed by instrumenting `document` with capturing
+  listeners for every mouse event type and clicking a disabled button, which produced no log
+  entries whatsoever. `mouseover`/`mouseenter`/`pointerover` **do** still fire on disabled
+  elements, and hovering always precedes a click attempt, so that's the mechanism used instead
+  of trying to catch the click itself. `sales.html`: one delegated `mouseover` listener
+  (guarded by `!repVerified`, which is a complete and safe signal since every control on this
+  page is disabled solely for that reason until a rep verifies - see `setButtonStates()`)
+  briefly applies a new `.rep-gate-hint` pulsing-ring class (mirrors the existing `.flash`
+  ring treatment on Accept/Populate, just amber and finite instead of infinite) to whichever
+  of the Sales Rep dropdown or the 4-digit code field is the actual next thing to fill in.
+  `static/style.css` adds the class + a `prefers-reduced-motion` fallback. Verified live via
+  browser automation, not just by inspection: (1) no rep selected, hover a disabled control →
+  dropdown highlights; (2) rep selected, code blank, hover a disabled control → code field
+  highlights; (3) rep fully verified, hover a control disabled for an unrelated reason (Lock,
+  no saved quote yet) → correctly does **not** fire, confirming no false positives once the
+  real blocking reason is something else. No other behavior changed - the rep gate itself
+  still works exactly as before, this only adds feedback on top of it.
 - **[Claude]** **Built the HubSpot integration code from the plan below — dormant, not wired
   up, per the user's explicit instruction not to change where any button points.** New
   `hubspot_client.py` (the only module allowed to call HubSpot directly, per the plan) plus

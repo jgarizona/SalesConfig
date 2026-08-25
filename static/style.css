@@ -474,6 +474,19 @@ button:hover, .btn:hover { background: #143a6b; }
   50% { box-shadow: 0 0 0 6px rgba(26, 79, 160, 0); }
 }
 
+/* Same pulsing-ring language as .flash above, but transient (a couple of
+   pulses, not infinite) - triggered by hovering a control that's disabled
+   because the rep isn't verified yet, to point at where to actually type.
+   See sales.html's hintRepGate(). */
+.rep-gate-hint { animation: rep-gate-flash 0.6s ease-in-out 2; }
+@keyframes rep-gate-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(166, 99, 30, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(166, 99, 30, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rep-gate-hint { animation: none; box-shadow: 0 0 0 3px rgba(166, 99, 30, 0.55); }
+}
+
 .qh-idbar {
   display: flex;
   align-items: center;

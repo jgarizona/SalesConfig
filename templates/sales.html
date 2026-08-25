@@ -1130,6 +1130,30 @@
       repSelect.addEventListener("focus", loadSalesReps);
       repSelect.addEventListener("change", () => { repVerified = false; updateRepStatus(); tryVerifyRep(); });
       repCodeInput.addEventListener("input", () => { if (repCodeInput.value.trim().length === 4) tryVerifyRep(); else { repVerified = false; updateRepStatus(); } });
+
+      // A disabled control fires no mouse events at all in the browser (no
+      // click, not even mousedown) - confirmed directly, not assumed - so a
+      // rep hovering (which always precedes trying to click) over anything
+      // that's disabled purely because they haven't verified yet gets a
+      // visible nudge toward wherever they actually need to type, instead of
+      // silently doing nothing. Every control on this page is disabled
+      // solely for that reason until repVerified is true (see
+      // setButtonStates()'s repOk), so no per-element reason-checking is
+      // needed here - !repVerified alone is a safe, complete signal.
+      let repGateHintTimer = null;
+      function hintRepGate() {
+        const target = repSelect.value ? repCodeInput : repSelect;
+        target.classList.remove("rep-gate-hint");
+        void target.offsetWidth; // restart the animation if it's already mid-pulse
+        target.classList.add("rep-gate-hint");
+        clearTimeout(repGateHintTimer);
+        repGateHintTimer = setTimeout(() => target.classList.remove("rep-gate-hint"), 1300);
+      }
+      document.addEventListener("mouseover", (e) => {
+        if (repVerified) return;
+        if (e.target && e.target.disabled) hintRepGate();
+      });
+
       loadSalesReps();
       updatePopulateVisibility();
 
