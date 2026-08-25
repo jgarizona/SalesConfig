@@ -28,6 +28,13 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Create Quote now sets the Opportunity ID hint badge to "Manual quote: not
+  tied to Hbst yet", per the user.** Had to set it *after* `clearQuote()` (which runs
+  `updateOpportunityHint()` via `setButtonStates()`), not before - `oppInput` now has a value
+  at that point, so `needsHint` there is false and `updateOpportunityHint()` would otherwise
+  blank the badge right back out immediately if this ran first. Verified live: Create Quote ->
+  Opportunity ID fills with the customer name and the badge shows the new text, not the
+  generic "Select one →" hint.
 - **[Claude]** **Renamed Populate/Lookup Saved Quote and added a third button, "Query Hbst",
   which is the first piece of the dormant HubSpot integration actually wired to the UI - per
   the user's explicit spec.** The Opportunity ID button row is now **Create Quote** (was

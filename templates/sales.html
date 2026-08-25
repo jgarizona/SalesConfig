@@ -740,6 +740,15 @@
       oppInput.value = selectedCustomer;
       clearQuote();
       refreshExistingQuotes();
+      // Set after clearQuote() (which runs updateOpportunityHint() via
+      // setButtonStates()), not before - oppInput now has a value, so
+      // needsHint there would be false and immediately blank this back out
+      // if it ran first. Per the user: Create Quote's whole point is
+      // starting an ID from scratch with no HubSpot record behind it, so
+      // the badge should say exactly that instead of the generic "Select
+      // one ->" hint, which no longer applies once this button's been used.
+      opportunityHintBadge.textContent = "Manual quote: not tied to Hbst yet";
+      opportunityHintBadge.className = "source-badge hint show";
     }
 
     // "Query Hbst" - added 2026-08-25, calls the dormant HubSpot integration
