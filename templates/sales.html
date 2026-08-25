@@ -466,6 +466,17 @@
       customerInput.disabled = !repOk;
       btnCustomerLookup.disabled = !repOk;
       btnCustomerNew.disabled = !repOk;
+      // Flash the two ways to pick a customer once the rep gate's cleared
+      // and nothing's selected yet - per the user (2026-08-25), a rep
+      // verifying and then seeing two identically-styled enabled buttons
+      // with no indication which to use next was the same "where do I
+      // click" problem as Accept Configuration's own flash already solves.
+      // Re-evaluates every time setButtonStates() runs, including from
+      // setCustomer() (see there) - so Clear correctly re-triggers this
+      // too, not just the very first time a rep verifies.
+      const needsCustomer = repOk && !selectedCustomer;
+      btnCustomerLookup.classList.toggle("flash", needsCustomer);
+      btnCustomerNew.classList.toggle("flash", needsCustomer);
       oppInput.disabled = !repOk;
       btnQuoteLookup.disabled = !repOk;
 
@@ -561,17 +572,19 @@
       selectedCustomer = name || "";
       customerInput.value = selectedCustomer;
       updateCustomerAcceptVisibility();
-      updateOpportunityHint();
-      updateConfigAcceptState();
-      // Called here, not just at each individual call site that changes
-      // customerSource/selectedCustomer - some of those (acceptCustomer())
-      // call updateOpportunityButtonsVisibility() *before* this function,
-      // while selectedCustomer is still stale. Since this function is the
-      // one thing every one of those call sites already calls last, doing
-      // it here guarantees a correct read regardless of caller order -
-      // this exact ordering bug already bit Query Hbst's disabled state
-      // once (see CHANGELOG.md's 2026-08-25 entry).
-      updateOpportunityButtonsVisibility();
+      // setButtonStates() already calls updateOpportunityHint(),
+      // updateConfigAcceptState(), and updateOpportunityButtonsVisibility()
+      // internally, plus the Customer Lookup/Manual Customer flash added
+      // 2026-08-25 - calling the one comprehensive function here, not each
+      // individually, guarantees all of it re-evaluates with a fresh
+      // selectedCustomer regardless of caller order. Some callers
+      // (acceptCustomer()) call updateOpportunityButtonsVisibility()
+      // *before* this function too, while selectedCustomer is still stale -
+      // that already bit Query Hbst's disabled state once (see
+      // CHANGELOG.md's 2026-08-25 entry), which is exactly why this
+      // function, not each individual call site, needs to be the one
+      // guaranteed-correct source of truth.
+      setButtonStates();
     }
 
     // Call before setCustomer() at any "the rep is choosing/confirming a

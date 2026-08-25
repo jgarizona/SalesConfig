@@ -28,6 +28,20 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Flash Customer Lookup and Manual Customer once the rep is verified and no
+  customer is picked yet, per the user.** Same complaint as the earlier Sales-Rep-gate hint,
+  one step later: a rep clears the gate and sees two identically-styled enabled buttons with
+  no indication which to use next - the same "where do I click" problem Accept Configuration's
+  own flash already solves for its own step. Added `needsCustomer = repOk && !selectedCustomer`
+  in `setButtonStates()`, toggling `.flash` on both (same pulsing-ring treatment already used
+  everywhere else on this page, `.qh-buttons .btn.flash`). Also fixed `setCustomer()` to call
+  the single comprehensive `setButtonStates()` instead of four individual sub-functions -
+  `setButtonStates()` already called all four internally, so this was pure duplication, and
+  centralizing guarantees the new flash (and everything else) re-evaluates on every customer
+  change, including **Clear** - the user specifically flagged Clear as showing "the same
+  action" (i.e. no guidance) as the very first screenshot, which this fixes since Clear already
+  routes through `setCustomer("")`. Verified live end-to-end: rep verified with no customer ->
+  both flash; customer selected -> flash stops; Clear -> flash resumes.
 - **[Claude]** **Create Quote and Query Hbst are now always visible on page load, disabled
   rather than hidden until a customer's picked - per the user.** These two were the one
   inconsistent exception on this page: every other progressively-enabled control (Customer
