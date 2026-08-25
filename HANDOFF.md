@@ -577,6 +577,14 @@ never leave Purchasing). `created_by` is set once and never changes; `sales_rep`
 every save. `copied_from` only exists on quotes created via the Copy button. Display ID
 shown everywhere is `f"{opportunity_id}-{quote_number}-{rev_number}"`.
 
+`hubspot_deal_id`, `hubspot_line_item_ids`, and `hubspot_notes` (added 2026-08-25, all
+optional/absent until the dormant HubSpot code in §9 is actually wired up and used) — set by
+`api_quote_hubspot_push`/`_attach_export`/`_attach_file` in `app.py` once a rep has pushed this
+quote's line items to a HubSpot Deal or attached a file to it. `hubspot_notes` is a list, since
+a quote can have both the pricing export and the rep's final document attached at different
+times; each entry records `note_id`, `file_id`, `filename`, `sent_at`. No read path depends on
+these existing today — they're additive, same treatment as `jeeves_part_number` got.
+
 ### `customers.json` — local customer stand-in (no CRM yet)
 List of:
 ```json
@@ -1032,14 +1040,44 @@ quotes (`Acme Manufacturing::2`/`::3`), not real customer data.
 
 ## 9. HubSpot / Jeeves — what stands in for them today
 
-Nothing is connected yet, but as of 2026-08-25 a concrete HubSpot integration plan exists —
-worked out interactively with the user and verified against JLT's real, live HubSpot portal
-(portal ID `145967326`, `app-eu1.hubspot.com`, owner `jeff.gilbert@jltmobile.com`), not
-assumed from docs alone. This section is the durable record of that plan; a richer visual
-version (block diagram, a request/response table per interaction, and a copy-paste Private
-App setup checklist for a non-technical HubSpot admin) is published at
-`https://claude.ai/code/artifact/574c8387-7674-4b36-bbf7-61c91a798e41` — treat that as a
-reference rendering of what's written here, not the source of truth, since a future agent
+**Update, same day:** the code below is now written (`hubspot_client.py`, plus new routes in
+`app.py`) but deliberately **dormant** — nothing in the UI calls any of it yet, per the user
+("do not change where the buttons point to... effectively not active"). It exists so the
+integration is ready and reviewable the moment a real Private App token exists, not so it can
+be tested today — there is no token yet (`data/hubspot_config.json`'s `access_token` is
+`null`), so every function in `hubspot_client.py` currently raises `HubSpotNotConfigured` if
+called. The Sales page's "Upload Hspt" button and free-typed Opportunity ID field still point
+at exactly what they always have (`api_quote_upload()`'s stub, local `customers.json`/
+`quotes.json` lookups) — confirmed unchanged by curling both the old stub and the new dormant
+route side by side during this same session.
+
+**What's actually unverified in the new code, because there is nothing to test against yet:**
+- `hubspot_client.ASSOCIATION_TYPE_LINE_ITEM_TO_DEAL` (`20`) and
+  `ASSOCIATION_TYPE_NOTE_TO_DEAL` (`214`) are HubSpot's documented default association type
+  IDs for those object pairs, not confirmed against JLT's own portal.
+- `push_quote_to_deal()`'s default `amount_field="floor_total"` — whether the Deal's `amount`
+  (and each line item's price) should come from the quote's `floor_total` or `msrp_total` is a
+  guess, not a decision Jeff has made. Change the keyword argument at the one call site in
+  `app.py` (`api_quote_hubspot_push`) once he has.
+- The EU API base URL question below is still open.
+- Interaction 1 (customer lookup) was implemented against HubSpot's **Company** object, not
+  Contact — `customers.json` stores one flat name per customer with no first/last name, which
+  maps onto a Company record, and Company is also where the Jeeves linkage fields below live.
+  This is a deliberate deviation from a literal "Contact" reading; Contact was never actually
+  necessary for what this app tracks as a "customer."
+
+None of the above blocks writing or reviewing the code — only testing it. The single blocking
+prerequisite, unchanged, is a HubSpot Super Admin completing the Private App checklist further
+down this section.
+
+Nothing is connected to the live UI yet, but as of 2026-08-25 a concrete HubSpot integration
+plan exists — worked out interactively with the user and verified against JLT's real, live
+HubSpot portal (portal ID `145967326`, `app-eu1.hubspot.com`, owner
+`jeff.gilbert@jltmobile.com`), not assumed from docs alone. This section is the durable record
+of that plan; a richer visual version (block diagram, a request/response table per
+interaction, and a copy-paste Private App setup checklist for a non-technical HubSpot admin)
+is published at `https://claude.ai/code/artifact/574c8387-7674-4b36-bbf7-61c91a798e41` — treat
+that as a reference rendering of what's written here, not the source of truth, since a future agent
 may not have access to open it.
 
 Current placeholders, unchanged until the plan below is built:

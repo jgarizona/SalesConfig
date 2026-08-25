@@ -46,6 +46,8 @@ from flask import Flask, jsonify, redirect, render_template, request, send_file,
 import openpyxl
 from openpyxl.styles import Font
 
+import hubspot_client
+
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR / "ingest"))
 import parse_vmt        # noqa: E402
@@ -1736,13 +1738,11 @@ def api_quote_upload(opportunity_id, quote_number):
     })
 
 
-@app.route("/api/quotes/<path:opportunity_id>/<int:quote_number>/export.xlsx")
-def api_quote_export(opportunity_id, quote_number):
-    quotes = load_quotes()
-    q = quotes.get(lineage_key(opportunity_id, quote_number))
-    if q is None:
-        return "Quote not found", 404
-
+def build_quote_workbook(q):
+    """Builds the same .xlsx export both the Sales-page download and the
+    (currently dormant, see HANDOFF.md §9) HubSpot pricing-export attach
+    route use - pulled out on 2026-08-25 so both share one implementation
+    instead of the HubSpot path duplicating this."""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Quote"
@@ -1793,6 +1793,17 @@ def api_quote_export(opportunity_id, quote_number):
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
+    return buf
+
+
+@app.route("/api/quotes/<path:opportunity_id>/<int:quote_number>/export.xlsx")
+def api_quote_export(opportunity_id, quote_number):
+    quotes = load_quotes()
+    q = quotes.get(lineage_key(opportunity_id, quote_number))
+    if q is None:
+        return "Quote not found", 404
+
+    buf = build_quote_workbook(q)
     filename = f"quote_{display_id(q)}.xlsx"
     return send_file(
         buf,
@@ -1800,6 +1811,146 @@ def api_quote_export(opportunity_id, quote_number):
         download_name=filename,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
+
+
+# --------------------------------------------------------- HubSpot (dormant)
+# Added 2026-08-25, per HANDOFF.md §9 - NOT wired to any button or template.
+# The Sales-page "Upload Hspt" button and the free-typed Opportunity ID field
+# still point at the stub api_quote_upload() above and unchanged local
+# customer/quote lookups, exactly as before. These routes exist so the code
+# is ready and reviewable, but nothing calls them yet: there is no HubSpot
+# Private App token configured (data/hubspot_config.json's access_token is
+# still null), so every one of them would currently raise
+# hubspot_client.HubSpotNotConfigured. Do not repoint any UI at these until
+# a real token exists and each route has been tested against a live
+# HubSpot account - see CHANGELOG.md's 2026-08-25 entry for exactly what's
+# unverified (the association type IDs, and which quote total becomes the
+# deal amount).
+
+@app.route("/api/hubspot/customers")
+def api_hubspot_customer_search():
+    query = (request.args.get("q") or "").strip()
+    if not query:
+        return jsonify([])
+    try:
+        return jsonify(hubspot_client.search_customers(query))
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+
+@app.route("/api/hubspot/companies/<company_id>/deals")
+def api_hubspot_company_deals(company_id):
+    try:
+        return jsonify(hubspot_client.get_open_deals_for_company(company_id))
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+
+@app.route("/api/quotes/<path:opportunity_id>/<int:quote_number>/hubspot/push", methods=["POST"])
+def api_quote_hubspot_push(opportunity_id, quote_number):
+    quotes = load_quotes()
+    q = quotes.get(lineage_key(opportunity_id, quote_number))
+    if q is None:
+        return jsonify({"error": "Quote not found."}), 404
+
+    body = request.get_json(force=True)
+    deal_id = (body.get("deal_id") or "").strip()
+    if not deal_id:
+        return jsonify({"error": "deal_id is required."}), 400
+
+    try:
+        result = hubspot_client.push_quote_to_deal(deal_id, q)
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+    q["hubspot_deal_id"] = deal_id
+    q["hubspot_line_item_ids"] = result["line_item_ids"]
+    q["updated_at"] = datetime.now().isoformat(timespec="seconds")
+    save_quotes(quotes)
+    return jsonify(result)
+
+
+def _record_hubspot_note(q, quotes, result, filename):
+    notes = q.setdefault("hubspot_notes", [])
+    notes.append({
+        "note_id": result["note_id"],
+        "file_id": result["file_id"],
+        "filename": filename,
+        "sent_at": datetime.now().isoformat(timespec="seconds"),
+    })
+    save_quotes(quotes)
+
+
+@app.route(
+    "/api/quotes/<path:opportunity_id>/<int:quote_number>/hubspot/attach_export",
+    methods=["POST"],
+)
+def api_quote_hubspot_attach_export(opportunity_id, quote_number):
+    """Interaction 4 in HANDOFF.md §9: attaches the same .xlsx the Sales
+    page already lets a rep download - no separate file upload needed, the
+    server builds it the same way build_quote_workbook() always has."""
+    quotes = load_quotes()
+    q = quotes.get(lineage_key(opportunity_id, quote_number))
+    if q is None:
+        return jsonify({"error": "Quote not found."}), 404
+
+    body = request.get_json(force=True)
+    deal_id = (body.get("deal_id") or "").strip()
+    if not deal_id:
+        return jsonify({"error": "deal_id is required."}), 400
+
+    filename = f"quote_{display_id(q)}.xlsx"
+    file_bytes = build_quote_workbook(q).read()
+    try:
+        result = hubspot_client.attach_file_to_deal(
+            deal_id, file_bytes, filename,
+            note_body=f"Pricing export attached from SalesConfig quote {display_id(q)}",
+        )
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+    _record_hubspot_note(q, quotes, result, filename)
+    return jsonify(result)
+
+
+@app.route(
+    "/api/quotes/<path:opportunity_id>/<int:quote_number>/hubspot/attach_file",
+    methods=["POST"],
+)
+def api_quote_hubspot_attach_file(opportunity_id, quote_number):
+    """Interaction 5 in HANDOFF.md §9: attaches whatever file the rep
+    supplies (their own finished customer-facing quote, any format) -
+    this is what the "Upload Hspt" button would eventually call."""
+    quotes = load_quotes()
+    q = quotes.get(lineage_key(opportunity_id, quote_number))
+    if q is None:
+        return jsonify({"error": "Quote not found."}), 404
+
+    deal_id = (request.form.get("deal_id") or "").strip()
+    uploaded = request.files.get("file")
+    if not deal_id or uploaded is None:
+        return jsonify({"error": "deal_id and file are required."}), 400
+
+    try:
+        result = hubspot_client.attach_file_to_deal(
+            deal_id, uploaded.read(), uploaded.filename,
+            note_body=f"Final quote attached from SalesConfig quote {display_id(q)}",
+        )
+    except hubspot_client.HubSpotNotConfigured as exc:
+        return jsonify({"error": str(exc)}), 503
+    except hubspot_client.HubSpotError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+    _record_hubspot_note(q, quotes, result, uploaded.filename)
+    return jsonify(result)
 
 
 if __name__ == "__main__":

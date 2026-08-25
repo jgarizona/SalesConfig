@@ -10,3 +10,7 @@ data/pending_imports/*.json
 # Site access PIN + Flask session secret key - this repo is PUBLIC on GitHub,
 # so these must never be committed. See data/site_access.json.
 data/site_access.json
+
+# HubSpot Private App access token - same reasoning as site_access.json
+# above. See hubspot_client.py and HANDOFF.md §9.
+data/hubspot_config.json
