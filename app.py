@@ -1501,6 +1501,15 @@ def api_quotes_all():
             "platform": q["platform"],
             "part_number": q["part_number"],
             "updated_at": q["updated_at"],
+            # So the lookup panel can hint "N revisions" (added 2026-08-26,
+            # per the user) - this endpoint only ever returns one row per
+            # quote lineage (its current state), never a row per historical
+            # revision (those live nested in `revisions`, not as their own
+            # top-level record) - the hint is what tells a rep there's more
+            # to see behind the Rev arrows once they load it. A quote saved
+            # before `revisions` existed (backfilled lazily on next edit,
+            # see HANDOFF.md §6) has no key here yet, hence the `or []`.
+            "revision_count": len(q.get("revisions") or []),
         }
         for q in quotes.values()
     ]

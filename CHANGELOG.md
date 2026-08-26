@@ -21,14 +21,35 @@ Every repository change must be recorded under the date it was made and identify
 - **Real email sending** — the Email button on the Sales page downloads the Excel file and opens the printable view, but doesn't actually send anything (no SMTP/Outlook integration in the app).
 - ~~**Data drift risk**~~ — resolved 2026-08-14: both Technical's and Purchasing's Upload buttons now merge (never blindly overwrite), so a vendor refresh can't erase prices purchasing already filled in.
 - ~~**Quote revision history**~~ — resolved 2026-08-25: `app.py`'s `revision_snapshot()` now stores each real revision in a `revisions` list on save, and Sales has a browser for it (see the same-day CHANGELOG entry). A quote saved entirely before this landed only has history starting from the next time it's edited - whatever was already overwritten before this feature existed can't be recovered.
-- **Top REV # readout doesn't reflect the revision browser** — found 2026-08-26 by the user testing the multi-add-on save/revision flow (screenshots showed Storage/price/part-number correctly changing in the revision-browser's own summary table when arrowing between Rev 0 and Rev 1, but the separate "REV #" box next to Quote # stayed on "001" the whole time). Root cause: `revNumberReadout.textContent` (`sales.html`) is bound to `loadedQuote.rev_number` - the quote's true latest-saved revision, set on load/save - and is completely independent of `revisionIndex`/the arrows. Not a rendering bug (the arrows do work, verified in code and confirmed by the user's own screenshots), but genuinely confusing to have two "Rev" numbers on screen where only one moves. Next action (proposed, not yet built): keep REV # bound to the true saved value (other logic - Save button state, part-number generation - depends on it being accurate, so it must not start tracking the browsed revision instead), but visually flag when the revision browser isn't pointed at the latest revision - e.g. dim the REV # box or append "(viewing Rev N)" next to it while `revisionIndex !== quoteRevisions.length - 1`.
-- **"Find Saved Quote" only lists a quote's current state, not its individual past revisions** — found 2026-08-26, same session as above. Confirmed as intended behavior, not a bug: `/api/quotes/all` (`app.py`) iterates the top-level `quotes` dict, one entry per opportunity+quote-number lineage - a historical revision (e.g. "Rev 0") only exists nested inside that lineage's own `revisions` list, never as its own top-level record, so it can't appear as a separate search result. The correct flow (which the user found unprompted) is: pick the lineage from the lookup panel, then use the Rev arrows to browse its history. Next action (proposed, not yet built): add a small hint to each lookup result when it has more than one revision (e.g. "2 revisions") so a rep isn't surprised that older revisions live behind the arrows rather than in the search list itself.
+- ~~**Top REV # readout doesn't reflect the revision browser**~~ — resolved 2026-08-26: `updateRevisionNav()` (`sales.html`) now shows a small amber "(viewing Rev N)" note under the REV # box whenever `revisionIndex` isn't pointed at the latest revision. REV # itself still shows the true saved value unchanged, on purpose - Save logic and part-number generation need it accurate, so it must not start tracking the browsed revision instead; the note exists purely to stop the two numbers from silently disagreeing on screen. See the same-day CHANGELOG entry for the full writeup.
+- ~~**"Find Saved Quote" only lists a quote's current state, not its individual past revisions**~~ — resolved 2026-08-26: this is still intended behavior, not a bug - a historical revision only exists nested inside its quote lineage's own record, never as a separate top-level one, so it can't be a separate search result - but a rep shouldn't have to already know that. Each lookup result now shows "N revisions" when there's more than one, so it's clear before loading that there's history to browse via the Rev arrows afterward. `/api/quotes/all` gained a `revision_count` field for this. See the same-day CHANGELOG entry for the full writeup.
 - ~~**Customer/opportunity lookup UI**~~ — resolved 2026-08-15: Customer and saved-quote lookup have real search-as-you-type panels; Manual Customer and Copy no longer use browser prompt() dialogs.
 - **Architecture decision (§6 of the project brief)** — single-agent vs multi-agent, agents vs skills, still open.
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-08-26
+
+- **[Claude]** **Fixed the two revision-browser issues logged to Pending/TODO earlier the same
+  session** (found by the user testing the new multi-add-on save/revision flow). (1) The REV #
+  readout next to Quote # never changed while browsing old revisions with the arrows, even
+  though the revision browser's own summary table (Storage/price/part-number) correctly did -
+  because REV # is bound to `loadedQuote.rev_number`, the quote's true latest-saved revision,
+  completely independent of `revisionIndex`. That's correct (other logic depends on it staying
+  accurate), so instead of making REV # track the browsed revision, `updateRevisionNav()`
+  (`sales.html`) now shows a small amber "(viewing Rev N)" note beneath it whenever
+  `revisionIndex !== quoteRevisions.length - 1` - the true value stays visible and accurate,
+  it's just now obvious the two numbers mean different things when they disagree. (2) "Find
+  Saved Quote" only ever lists a quote lineage's current state (confirmed intended - a
+  historical revision has no top-level record of its own, only a nested entry in that lineage's
+  `revisions` list) but a rep had no way to know there was more to see before loading it. Added
+  a `revision_count` field to `/api/quotes/all` (`app.py`) and a "· N revisions" hint on each
+  lookup result in `sales.html` (only shown when count > 1). Verified live: loaded
+  `Acme Manufacturing-5` (2 real revisions from the same-day multi-add-on testing), confirmed
+  the lookup panel showed "· 2 revisions" on that result and "· 3 revisions" on a different,
+  older quote; after loading and arrowing to Rev 0, REV # correctly stayed "001" while the new
+  note read "(viewing Rev 0)" and the summary table below showed Rev 0's real data (Storage
+  code 5 / $3,240.00) distinct from Rev 1's (code 6 / $3,310.00).
 
 - **[Claude]** **Add On Options: is now a multi-select on Sales, per the user asking "how can
   we handle more than one add on?"** Every category dropdown used to be single-select

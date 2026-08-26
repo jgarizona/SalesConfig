@@ -632,6 +632,18 @@ before deciding whether to Save. `renderSummaryArea()` in `sales.html` is the si
 behind both blocks; there is deliberately no more than one "read-only config summary"
 implementation on this page.
 
+**The REV # readout box next to Quote # never moves with these arrows, on purpose** - it's
+bound to `loadedQuote.rev_number` (the quote's true, currently-*saved* revision, needed
+elsewhere for Save logic and part-number generation), not to `revisionIndex`. Found confusing
+by the user 2026-08-26 when it silently disagreed with the "Rev N (i/total)" label while
+browsing an old revision - fixed by adding a small note under REV # ("(viewing Rev N)",
+toggled in `updateRevisionNav()`) rather than making REV # itself track the browsed revision,
+which would make it wrong for its actual purpose. Same session: `/api/quotes/all` gained a
+`revision_count` field so "Find Saved Quote" can hint "N revisions" on a result that has real
+history - that lookup only ever lists a quote lineage's current state (a historical revision
+has no top-level record of its own), so without the hint a rep had no way to know there was
+more to see before loading it and browsing back via the arrows.
+
 ### `customers.json` — local customer stand-in (no CRM yet)
 List of:
 ```json
