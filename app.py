@@ -1694,7 +1694,13 @@ def api_quote_save():
             "opportunity_id": opportunity_id,
             "customer": customer,
             "quote_number": quote_number,
-            "rev_number": 0,
+            # 1-indexed (changed 2026-08-26, per the user) - a quote's first
+            # save is "Rev 1", not "Rev 0", so the number shown everywhere
+            # (display_id, the REV # readout, the revision browser) matches
+            # what a rep intuitively expects "the first version" to be
+            # called. Every later increment (`q["rev_number"] += 1` below)
+            # is unaffected by the starting value.
+            "rev_number": 1,
             "locked": False,
             "ever_locked": False,
             "brand": brand,
@@ -1775,7 +1781,7 @@ def api_quote_copy(opportunity_id, quote_number):
         "opportunity_id": new_opportunity_id,
         "customer": new_customer or src.get("customer", ""),
         "quote_number": new_quote_number,
-        "rev_number": 0,
+        "rev_number": 1,  # 1-indexed - see the matching comment at the other quote-creation site
         "locked": False,
         "ever_locked": False,
         "brand": src.get("brand", "JLT"),

@@ -533,13 +533,6 @@ button:hover, .btn:hover { background: #143a6b; }
   font-weight: bold;
   color: #0b2545;
 }
-/* Rev # always shows the quote's true, currently-*saved* revision (see
-   revNumberReadout in sales.html) - it never tracks the revision browser's
-   arrows, unlike the "Rev N (i/total)" label next to it, which does. Left
-   at full color/weight (still the real number, still accurate) but paired
-   with this note - toggled by updateRevisionNav() - to make it clear the
-   two aren't the same thing whenever they'd otherwise silently disagree. */
-.qh-id-note { font-size: 11px; color: #b45309; margin-top: 2px; white-space: nowrap; }
 .qh-idbar .btn {
   margin-left: auto;
   background: #4c8dff;

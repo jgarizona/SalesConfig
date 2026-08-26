@@ -30,6 +30,32 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-26
 
+- **[Claude]** **Revisions are now 1-indexed, and Rev # tracks the revision browser - both per
+  the user, after seeing the previous fix's "(viewing Rev N)" note and asking "would it not be
+  easier to change the revision number to reflect the version you are looking at? start every
+  configuration at Rev 1 not Rev 0."** Supersedes part of the entry directly below (same
+  session, same day) - the "keep REV # pinned to the true value + separate note" design was
+  the right call given the constraint the user hadn't stated yet; once they did, simpler won.
+  Changed both quote-creation sites in `app.py` (`api_quote_save`'s new-quote branch,
+  `api_quote_copy`) from `"rev_number": 0` to `"rev_number": 1` - a starting-value change only,
+  nothing about increment logic, revision-array indexing, or display formatting assumed 0 as
+  the start. Found and fixed one hardcoded "Rev 0" string along the way (`sales.html`'s
+  "Saving now will create Quote #X, Rev 0" hint, missed by grep the first time since it wasn't
+  templated from `rev_number` - now "Rev 1"). Reworked `setButtonStates()`'s REV # readout to
+  compute `quoteRevisions[revisionIndex].rev_number` while browsing history, `loadedQuote.rev_number`
+  otherwise, replacing the earlier note-based approach entirely (removed the
+  `#rev-number-browsing-note` element, its CSS, and its toggle logic); `updateRevisionNav()`
+  now calls `setButtonStates()` on every arrow click so the readout stays live. This is
+  display-only - Save still always revises the real `loadedQuote` regardless of what's being
+  browsed, `revisionIndex` never touches it.
+  **Per the user's explicit instruction, `data/quotes.json` was wiped to `{}`** ("wipe the
+  config log as it now stands so we can start testing the change") - every quote saved before
+  this point, real test data included, is gone from the live file (recoverable only via git
+  history on this file, never through the app). Verified live end-to-end: created a fresh
+  quote, confirmed it saved as Rev 1 (not Rev 0); edited and saved again, confirmed it bumped
+  to Rev 2 from Rev 1 (not from 0); browsed back to Rev 1 with the arrows and confirmed REV #
+  correctly showed "001" matching the nav label, with no separate note needed.
+
 - **[Claude]** **Fixed the two revision-browser issues logged to Pending/TODO earlier the same
   session** (found by the user testing the new multi-add-on save/revision flow). (1) The REV #
   readout next to Quote # never changed while browsing old revisions with the arrows, even

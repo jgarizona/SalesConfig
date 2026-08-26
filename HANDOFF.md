@@ -360,7 +360,7 @@ The big one. Top-to-bottom:
      normally, same as always.
    - **Existing-quotes panel** (below Opportunity ID, auto-shown whenever it's non-blank):
      **read-only informational text as of 2026-08-18** ("N existing quotes for this Opportunity.
-     Saving now will create Quote #X, Rev 0. To view or revise an existing one instead, use
+     Saving now will create Quote #X, Rev 1. To view or revise an existing one instead, use
      'Lookup Saved Quote' above" - or, if a quote for this Opportunity ID is already loaded,
      "Editing <display_id>... Saving now will revise this quote"). Used to be a clickable
      `<select>` that loaded whichever quote you picked - removed after a real dead end the user
@@ -372,7 +372,7 @@ The big one. Top-to-bottom:
      either case (new quote vs. revising whatever's currently loaded).
 4. **Quote # / Rev #** readout boxes (auto-assigned on Save, not user-entered) + **Copy to
    New Opportunity** (opens an inline panel — new Opportunity ID + optional new Customer —
-   clones the current config to a fresh quote lineage starting at Rev 0).
+   clones the current config to a fresh quote lineage starting at Rev 1).
 5. **Save / Lock / Print (PDF) / Upload / Email** action row. See §8 for the exact
    lock/rev-increment rules and which buttons require what.
 6. **Brand** dropdown, **Platform** dropdown (filtered to the selected brand), **Search by
@@ -567,6 +567,12 @@ makes an option selectable on Sales. Order/uniqueness not enforced beyond what
 `compute_*` functions assume (treated as a set via `part_key()` matching).
 
 ### `quotes.json` — saved quotes
+**Wiped to `{}` 2026-08-25/26** (per the user, alongside the rev-numbering change just below -
+"wipe the config log as it now stands so we can start testing the change") - every quote saved
+before this point (including real ones like Acme Manufacturing's multi-revision test data) is
+gone from the live file, recoverable only via `git log`/`git show` on this file's prior commits
+if ever needed, never through the app itself.
+
 Dict keyed by `"{opportunity_id}::{quote_number}"` (this is `lineage_key()` in `app.py` —
 **note the key does not include brand**, only opportunity_id+quote_number, so quote
 numbering is scoped per-opportunity across all brands, not per-brand). Each value:
@@ -575,7 +581,7 @@ numbering is scoped per-opportunity across all brands, not per-brand). Each valu
   "opportunity_id": "CW-APMPERU",
   "customer": "Acme Corp",
   "quote_number": 1,
-  "rev_number": 0,
+  "rev_number": 1,
   "locked": false,
   "ever_locked": false,
   "brand": "JLT",
@@ -632,17 +638,31 @@ before deciding whether to Save. `renderSummaryArea()` in `sales.html` is the si
 behind both blocks; there is deliberately no more than one "read-only config summary"
 implementation on this page.
 
-**The REV # readout box next to Quote # never moves with these arrows, on purpose** - it's
-bound to `loadedQuote.rev_number` (the quote's true, currently-*saved* revision, needed
-elsewhere for Save logic and part-number generation), not to `revisionIndex`. Found confusing
-by the user 2026-08-26 when it silently disagreed with the "Rev N (i/total)" label while
-browsing an old revision - fixed by adding a small note under REV # ("(viewing Rev N)",
-toggled in `updateRevisionNav()`) rather than making REV # itself track the browsed revision,
-which would make it wrong for its actual purpose. Same session: `/api/quotes/all` gained a
-`revision_count` field so "Find Saved Quote" can hint "N revisions" on a result that has real
-history - that lookup only ever lists a quote lineage's current state (a historical revision
-has no top-level record of its own), so without the hint a rep had no way to know there was
-more to see before loading it and browsing back via the arrows.
+**The REV # readout box next to Quote # tracks these arrows** (per the user, 2026-08-26 -
+"would it not be easier to change the revision number to reflect the version you are looking
+at?"). `setButtonStates()` computes it: `quoteRevisions[revisionIndex].rev_number` while
+`revisionIndex` isn't pointed at the latest revision, otherwise `loadedQuote.rev_number` -
+`updateRevisionNav()` calls `setButtonStates()` on every arrow click so it stays current. This
+is a display-only readout; nothing reads it back, so having it show a browsed historical value
+doesn't affect what Save actually does (which is always driven by `loadedQuote`, independent of
+`revisionIndex`) - a same-day earlier version instead left REV # pinned to the true value with
+a separate "(viewing Rev N)" note, which the user found more confusing than useful and asked
+for this simpler behavior instead. Same session: `/api/quotes/all` gained a `revision_count`
+field so "Find Saved Quote" can hint "N revisions" on a result that has real history - that
+lookup only ever lists a quote lineage's current state (a historical revision has no top-level
+record of its own), so without the hint a rep had no way to know there was more to see before
+loading it and browsing back via the arrows.
+
+**Revisions are 1-indexed, not 0-indexed** (changed 2026-08-26, per the user, same reasoning as
+above - "start every configuration at Rev 1 not Rev 0... this will help reduce confusion"). A
+new quote's first save is now `rev_number: 1` (both quote-creation sites in `app.py` - the
+plain create-quote path and Copy to New Opportunity), and every later edit still just
+increments from there. Purely a starting-value change - `revision_snapshot()`, the revision
+array's own indexing (`quoteRevisions[revisionIndex]`, a normal 0-based JS array index,
+unrelated to the `rev_number` *value* stored in each snapshot), and every display path
+(`display_id()`, the revision browser, `quote_print.html`) already read `rev_number` as an
+opaque stored value with no assumption about where it starts, so nothing else needed to
+change.
 
 ### `customers.json` — local customer stand-in (no CRM yet)
 List of:

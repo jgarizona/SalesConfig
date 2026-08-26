@@ -66,11 +66,7 @@
 
       <div class="qh-idbar">
         <div class="qh-id-box"><label>Quote #</label><div class="qh-id-value" id="quote-number-readout">—</div></div>
-        <div class="qh-id-box">
-          <label>Rev #</label>
-          <div class="qh-id-value" id="rev-number-readout">—</div>
-          <div class="qh-id-note" id="rev-number-browsing-note" style="display:none;"></div>
-        </div>
+        <div class="qh-id-box"><label>Rev #</label><div class="qh-id-value" id="rev-number-readout">—</div></div>
         <div class="rev-nav" title="Browse this quote's revision history (arrow keys work too, when not typing in a field: Up/Right = newer, Down/Left = older, wraps at either end)">
           <button type="button" id="btn-rev-down" class="btn rev-nav-btn" disabled>&#9660;</button>
           <span id="rev-nav-label" class="rev-nav-label">—</span>
@@ -245,7 +241,6 @@
     const actionMessage = document.getElementById("action-message");
     const quoteNumberReadout = document.getElementById("quote-number-readout");
     const revNumberReadout = document.getElementById("rev-number-readout");
-    const revNumberBrowsingNote = document.getElementById("rev-number-browsing-note");
 
     const btnSave = document.getElementById("btn-save");
     const btnLock = document.getElementById("btn-lock");
@@ -638,7 +633,18 @@
       btnCopy.disabled = !repOk || !hasQuote || dirty;
 
       quoteNumberReadout.textContent = hasQuote ? String(loadedQuote.quote_number).padStart(4, "0") : "—";
-      revNumberReadout.textContent = hasQuote ? String(loadedQuote.rev_number).padStart(3, "0") : "—";
+      // Rev # shows whichever revision the browser (see updateRevisionNav)
+      // is currently pointed at - the true saved value while at the latest
+      // revision (or with no history yet), the browsed one otherwise -
+      // per the user (2026-08-26): a rep looking at "Rev 1 (1/2)" next to
+      // it should see "001" here too, not the true-latest value disagreeing
+      // with what's actually on screen. Saving always revises the real
+      // loadedQuote regardless of what's being browsed here - this is a
+      // display-only readout, nothing reads it back.
+      const browsingRev = hasQuote && quoteRevisions.length > 0 && revisionIndex !== quoteRevisions.length - 1
+        ? quoteRevisions[revisionIndex].rev_number
+        : (hasQuote ? loadedQuote.rev_number : null);
+      revNumberReadout.textContent = browsingRev !== null ? String(browsingRev).padStart(3, "0") : "—";
 
       updateConfigAcceptState();
 
@@ -908,18 +914,11 @@
         ? "—"
         : `Rev ${quoteRevisions[revisionIndex].rev_number} (${revisionIndex + 1}/${quoteRevisions.length})`;
 
-      // The Rev # box above (revNumberReadout, set in setButtonStates() from
-      // loadedQuote.rev_number) always shows the quote's true saved
-      // revision - it never tracks these arrows. That's correct (it has to
-      // stay accurate for Save logic), but looks broken the moment they
-      // disagree - the arrows say "Rev 0" while Rev # still says the latest.
-      // This note only exists to make that distinction visible instead of
-      // silent.
-      const browsingOldRev = quoteRevisions.length > 0 && revisionIndex !== quoteRevisions.length - 1;
-      revNumberBrowsingNote.style.display = browsingOldRev ? "block" : "none";
-      revNumberBrowsingNote.textContent = browsingOldRev
-        ? `(viewing Rev ${quoteRevisions[revisionIndex].rev_number})`
-        : "";
+      // Rev # (above) tracks revisionIndex too - see setButtonStates() -
+      // but nothing else there depends on the browser state, so a full
+      // re-run on every arrow click is cheap and keeps the display logic
+      // in one place instead of duplicating it here.
+      setButtonStates();
 
       renderSummaryArea();
     }
@@ -1392,7 +1391,7 @@
       const nextNumber = Math.max(...list.map(q => q.quote_number)) + 1;
       existingQuotesDiv.innerHTML =
         `<span class="muted">${list.length} existing quote${list.length === 1 ? "" : "s"} for this Opportunity. ` +
-        `Saving now will create Quote #${nextNumber}, Rev 0. To view or revise an existing one instead, use ` +
+        `Saving now will create Quote #${nextNumber}, Rev 1. To view or revise an existing one instead, use ` +
         `"Lookup Saved Quote" above.</span>`;
     }
 
