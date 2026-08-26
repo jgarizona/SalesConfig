@@ -1,5 +1,9 @@
 """
-Canonical category vocabulary shared across every vendor parser.
+Canonical category vocabulary shared across every vendor parser that needs
+it (currently just Winmate - JLT's raw labels are already canonical, and
+Getac/CipherLab's flat-SKU parsers assign "Base Unit:"/"Add On Options:"
+directly rather than mapping a raw category column, see parse_getac.py/
+parse_cipherlab.py).
 
 Each vendor spreadsheet spells its category labels differently (Winmate's
 "Radio:" vs JLT's "Internal Wireless", for example) even when the underlying
@@ -67,12 +71,6 @@ _RAW_TO_CANONICAL = {
     "os": "Operating System:",
     "operating system": "Operating System:",
     "windows": "Operating System:",
-    # CipherLab (Model Code suffix, not a real column - see parse_cipherlab.py)
-    "product": "Base Unit:",
-    "accessory": "Add On Options:",
-    "adapter": "Add On Options:",
-    "software": "Operating System:",
-    "advantage": "Add On Options:",  # CipherLab extended-warranty/service plans
 }
 
 

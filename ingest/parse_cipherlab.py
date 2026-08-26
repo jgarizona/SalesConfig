@@ -1,20 +1,67 @@
 """
-Ingest a CipherLab price-list workbook into the normalized parts shape.
+Ingest a CipherLab price-book workbook into the normalized parts shape.
 
-Single real data sheet ("One Page" - the other tabs in the real file are
-empty placeholders). Flat rows, no category column: "Model Code" combines a
-product-family prefix (e.g. "1000A", "RS38") with a coarse type suffix
-("Product" / "Accessory" / "Adapter" / "Software") - e.g. "1000A Product",
-"1023 Accessory". That suffix is the closest thing CipherLab's data has to a
-category, mapped through category_map.py the same way Winmate's raw labels
-are.
+Replaces the earlier flat "One Page" parser (2026-08-25, per the user - the
+old source file, `CipherLab Price Increase effective 4_10_2026 Product
+List.xlsx`, was a price-*increase* list covering ~61 product families but
+missing Base Unit rows for many of them, and was judged wrong/unreliable).
+The new source (`CipherLab USA RS38 Price Book 8062025 with formula.xlsx`)
+covers far fewer families - one sheet per device (RK26, RK95, RS36, RS38)
+plus three flat license/service sheets (904R ReMoCloud, 90W WheeCare OS
+upgrade licenses, 90R OCR license) - but is structurally much richer for the
+device sheets: each one carries a real "legend" of per-position option codes
+(Wireless/RAM+ROM/Barcode Reader/Camera/Battery/Package/GMS/Control Code,
+plus Keypad on RK95), then a "Terminal Kit" table of the vendor's actual
+released SKUs with each SKU's product code broken into those same per-
+position codes column-for-column. Two reference-only tabs ("SKU", an
+index of CipherLab's whole product line naming convention; "Warranty", a
+service-plan price matrix for models not present as device sheets in this
+file) are intentionally skipped - neither is this file's own device data.
 
-Unlike Getac, there is no CPU spec anywhere in this data - most of the
-catalog (scanners, readers, adapters) has no CPU concept at all, and even
-the Android-based mobile-computer families (RK/RS series) only mention
-Android version + RAM, never a chipset. Storing a fabricated CPU value would
-be inventing data the vendor never published, so this only extracts OS/RAM
-as search attributes where the description actually states them.
+Still no true build-your-own configurator: the Terminal Kit table lists only
+the specific combinations CipherLab actually released (e.g. RS38 has 3 real
+SKUs, not the dozens of combinations its legend positions could combine
+into), so - consistent with the old parser and with parse_getac.py - each
+row becomes one fixed "Base Unit:" record, not several independently-
+selectable per-category options. The legend gives something the old flat
+file never had though: a reliable per-SKU decomposition into structured
+`attributes` (cpu/os/os_version/ram/storage/wireless, matching
+app.py's ATTRIBUTE_CATEGORY_MAP so Search by Requirements can actually find
+these platforms, plus a few CipherLab-only facets - scanner/camera/battery -
+that aren't wired into search today but are harmless extra metadata if that
+ever changes) instead of best-effort regexes over one flat description.
+Below the Terminal Kit table, each sheet also lists real accessories
+(cradles, batteries, adapters, holsters, etc.) under their own section
+labels (col B only, e.g. "Cradle", "4BC-Healthcare") - these become
+"Add On Options:" records under the same platform, same treatment the old
+parser gave CipherLab's flat accessory rows.
+
+Detected structurally, not by a fixed row/column map, since section
+depth (and therefore which column each legend category lands in) differs
+sheet to sheet - RK95 has an extra "Keypad Options" category RS38 doesn't,
+shifting everything after it one column right:
+  - A "legend" row with exactly one populated cell among columns C:N is a
+    category label for whatever column its value sits in.
+  - A row with exactly 3 populated cells among C:N, the middle one literally
+    "-", is a `code -> description` legend entry for the column the code
+    sits in (associated with whichever label row last claimed that column).
+  - The header row where column B == "Product Code" ends the legend region.
+  - After the header, a row with only column B populated is a section label
+    (e.g. "Terminal Kit", "Cradle", "904R ReMoCloud"). Rows under a
+    "Terminal Kit" section carry per-position codes in the legend's columns
+    (decoded via the legend); every other section's rows are flat
+    code/description/price accessory rows, description straight from
+    column D. Price is always column O (-> MSRP) / column P (-> Floor
+    Price), whichever the sheet calls them ("FloorPrice" vs "Discount
+    Price" - same shape, just relabeled per sheet).
+  - The 904R/90W/90R sheets have no legend at all (skip straight to a
+    header row), so every one of their rows is a flat accessory/license row
+    under the sheet's own name as `platform` - consistent with the old
+    parser's per-model-family "platform" grouping, and with why these three
+    platforms will never have a "Base Unit:" row (they're services/licenses,
+    not devices) - `api_search_options` in app.py already excludes any
+    (brand, platform) with zero Base Unit rows from Search by Requirements,
+    so this doesn't reintroduce the old dead-end-value problem.
 
 Usage:
     python parse_cipherlab.py <path-to-xlsx> [--out parts.json]
@@ -28,97 +75,244 @@ from pathlib import Path
 
 import openpyxl
 
-from category_map import to_canonical
+from os_facets import extract_os_version, extract_os_edition
+from storage_facets import extract_storage_capacity
 
-DATA_SHEET = "One Page"
+EXCLUDED_SHEETS = {"SKU", "Warranty"}
+
+CODE_COL = 2       # B
+DESC_COL = 4       # D
+LEGEND_MIN_COL = 3  # C
+LEGEND_MAX_COL = 14  # N
+PRICE_COL = 15      # O -> MSRP / List Price
+FLOOR_COL = 16       # P -> Floor Price / Discount Price
+
+_CPU_RE = re.compile(r"Qualcomm\s+\S+(?:\s+Octa-Core\s*[\d.]+\s*GHz)?", re.IGNORECASE)
+_DISPLAY_RE = re.compile(r'(\d+(?:\.\d+)?)"\s*([A-Za-z0-9+]*)')
+_RAM_RE = re.compile(r"(\d+\s*GB)\s*RAM", re.IGNORECASE)
+_STORAGE_RE = re.compile(r"(\d+\s*GB)\s*Flash(?:\s*ROM)?\b", re.IGNORECASE)
 
 
-def extract_os(description):
-    if not description:
+def clean_text(v):
+    if v is None:
         return None
-    m = re.search(r"Android\s*\d+", description, re.IGNORECASE)
-    return m.group(0).strip() if m else None
+    s = str(v).replace("_x000D_", " ").replace("_x000A_", " ")
+    s = re.sub(r"\s+", " ", s).strip()
+    return s or None
 
 
-def extract_ram(description):
+def attr_key_for_label(label):
+    """Best-effort map of a legend category label to an attributes-dict key.
+    Substring match (not exact), since wording varies slightly sheet to
+    sheet ('Wireless Communication Options' vs '...with NFC / SIM Options').
+    Returns None for legend categories with nothing worth surfacing as
+    search metadata (package/power-cord options, the cosmetic control
+    code)."""
+    l = label.lower()
+    if "wireless" in l:
+        return "wireless"
+    if "ram" in l or "rom" in l:
+        return "ram"
+    if "barcode" in l or "reader" in l:
+        return "scanner"
+    if "camera" in l:
+        return "camera"
+    if "battery" in l:
+        return "battery"
+    if "keypad" in l:
+        return "keypad"
+    if "gms" in l:
+        return "os"
+    return None
+
+
+def parse_platform_base_attributes(description):
+    """Pulls cpu/os/os_version/display out of a platform's own base
+    description row (e.g. 'Android 13, Qualcomm 4490 Octa-Core 2.4GHz, 8GB
+    RAM + 128GB Flash ROM, 6" FHD+ with Capacitive Touch Panel...') - applied
+    to every SKU on that platform as a baseline, then overridden per-SKU by
+    whatever the legend actually resolves for that row (see
+    parse_terminal_kit_row)."""
+    attrs = {}
     if not description:
-        return None
-    m = re.search(r"(\d+\s*GB?)\s*RAM", description, re.IGNORECASE)
-    return m.group(1).replace(" ", "").upper() if m else None
+        return attrs
+    m = _CPU_RE.search(description)
+    if m:
+        attrs["cpu"] = m.group(0).strip().rstrip(",.")
+    os_version = extract_os_version(description)
+    if os_version:
+        attrs["os"] = os_version
+        attrs["os_version"] = os_version
+    os_edition = extract_os_edition(description)
+    if os_edition:
+        attrs["os_edition"] = os_edition
+    m = _DISPLAY_RE.search(description)
+    if m:
+        size, extra = m.group(1), (m.group(2) or "").strip()
+        attrs["display"] = f'{size}" {extra}'.strip()
+    m = _RAM_RE.search(description)
+    if m:
+        attrs["ram"] = m.group(1).replace(" ", "")
+    m = _STORAGE_RE.search(description)
+    if m:
+        cap = extract_storage_capacity(m.group(0))
+        if cap:
+            attrs["storage"] = cap
+    return attrs
 
 
-def split_model_code(model_code):
-    """'1000A Product' -> ('1000A', 'Product'). Some real rows have a third
-    middle token ('8200 Service Advantage') - platform is always just the
-    first token and category is always just the last, so a family's
-    warranty/service SKUs still group under the same platform as its
-    products/accessories rather than fragmenting into a separate '8200
-    Service' platform bucket Sales would never show next to plain '8200'."""
-    tokens = model_code.split()
-    if not tokens:
-        return model_code.strip(), model_code.strip()
-    platform = tokens[0]
-    category = tokens[-1] if len(tokens) > 1 else tokens[0]
-    return platform, category
+def find_legend_regions(ws, header_row):
+    """Scans rows 1..header_row-1 for category-label and code-legend rows
+    (see module docstring). Returns {column: {"label": str, "codes": {code:
+    description}}}."""
+    legend = {}
+    current_label_col = {}
+    for r in range(1, header_row):
+        populated = {}
+        for c in range(LEGEND_MIN_COL, LEGEND_MAX_COL + 1):
+            v = ws.cell(row=r, column=c).value
+            if v not in (None, ""):
+                populated[c] = v
+        if len(populated) == 1:
+            col, val = next(iter(populated.items()))
+            label = clean_text(val)
+            if label:
+                legend.setdefault(col, {"label": label, "codes": {}})
+                legend[col]["label"] = label
+        elif len(populated) == 3:
+            cols = sorted(populated)
+            c0, c1, c2 = cols
+            if str(populated[c1]).strip() == "-":
+                code = clean_text(populated[c0])
+                desc = clean_text(populated[c2])
+                if code is not None and desc is not None:
+                    legend.setdefault(c0, {"label": None, "codes": {}})
+                    legend[c0]["codes"][code] = desc
+    return legend
+
+
+def parse_terminal_kit_row(ws, row, legend, base_attrs):
+    attrs = dict(base_attrs)
+    desc_candidates = []
+    for col, entry in legend.items():
+        code = ws.cell(row=row, column=col).value
+        if code in (None, ""):
+            continue
+        code = str(code).strip()
+        option_desc = entry["codes"].get(code)
+        if not option_desc:
+            continue
+        desc_candidates.append(option_desc)
+        key = attr_key_for_label(entry["label"] or "")
+        if key == "os":
+            # GMS legend text states Android version directly, e.g.
+            # "GMS(Android 13)" / "Regular Android OS (Non-GMS)(Android 13)"
+            # - more precise than the platform-wide base description.
+            os_version = extract_os_version(option_desc)
+            if os_version:
+                attrs["os"] = os_version
+                attrs["os_version"] = os_version
+        elif key == "ram":
+            m = _RAM_RE.search(option_desc)
+            if m:
+                attrs["ram"] = m.group(1).replace(" ", "")
+            m = _STORAGE_RE.search(option_desc)
+            if m:
+                cap = extract_storage_capacity(m.group(0))
+                if cap:
+                    attrs["storage"] = cap
+        elif key:
+            attrs[key] = option_desc
+
+    # Full description: the longest populated text cell between the code
+    # columns and the price column - the sheet's own combined-spec text.
+    full_desc = None
+    for c in range(LEGEND_MIN_COL, PRICE_COL):
+        v = ws.cell(row=row, column=c).value
+        if v is None:
+            continue
+        s = clean_text(v)
+        if s and (full_desc is None or len(s) > len(full_desc)):
+            full_desc = s
+    if full_desc is None:
+        full_desc = "; ".join(desc_candidates) or None
+
+    return attrs, full_desc
+
+
+def parse_sheet(ws, platform, brand):
+    parts = []
+
+    header_row = None
+    for r in range(1, ws.max_row + 1):
+        if clean_text(ws.cell(row=r, column=CODE_COL).value) == "Product Code":
+            header_row = r
+            break
+    if header_row is None:
+        return parts
+
+    legend = find_legend_regions(ws, header_row)
+
+    # Platform-wide base spec (e.g. row naming the base model 'AS38' next to
+    # its full description) - whichever pre-header row has both a short
+    # token in column B and a long description in column D.
+    base_attrs = {}
+    for r in range(1, header_row):
+        b_val = clean_text(ws.cell(row=r, column=CODE_COL).value)
+        d_val = clean_text(ws.cell(row=r, column=DESC_COL).value)
+        if b_val and d_val and len(b_val) <= 12 and len(d_val) > 30:
+            base_attrs = parse_platform_base_attributes(d_val)
+            break
+
+    current_section = None
+    for r in range(header_row + 1, ws.max_row + 1):
+        b_val = ws.cell(row=r, column=CODE_COL).value
+        if b_val in (None, ""):
+            continue
+        code = clean_text(b_val)
+        d_val = ws.cell(row=r, column=DESC_COL).value
+        price = ws.cell(row=r, column=PRICE_COL).value
+        rest_populated = any(
+            ws.cell(row=r, column=c).value not in (None, "")
+            for c in range(LEGEND_MIN_COL, LEGEND_MAX_COL + 1)
+        )
+        if price is None and d_val in (None, "") and not rest_populated:
+            current_section = code
+            continue
+
+        if current_section == "Terminal Kit" and legend:
+            attrs, description = parse_terminal_kit_row(ws, r, legend, base_attrs)
+            category = "Base Unit:"
+        else:
+            attrs = dict(base_attrs)
+            description = clean_text(d_val)
+            category = "Add On Options:"
+
+        floor = ws.cell(row=r, column=FLOOR_COL).value
+        parts.append({
+            "brand": brand,
+            "platform": platform,
+            "category": category,
+            "code": code,
+            "description": description,
+            "requires_review": False,  # manufacturer's own official catalog
+            "Floor Price": floor,
+            "MSRP": price,
+            "Cost": None,
+            "Current Cost": None,
+            "attributes": attrs,
+        })
+
+    return parts
 
 
 def parse_workbook(path, brand="CipherLab"):
     wb = openpyxl.load_workbook(path, data_only=True)
-    ws = wb[DATA_SHEET]
-
-    header_row = None
-    headers = {}
-    for r in range(1, 10):
-        row_vals = {c: ws.cell(row=r, column=c).value for c in range(1, 20)}
-        if any(v and str(v).strip() == "Model Code" for v in row_vals.values()):
-            header_row = r
-            for c, v in row_vals.items():
-                if v:
-                    headers[str(v).strip()] = c
-            break
-    if header_row is None:
-        raise ValueError(f"Could not find the 'Model Code' header row in {DATA_SHEET!r}")
-
-    col_model = headers.get("Model Code")
-    col_product = headers.get("Product Code")
-    col_desc = headers.get("Description")
-    col_price = headers.get("List Price (USD)")
-
     parts = []
-    for r in range(header_row + 1, ws.max_row + 1):
-        model_code = ws.cell(row=r, column=col_model).value if col_model else None
-        product_code = ws.cell(row=r, column=col_product).value if col_product else None
-        description = ws.cell(row=r, column=col_desc).value if col_desc else None
-        price = ws.cell(row=r, column=col_price).value if col_price else None
-
-        if not (model_code and product_code):
+    for sheet_name in wb.sheetnames:
+        if sheet_name in EXCLUDED_SHEETS:
             continue
-
-        platform, raw_category = split_model_code(str(model_code))
-        description = str(description).strip() if description is not None else None
-
-        attributes = {}
-        os_name = extract_os(description)
-        if os_name:
-            attributes["os"] = os_name
-        ram = extract_ram(description)
-        if ram:
-            attributes["ram"] = ram
-
-        parts.append({
-            "brand": brand,
-            "platform": platform,
-            "category": to_canonical(raw_category),
-            "code": str(product_code).strip(),
-            "description": description,
-            "requires_review": False,  # manufacturer's own official catalog
-            "Floor Price": None,
-            "MSRP": price,
-            "Cost": None,
-            "Current Cost": None,
-            "attributes": attributes,
-        })
-
+        parts.extend(parse_sheet(wb[sheet_name], platform=sheet_name, brand=brand))
     return parts
 
 
@@ -136,13 +330,23 @@ def main():
     out_path.write_text(json.dumps(parts, indent=2), encoding="utf-8")
 
     by_platform = {}
+    base_unit_count = 0
+    attr_hits = {}
     for p in parts:
         by_platform.setdefault(p["platform"], 0)
         by_platform[p["platform"]] += 1
+        if p["category"] == "Base Unit:":
+            base_unit_count += 1
+        for k, v in p["attributes"].items():
+            if v:
+                attr_hits[k] = attr_hits.get(k, 0) + 1
 
-    print(f"Parsed {len(parts)} rows across {len(by_platform)} product families:")
+    print(f"Parsed {len(parts)} rows across {len(by_platform)} platforms ({base_unit_count} Base Unit rows):")
     for platform, count in sorted(by_platform.items()):
         print(f"  {platform}: {count}")
+    print("Attribute hit rates (of all rows):")
+    for k, n in sorted(attr_hits.items()):
+        print(f"  {k}: {n}/{len(parts)}")
     print(f"Wrote {out_path}")
 
 

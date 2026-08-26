@@ -366,16 +366,18 @@ def _os_version_sort_key(label):
 
 CUSTOMER_FACING_PRICE_FIELDS = ["Floor Price", "MSRP"]  # Cost/Current Cost never leave Purchasing
 
-# Temporary, per the user (2026-08-17): CipherLab's source spreadsheet is a
-# price-*increase* list, not a full catalog, so ~160 of its search-dropdown
-# values (accessories/warranties/licenses for product families whose base
-# price didn't change) have no Base Unit row to ever match - see the
-# api_search_options fix earlier the same day. Rather than rely solely on
-# that per-value filtering, exclude CipherLab from Search by Requirements
-# entirely until a fuller catalog is sourced - normal Sales configuration
-# (Brand/Platform/Base Unit dropdowns) is untouched, this only affects
-# search. Remove this set (and its two usages below) once that's resolved.
-SEARCH_EXCLUDED_BRANDS = {"CipherLab"}
+# CipherLab was excluded here 2026-08-17 because its old source spreadsheet
+# was a price-*increase* list, not a full catalog - ~160 search-dropdown
+# values had no Base Unit row to ever match. Resolved 2026-08-25: the old
+# CipherLab source/data was replaced entirely with a new price-book workbook
+# (see ingest/parse_cipherlab.py) where every ingested platform has real
+# Base Unit rows with real attributes, and api_search_options already
+# excludes any (brand, platform) with zero Base Unit rows from the dropdown
+# pool - so nothing here needs a brand-wide exclusion anymore. Kept as an
+# empty set (rather than deleted outright) so a future vendor with the same
+# "spreadsheet isn't a full catalog" problem has an established mechanism to
+# reuse instead of re-inventing it.
+SEARCH_EXCLUDED_BRANDS = set()
 
 # Fixed roster so the Brand dropdown always shows every vendor JLT resells,
 # not just whichever ones happen to have data today. All 4 are ingested and

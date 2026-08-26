@@ -117,7 +117,7 @@ what currently stands in for that.
 
 **Current status:** rough working prototype. All 4 screens (Technical, Sales, Purchasing,
 Admin) are functional against real pricing data for all 4 brands (JLT/Winmate/Getac/
-CipherLab, 3,771 parts total as of 2026-08-18, see §7). No database, no auth, no HubSpot — all
+CipherLab, 2,527 parts total as of 2026-08-25, see §7). No database, no auth, no HubSpot — all
 noted below.
 
 ---
@@ -184,10 +184,16 @@ Git/
 │   │                          # best-effort cpu/os/ram/storage/display/wireless out of the
 │   │                          # free-text description into `attributes` purely for search
 │   │                          # (see §6) - 100% hit rate on all six, real 370-row catalog.
-│   ├── parse_cipherlab.py    # CipherLab parser - same flat-SKU shape as Getac. Platform/
-│   │                          # category come from splitting "Model Code" (e.g. "1000A
-│   │                          # Product"); no CPU field exists anywhere in this vendor's data.
-│   └── category_map.py       # Shared by the Winmate/CipherLab parsers: maps each vendor's raw
+│   ├── parse_cipherlab.py    # CipherLab parser - rewritten 2026-08-25 for the new source
+│   │                          # workbook's shape (one sheet per device platform, a real
+│   │                          # per-position option "legend" decoded into `attributes`, a
+│   │                          # "Terminal Kit" table of real released SKUs, flat accessory
+│   │                          # sections below it - see the file's own docstring for the full
+│   │                          # row-classification rules). Still Base-Unit-only per SKU, same
+│   │                          # reasoning as Getac - the Terminal Kit table lists only the
+│   │                          # combinations CipherLab actually released, not a pick-your-own
+│   │                          # matrix.
+│   └── category_map.py       # Shared by the Winmate parser (only): maps each vendor's raw
 │                              # category label to app.py's canonical CATEGORY_ORDER vocabulary
 │                              # so cross-brand sort/search line up. Deliberately does NOT
 │                              # collapse categories whose raw codes aren't globally unique
@@ -536,9 +542,10 @@ present anywhere in CipherLab's source data). Not selectable fields, not shown o
 `app.py`'s `ATTRIBUTE_CATEGORY_MAP` is what lets Search by Requirements match against them as
 if they were real Processor/OS/RAM/Storage/Display/Wireless options.
 
-Currently 3,771 rows (2026-08-18): 719 JLT (499 from the original vendor ingest + 220 added
+Currently 2,527 rows (2026-08-25): 719 JLT (499 from the original vendor ingest + 220 added
 by hand via Technical's "Add a new option" - 60 accessory add-ons + 160 WWAN Card entries, see
-§5/§8), 1,060 Winmate, 370 Getac, 1,622 CipherLab.
+§5/§8), 1,060 Winmate, 370 Getac, 378 CipherLab (replaced entirely 2026-08-25 - see §7's
+"Resolved 2026-08-25" note for why the count dropped from the old 1,622).
 
 ### `approvals.json` — Technical sign-off
 List of 4-element arrays: `[brand, platform, category, code]`. Presence in this list is what
@@ -658,7 +665,7 @@ stat card. **Tracked in git, not gitignored** - unlike `site_access.json` (a sec
 `BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
 roster shown in every Brand dropdown. All four now have a real parser (`app.py`'s `PARSERS`
 dict routes Technical's upload form to the right one per brand) and real ingested data - see
-`ingest/` in §4 for what each parser does. Total catalog: 3,771 parts (breakdown in §6).
+`ingest/` in §4 for what each parser does. Total catalog: 2,527 parts (breakdown in §6).
 
 Two genuinely different *kinds* of vendor data turned up, not just different spreadsheet
 layouts of the same kind:
@@ -771,6 +778,35 @@ greyed-out option ("CipherLab (search unavailable)") instead of silently returni
 picked. This is search-only - CipherLab still works normally on the main Brand/Platform/Base
 Unit dropdowns for direct configuration. Meant to be temporary: remove the set (both usages) and
 the template's `disabled` branch once a fuller CipherLab catalog is sourced and re-ingested.
+
+**Resolved 2026-08-25 (per the user - the old source data was "wrong" and replaced entirely,
+not merged):** `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` (the flat,
+61-family, price-increase-only source described in the three paragraphs above) and every part
+row it produced were deleted outright - all 1,622 old CipherLab rows removed from
+`parts_vmt_q1_2026.json`, nothing kept. Replaced with a new source workbook, `CipherLab USA
+RS38 Price Book 8062025 with formula.xlsx`, structurally nothing like the old one: one sheet per
+device platform (RK26, RK95, RS36, RS38) carrying a real per-position option "legend"
+(Wireless/RAM+ROM/Barcode Reader/Camera/Battery/Package/GMS/Control Code, plus Keypad on RK95),
+each SKU's product code broken into those same codes column-for-column, plus three flat
+license/service sheets (904R ReMoCloud, 90W WheeCare Android-upgrade licenses, 90R OCR) with no
+Base Unit rows at all - covers only 7 platforms, versus ~61 before, but every platform it does
+cover is now completely represented (every dropdown value resolves to a real SKU). New
+`ingest/parse_cipherlab.py` (full rewrite, see its own docstring for the row-classification
+rules) decodes the legend into `attributes` matching `ATTRIBUTE_CATEGORY_MAP` (`cpu`, `os`/
+`os_version`, `ram`, `storage`, `display`, `wireless`, all populated from real per-SKU legend
+values, not regex guesses over one flat description) plus three CipherLab-only extras not yet
+wired into search (`scanner`, `camera`, `battery`) - harmless if search never uses them, ready if
+it does. Result: 378 new parts (235 `Base Unit:`, 143 `Add On Options:`), catalog total now
+2,527 (719 JLT + 1,060 Winmate + 370 Getac + 378 CipherLab). Verified via a real `/api/
+search_base_units` POST (Processor Options = "Qualcomm 4490 Octa-Core 2.4GHz" + RAM Memory
+Options: = "8GB", brand=CipherLab) returning exactly the 3 real RS38 SKUs with correct prices.
+`SEARCH_EXCLUDED_BRANDS` is now an empty set (kept, not deleted, as a reusable mechanism per its
+own comment in `app.py`) - CipherLab is no longer greyed out in the search modal's Brand
+dropdown. No CipherLab approvals or saved quotes existed to worry about losing (checked before
+deleting: 0 of either). `data/parts_vmt_q1_2026.json`'s only pre-existing CipherLab/CipherLab
+collision is one vendor-side duplicate row (`BPOWER0000143` on RS38, listed twice in the source
+under two section labels with identical price/description) - harmless, not a real data-loss
+collision.
 
 Everything downstream of ingestion — Sales dropdowns, Purchasing pricing, quote records — was
 already brand-agnostic and needed no changes.

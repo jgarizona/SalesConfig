@@ -11,7 +11,7 @@ Every repository change must be recorded under the date it was made and identify
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
 - **Make JSON catalog writes recoverable and concurrency-safe** — source: 2026-08-15 Codex review. Current status: uploads rewrite the complete catalog JSON directly with no atomic replacement, backup, or write lock. Next action: use atomic writes plus locking/backups now, then migrate to a database when concurrent usage warrants it.
 - **Add automated spreadsheet-ingestion tests** — source: 2026-08-15 Codex review and the handoff's known no-tests limitation. Current status: ingestion is verified manually. Next action: add representative JLT, Winmate, Getac, CipherLab, malformed-workbook, pricing-normalization, blank-preservation, and zero-row test fixtures.
-- **CipherLab's source file is a price-*increase* list, not a full catalog** — found 2026-08-17 during the search-dropdown audit below. 21 product families (8600, HERA51, and a batch of Wavelink/Ivanti software-license SKUs) have accessories/warranties/licenses in the data but no `Base Unit:` row at all, because their base price didn't change in this particular increase. Per the user, CipherLab is excluded from Search by Requirements entirely until this is fixed at the source (see the second 2026-08-17 entry below) — normal Sales configuration is unaffected, this is search-only. Next action: once a fuller CipherLab catalog is sourced, re-run the ingest and remove `SEARCH_EXCLUDED_BRANDS = {"CipherLab"}` in `app.py` (two usages) and the matching `disabled` branch in `sales.html`'s search-brand-select loop.
+- ~~**CipherLab's source file is a price-*increase* list, not a full catalog**~~ — resolved 2026-08-25: the old source file and all 1,622 parts it produced were deleted outright (per the user - the old data was "wrong", not to be merged with the new) and replaced with `CipherLab USA RS38 Price Book 8062025 with formula.xlsx` (378 parts, 7 platforms - see the same-day CHANGELOG entry below). `SEARCH_EXCLUDED_BRANDS` is now an empty set; CipherLab is no longer excluded from Search by Requirements.
 
 - **HubSpot connector** — the plan (defined 2026-08-25, see `HANDOFF.md` §9) is now coded in `hubspot_client.py` + new `app.py` routes (also 2026-08-25), but deliberately **dormant** — no button or template calls any of it yet, per the user. **Blocking next action, unchanged: a HubSpot Super Admin must create the Private App per §9's checklist** — `data/hubspot_config.json`'s `access_token` is still `null`, so every function raises `HubSpotNotConfigured` if called. Once a token exists, still needs real testing before anything is wired up: §9 lists exactly what's unverified (two HubSpot association-type-ID constants, and which quote total becomes the Deal amount). Sales page still uses a manually-typed Opportunity ID and the original stub "Upload Hspt" button in the meantime — confirmed byte-for-byte unchanged.
 - ~~**Real HubSpot upload**~~ — folded into the **HubSpot connector** item above on 2026-08-25; the Upload button is exactly interaction 5 in that plan (attach the rep's final quote as a Note on the Deal).
@@ -27,6 +27,44 @@ Every repository change must be recorded under the date it was made and identify
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-08-25
+
+- **[Claude]** **Replaced CipherLab's catalog source entirely, per the user ("get rid of all the
+  old cipherlabs data because it was wrong"), and rebuilt its ingest to make Search by
+  Requirements actually work for it.** Deleted all 1,622 old CipherLab parts (sourced from
+  `CipherLab Price Increase effective 4_10_2026 Product List.xlsx`, a flat price-*increase* list
+  covering ~61 product families but missing Base Unit rows for many of them - see the resolved
+  2026-08-17 Pending/TODO item). Pulled the new source, `CipherLab USA RS38 Price Book 8062025
+  with formula.xlsx`, from Box (`app.box.com/folder/408728180479`) and confirmed before deleting
+  anything that no CipherLab approvals or saved quotes existed to lose (0 of either). Rewrote
+  `ingest/parse_cipherlab.py` from scratch for the new workbook's shape - one sheet per device
+  platform (RK26, RK95, RS36, RS38) with a real per-position option "legend" (Wireless/RAM+ROM/
+  Barcode Reader/Camera/Battery/Package/GMS/Control Code, plus Keypad on RK95) decoded
+  column-for-column against a "Terminal Kit" table of the vendor's actual released SKUs, plus
+  accessory sections below it and three flat license sheets (904R/90W/90R) with no Base Unit rows
+  at all - see the new file's docstring for the exact row-classification rules (legend vs.
+  section-label vs. flat-accessory rows, detected structurally since section depth/column offset
+  varies sheet to sheet). Removed the CipherLab-specific entries from `ingest/category_map.py`
+  (dead code - the new parser assigns "Base Unit:"/"Add On Options:" directly, doesn't map a raw
+  category column the way Winmate's parser does).
+  Result: 378 new parts (235 `Base Unit:`, 143 `Add On Options:`) across 7 platforms - far fewer
+  families than before (7 vs. ~61), but every one of them fully represented, versus the old
+  file's ~160 dead-end search values. Catalog total now 2,527 (719 JLT + 1,060 Winmate + 370
+  Getac + 378 CipherLab). Unlike the old flat parser's regex-over-one-description best effort,
+  every Base Unit row now gets real per-SKU `attributes` decoded straight from the legend
+  (`cpu`, `os`/`os_version`, `ram`, `storage`, `display`, `wireless` - matching
+  `ATTRIBUTE_CATEGORY_MAP` exactly, plus `scanner`/`camera`/`battery` as CipherLab-only extras not
+  yet wired into search) with high hit rates (e.g. `os`/`ram`/`storage`: 320+/378 rows). Removed
+  the brand-wide `SEARCH_EXCLUDED_BRANDS = {"CipherLab"}` exclusion added 2026-08-17 (now an
+  empty set, kept as a reusable mechanism rather than deleted) and the matching disabled option
+  in `sales.html`'s search-brand-select loop no longer triggers. Verified live: `/technical`
+  shows all 7 new platforms; `/api/search_options?brand=CipherLab` returns real per-category
+  dropdown values (e.g. Processor Options: 4 values, RAM Memory Options: 2, OS Version: 3); a
+  real `/api/search_base_units` POST (Processor Options = "Qualcomm 4490 Octa-Core 2.4GHz" + RAM
+  Memory Options: = "8GB", brand=CipherLab) returned exactly the 3 real RS38 SKUs with correct
+  codes/prices; Purchasing's pricing-gaps report flags all 378 rows the same way it already flags
+  all 370 Getac rows (missing Cost/Current Cost, which no vendor source for either brand
+  provides - expected, not a regression). `HANDOFF.md` §6/§7 and its overview counts updated to
+  match.
 
 - **[Claude]** **Redesigned the revision/config summary area into a real comparison view, after
   the previous same-day design turned out to have the wrong root cause.** The user's actual
