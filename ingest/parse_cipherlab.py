@@ -54,14 +54,33 @@ shifting everything after it one column right:
     column D. Price is always column O (-> MSRP) / column P (-> Floor
     Price), whichever the sheet calls them ("FloorPrice" vs "Discount
     Price" - same shape, just relabeled per sheet).
-  - The 904R/90W/90R sheets have no legend at all (skip straight to a
-    header row), so every one of their rows is a flat accessory/license row
-    under the sheet's own name as `platform` - consistent with the old
-    parser's per-model-family "platform" grouping, and with why these three
-    platforms will never have a "Base Unit:" row (they're services/licenses,
-    not devices) - `api_search_options` in app.py already excludes any
-    (brand, platform) with zero Base Unit rows from Search by Requirements,
-    so this doesn't reintroduce the old dead-end-value problem.
+  - 904R (ReMoCloud), 90W (Android OS-upgrade licenses), and 90R (OCR
+    license) are **not real systems** (per the user, 2026-08-25, after
+    seeing them rendered as selectable "platforms" on Sales - genuinely
+    wrong, not a simplification) - they're license/service SKUs that attach
+    to a real device platform, the same as any other accessory. Each one's
+    rows are redistributed onto the real device platforms (RK26/RK95/RS36/
+    RS38, whichever device sheets this workbook actually has) as ordinary
+    "Add On Options:" instead of becoming platforms of their own:
+      - **904R and 90R apply to every real platform** (their own
+        descriptions never name a specific model - 904R's cloud-management
+        service and 90R's OCR activation key are device-agnostic) - each of
+        their rows is duplicated once per real platform.
+      - **90W is model-specific per row**, grouped under section-label rows
+        naming which model each license is for (e.g. "RK95 android OS
+        upgrade license"). A row is attached to whichever real platform's
+        name appears in its nearest preceding section label; rows under a
+        section naming a model this workbook has no device sheet for (RK25,
+        RS35, RS51, Hera51 - an older product, per the user, not part of
+        this configurator) are dropped entirely rather than invented as a
+        new platform.
+    None of these three sheets ever produces a "Base Unit:" row either way -
+    they're licenses, not devices - which is also why the old brand-wide
+    Search exclusion isn't needed for them: `api_search_options` in app.py
+    already excludes any (brand, platform) with zero Base Unit rows from the
+    dropdown pool, and since their rows now live under platforms that do
+    have Base Unit rows, they're simply ordinary add-on options a rep might
+    see once a real platform is picked - not a search dead end.
 
 Usage:
     python parse_cipherlab.py <path-to-xlsx> [--out parts.json]
@@ -79,6 +98,14 @@ from os_facets import extract_os_version, extract_os_edition
 from storage_facets import extract_storage_capacity
 
 EXCLUDED_SHEETS = {"SKU", "Warranty"}
+
+# Not real systems - license/service SKUs redistributed onto real device
+# platforms instead of becoming platforms of their own (see module
+# docstring). BROADCAST_SHEETS' rows apply to every real platform;
+# PREFIX_MATCHED_SHEETS' rows are matched to a real platform by name via
+# their section label, dropped if no real platform matches.
+BROADCAST_SHEETS = {"904R", "90R"}
+PREFIX_MATCHED_SHEETS = {"90W"}
 
 CODE_COL = 2       # B
 DESC_COL = 4       # D
@@ -306,13 +333,96 @@ def parse_sheet(ws, platform, brand):
     return parts
 
 
+def parse_service_rows(ws):
+    """Flat rows for a 904R/90W/90R-style sheet - no legend, no Terminal
+    Kit, just a header row then section-label rows (col B only) followed by
+    code/description/price rows. Returns each row plus the section label it
+    fell under, for the caller to decide which real platform(s) it belongs
+    to (see BROADCAST_SHEETS/PREFIX_MATCHED_SHEETS)."""
+    header_row = None
+    for r in range(1, ws.max_row + 1):
+        if clean_text(ws.cell(row=r, column=CODE_COL).value) == "Product Code":
+            header_row = r
+            break
+    if header_row is None:
+        return []
+
+    rows = []
+    current_section = None
+    for r in range(header_row + 1, ws.max_row + 1):
+        b_val = ws.cell(row=r, column=CODE_COL).value
+        if b_val in (None, ""):
+            continue
+        code = clean_text(b_val)
+        d_val = ws.cell(row=r, column=DESC_COL).value
+        price = ws.cell(row=r, column=PRICE_COL).value
+        rest_populated = any(
+            ws.cell(row=r, column=c).value not in (None, "")
+            for c in range(LEGEND_MIN_COL, LEGEND_MAX_COL + 1)
+        )
+        if price is None and d_val in (None, "") and not rest_populated:
+            current_section = code
+            continue
+        rows.append({
+            "code": code,
+            "description": clean_text(d_val),
+            "MSRP": price,
+            "Floor Price": ws.cell(row=r, column=FLOOR_COL).value,
+            "section": current_section or "",
+        })
+    return rows
+
+
+def _service_part(brand, platform, row):
+    return {
+        "brand": brand,
+        "platform": platform,
+        "category": "Add On Options:",
+        "code": row["code"],
+        "description": row["description"],
+        "requires_review": False,  # manufacturer's own official catalog
+        "Floor Price": row["Floor Price"],
+        "MSRP": row["MSRP"],
+        "Cost": None,
+        "Current Cost": None,
+        "attributes": {},
+    }
+
+
 def parse_workbook(path, brand="CipherLab"):
     wb = openpyxl.load_workbook(path, data_only=True)
+
+    device_sheets = [
+        s for s in wb.sheetnames
+        if s not in EXCLUDED_SHEETS and s not in BROADCAST_SHEETS and s not in PREFIX_MATCHED_SHEETS
+    ]
+
     parts = []
-    for sheet_name in wb.sheetnames:
-        if sheet_name in EXCLUDED_SHEETS:
-            continue
+    for sheet_name in device_sheets:
         parts.extend(parse_sheet(wb[sheet_name], platform=sheet_name, brand=brand))
+
+    # 904R/90R: device-agnostic license/service SKUs - one copy under every
+    # real platform (see module docstring).
+    for sheet_name in wb.sheetnames:
+        if sheet_name not in BROADCAST_SHEETS:
+            continue
+        for row in parse_service_rows(wb[sheet_name]):
+            for platform in device_sheets:
+                parts.append(_service_part(brand, platform, row))
+
+    # 90W: model-specific licenses - attach to whichever real platform's
+    # name appears in the row's section label, drop if none does (a model
+    # this workbook has no device sheet for).
+    for sheet_name in wb.sheetnames:
+        if sheet_name not in PREFIX_MATCHED_SHEETS:
+            continue
+        for row in parse_service_rows(wb[sheet_name]):
+            section = row["section"].lower()
+            target = next((p for p in device_sheets if p.lower() in section), None)
+            if target is None:
+                continue
+            parts.append(_service_part(brand, target, row))
+
     return parts
 
 

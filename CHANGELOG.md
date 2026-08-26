@@ -28,6 +28,23 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Corrected 904R/90W/90R after the user spotted them rendered as selectable
+  "systems" on Sales - they're license/service SKUs, not real platforms.** Follow-up to the same-
+  day CipherLab replacement below. 904R (ReMoCloud) and 90R (OCR), device-agnostic per their own
+  descriptions, now duplicate as "Add On Options:" under every real platform instead of forming
+  their own platform. 90W (Android OS-upgrade licenses) is model-specific per row, grouped under
+  section labels naming the target model (e.g. "RK95 android OS upgrade license") - each row is
+  now attached to whichever real platform's name matches its section label; rows for models this
+  workbook has no device sheet for (RK25, RS35, RS51, and Hera51 - an older product no longer
+  part of this configurator, per the user) are dropped rather than invented as new platforms.
+  `ingest/parse_cipherlab.py` gained `parse_service_rows()`/`_service_part()` plus
+  `BROADCAST_SHEETS`/`PREFIX_MATCHED_SHEETS` to implement this - see its docstring. Result:
+  CipherLab now 387 parts (235 `Base Unit:`, 152 `Add On Options:`) across exactly 4 real
+  platforms (RK26, RK95, RS36, RS38) - up from the first pass's 378 across 7 "platforms" (4 real
+  + the 3 mis-modeled service sheets). Catalog total now 2,536. Verified live: Sales' CipherLab
+  Platform dropdown shows only the 4 real systems; RK26 and RK95 both show ReMoCloud/OCR under
+  Add On Options; RK95 additionally shows its 2 matching OS-upgrade licenses.
+
 - **[Claude]** **Replaced CipherLab's catalog source entirely, per the user ("get rid of all the
   old cipherlabs data because it was wrong"), and rebuilt its ingest to make Search by
   Requirements actually work for it.** Deleted all 1,622 old CipherLab parts (sourced from

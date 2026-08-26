@@ -117,7 +117,7 @@ what currently stands in for that.
 
 **Current status:** rough working prototype. All 4 screens (Technical, Sales, Purchasing,
 Admin) are functional against real pricing data for all 4 brands (JLT/Winmate/Getac/
-CipherLab, 2,527 parts total as of 2026-08-25, see §7). No database, no auth, no HubSpot — all
+CipherLab, 2,536 parts total as of 2026-08-25, see §7). No database, no auth, no HubSpot — all
 noted below.
 
 ---
@@ -542,9 +542,9 @@ present anywhere in CipherLab's source data). Not selectable fields, not shown o
 `app.py`'s `ATTRIBUTE_CATEGORY_MAP` is what lets Search by Requirements match against them as
 if they were real Processor/OS/RAM/Storage/Display/Wireless options.
 
-Currently 2,527 rows (2026-08-25): 719 JLT (499 from the original vendor ingest + 220 added
+Currently 2,536 rows (2026-08-25): 719 JLT (499 from the original vendor ingest + 220 added
 by hand via Technical's "Add a new option" - 60 accessory add-ons + 160 WWAN Card entries, see
-§5/§8), 1,060 Winmate, 370 Getac, 378 CipherLab (replaced entirely 2026-08-25 - see §7's
+§5/§8), 1,060 Winmate, 370 Getac, 387 CipherLab (replaced entirely 2026-08-25 - see §7's
 "Resolved 2026-08-25" note for why the count dropped from the old 1,622).
 
 ### `approvals.json` — Technical sign-off
@@ -665,7 +665,7 @@ stat card. **Tracked in git, not gitignored** - unlike `site_access.json` (a sec
 `BRANDS = ["JLT", "Winmate", "Getac", "CipherLab"]` (constant in `app.py`) is the fixed
 roster shown in every Brand dropdown. All four now have a real parser (`app.py`'s `PARSERS`
 dict routes Technical's upload form to the right one per brand) and real ingested data - see
-`ingest/` in §4 for what each parser does. Total catalog: 2,527 parts (breakdown in §6).
+`ingest/` in §4 for what each parser does. Total catalog: 2,536 parts (breakdown in §6).
 
 Two genuinely different *kinds* of vendor data turned up, not just different spreadsheet
 layouts of the same kind:
@@ -788,16 +788,31 @@ RS38 Price Book 8062025 with formula.xlsx`, structurally nothing like the old on
 device platform (RK26, RK95, RS36, RS38) carrying a real per-position option "legend"
 (Wireless/RAM+ROM/Barcode Reader/Camera/Battery/Package/GMS/Control Code, plus Keypad on RK95),
 each SKU's product code broken into those same codes column-for-column, plus three flat
-license/service sheets (904R ReMoCloud, 90W WheeCare Android-upgrade licenses, 90R OCR) with no
-Base Unit rows at all - covers only 7 platforms, versus ~61 before, but every platform it does
+license/service sheets (904R ReMoCloud, 90W Android-upgrade licenses, 90R OCR) with no Base Unit
+rows at all - covers only 4 real device platforms, versus ~61 before, but every platform it does
 cover is now completely represented (every dropdown value resolves to a real SKU). New
 `ingest/parse_cipherlab.py` (full rewrite, see its own docstring for the row-classification
 rules) decodes the legend into `attributes` matching `ATTRIBUTE_CATEGORY_MAP` (`cpu`, `os`/
 `os_version`, `ram`, `storage`, `display`, `wireless`, all populated from real per-SKU legend
 values, not regex guesses over one flat description) plus three CipherLab-only extras not yet
 wired into search (`scanner`, `camera`, `battery`) - harmless if search never uses them, ready if
-it does. Result: 378 new parts (235 `Base Unit:`, 143 `Add On Options:`), catalog total now
-2,527 (719 JLT + 1,060 Winmate + 370 Getac + 378 CipherLab). Verified via a real `/api/
+it does.
+
+**Corrected same day, per the user, after seeing 904R/90W/90R rendered as selectable "systems"
+on Sales:** they aren't real systems, they're license/service SKUs. 904R (ReMoCloud) and 90R
+(OCR) are device-agnostic - their descriptions never name a specific model - so each of their
+rows is now duplicated as an "Add On Options:" record under every real device platform instead
+of forming its own platform. 90W is model-specific per row (grouped under section labels like
+"RK95 android OS upgrade license"); each row is attached to whichever real platform's name
+matches its section label, and rows for a model this workbook has no device sheet for (RK25,
+RS35, RS51, Hera51 - an older product no longer part of this configurator, per the user) are
+dropped entirely rather than invented as a new platform. Only 4 of 90W's ~24 rows survive this
+way (the RK95 and RK95CC ones - RK26/RS36/RS38 have no matching section in this workbook).
+Result: 387 CipherLab parts (235 `Base Unit:`, 152 `Add On Options:`) across exactly 4 real
+platforms (RK26, RK95, RS36, RS38), catalog total now 2,536 (719 JLT + 1,060 Winmate + 370 Getac
++ 387 CipherLab). Verified live in the browser: the Sales Platform dropdown for CipherLab shows
+only the 4 real systems; RK26 and RK95 both show the ReMoCloud/OCR licenses under Add On
+Options; RK95 additionally shows its two OS-upgrade licenses. Verified via a real `/api/
 search_base_units` POST (Processor Options = "Qualcomm 4490 Octa-Core 2.4GHz" + RAM Memory
 Options: = "8GB", brand=CipherLab) returning exactly the 3 real RS38 SKUs with correct prices.
 `SEARCH_EXCLUDED_BRANDS` is now an empty set (kept, not deleted, as a reusable mechanism per its
