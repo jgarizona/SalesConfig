@@ -579,8 +579,8 @@
     "opportunity_id": "Acme Manufacturing",
     "customer": "Acme Manufacturing",
     "quote_number": 4,
-    "rev_number": 1,
-    "locked": true,
+    "rev_number": 3,
+    "locked": false,
     "ever_locked": true,
     "brand": "Winmate",
     "platform": "VM1007E FM07E",
@@ -594,8 +594,8 @@
       },
       {
         "category": "Processor Options",
-        "code": "1",
-        "description": "Intel Atom x6413E  (Long Lead Time)",
+        "code": "2",
+        "description": "Intel\u00ae Celeron\u00ae N6211 (option)",
         "Floor Price": "Incl.",
         "MSRP": "Incl."
       },
@@ -629,8 +629,8 @@
       },
       {
         "category": "Operating System:",
-        "code": "A",
-        "description": "Windows 10 IoT Enterprise LTSC",
+        "code": "B",
+        "description": "Windows 11 IoT Enterprise LTSC",
         "Floor Price": "Incl.",
         "MSRP": "Incl."
       },
@@ -644,11 +644,220 @@
     ],
     "floor_total": 1375.0,
     "msrp_total": 2145.0,
-    "part_number": "VM1007E FM07E-VM1007E-1-A-2-397SM000000N-1-A-X",
+    "part_number": "VM1007E FM07E-VM1007E-2-A-2-397SM000000N-1-B-X",
     "created_by": "Test",
     "sales_rep": "Test",
     "created_at": "2026-08-18T01:14:41",
-    "updated_at": "2026-08-18T12:41:56"
+    "updated_at": "2026-08-25T19:30:11",
+    "revisions": [
+      {
+        "rev_number": 1,
+        "customer": "Acme Manufacturing",
+        "brand": "Winmate",
+        "platform": "VM1007E FM07E",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "VM1007E",
+            "description": "FM07E, 7\" 7\u201d 1024 x 600 panel with projected capacitive Multi-Touch screen. Wide power input 9-36V DC with ignition.M12 waterproof connectors.IP65 waterproof and dustproof Shock and vibration resistance according to MIL-STD-810G",
+            "Floor Price": 1355,
+            "MSRP": 2120
+          },
+          {
+            "category": "Processor Options",
+            "code": "1",
+            "description": "Intel Atom x6413E  (Long Lead Time)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "A",
+            "description": "8GB  SO\u00adDIMM DDR4 3200 MHz",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "2",
+            "description": "M.2 2242 SSD 256GB",
+            "Floor Price": "pricing to be provided by request",
+            "MSRP": null
+          },
+          {
+            "category": "Add On Options:",
+            "code": "397SM000000N",
+            "description": "FM07 Series 3M, GPS Antenna",
+            "Floor Price": 20,
+            "MSRP": 25
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "1",
+            "description": "WLAN (802.11a/b/g/n/ac/ax) + BT (2 x WLAN external antennas included) + GPS (includes GPS module, external GPS antenna not included)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Operating System:",
+            "code": "A",
+            "description": "Windows 10 IoT Enterprise LTSC",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Data Collection:",
+            "code": "X",
+            "description": "No Add On",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          }
+        ],
+        "floor_total": 1375.0,
+        "msrp_total": 2145.0,
+        "part_number": "VM1007E FM07E-VM1007E-1-A-2-397SM000000N-1-A-X",
+        "sales_rep": "Test",
+        "updated_at": "2026-08-25T18:09:12"
+      },
+      {
+        "rev_number": 2,
+        "customer": "Acme Manufacturing",
+        "brand": "Winmate",
+        "platform": "VM1007E FM07E",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "VM1007E",
+            "description": "FM07E, 7\" 7\u201d 1024 x 600 panel with projected capacitive Multi-Touch screen. Wide power input 9-36V DC with ignition.M12 waterproof connectors.IP65 waterproof and dustproof Shock and vibration resistance according to MIL-STD-810G",
+            "Floor Price": 1355,
+            "MSRP": 2120
+          },
+          {
+            "category": "Processor Options",
+            "code": "2",
+            "description": "Intel\u00ae Celeron\u00ae N6211 (option)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "A",
+            "description": "8GB  SO\u00adDIMM DDR4 3200 MHz",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "2",
+            "description": "M.2 2242 SSD 256GB",
+            "Floor Price": "pricing to be provided by request",
+            "MSRP": null
+          },
+          {
+            "category": "Add On Options:",
+            "code": "397SM000000N",
+            "description": "FM07 Series 3M, GPS Antenna",
+            "Floor Price": 20,
+            "MSRP": 25
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "1",
+            "description": "WLAN (802.11a/b/g/n/ac/ax) + BT (2 x WLAN external antennas included) + GPS (includes GPS module, external GPS antenna not included)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Operating System:",
+            "code": "A",
+            "description": "Windows 10 IoT Enterprise LTSC",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Data Collection:",
+            "code": "X",
+            "description": "No Add On",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          }
+        ],
+        "floor_total": 1375.0,
+        "msrp_total": 2145.0,
+        "part_number": "VM1007E FM07E-VM1007E-2-A-2-397SM000000N-1-A-X",
+        "sales_rep": "Test",
+        "updated_at": "2026-08-25T18:09:46"
+      },
+      {
+        "rev_number": 3,
+        "customer": "Acme Manufacturing",
+        "brand": "Winmate",
+        "platform": "VM1007E FM07E",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "VM1007E",
+            "description": "FM07E, 7\" 7\u201d 1024 x 600 panel with projected capacitive Multi-Touch screen. Wide power input 9-36V DC with ignition.M12 waterproof connectors.IP65 waterproof and dustproof Shock and vibration resistance according to MIL-STD-810G",
+            "Floor Price": 1355,
+            "MSRP": 2120
+          },
+          {
+            "category": "Processor Options",
+            "code": "2",
+            "description": "Intel\u00ae Celeron\u00ae N6211 (option)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "A",
+            "description": "8GB  SO\u00adDIMM DDR4 3200 MHz",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "2",
+            "description": "M.2 2242 SSD 256GB",
+            "Floor Price": "pricing to be provided by request",
+            "MSRP": null
+          },
+          {
+            "category": "Add On Options:",
+            "code": "397SM000000N",
+            "description": "FM07 Series 3M, GPS Antenna",
+            "Floor Price": 20,
+            "MSRP": 25
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "1",
+            "description": "WLAN (802.11a/b/g/n/ac/ax) + BT (2 x WLAN external antennas included) + GPS (includes GPS module, external GPS antenna not included)",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Operating System:",
+            "code": "B",
+            "description": "Windows 11 IoT Enterprise LTSC",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          },
+          {
+            "category": "Data Collection:",
+            "code": "X",
+            "description": "No Add On",
+            "Floor Price": "Incl.",
+            "MSRP": "Incl."
+          }
+        ],
+        "floor_total": 1375.0,
+        "msrp_total": 2145.0,
+        "part_number": "VM1007E FM07E-VM1007E-2-A-2-397SM000000N-1-B-X",
+        "sales_rep": "Test",
+        "updated_at": "2026-08-25T18:10:09"
+      }
+    ]
   },
   "Blue Ridge Industrial::1": {
     "opportunity_id": "Blue Ridge Industrial",
