@@ -28,6 +28,32 @@ Every repository change must be recorded under the date it was made and identify
 
 ## 2026-08-25
 
+- **[Claude]** **Redesigned the revision/config summary area into a real comparison view, after
+  the previous same-day design turned out to have the wrong root cause.** The user's actual
+  report: loading a saved quote at its latest revision showed nothing in the summary area at
+  all - `updateRevisionNav()` had a rule hiding the panel specifically when the arrows point at
+  the latest revision, on the assumption the main page already showed it. That assumption
+  breaks the moment a rep edits something, since the main page then shows the *new* unsaved
+  values, not what's actually saved. Removed that rule entirely - the panel now always shows
+  whichever revision the arrows point to, including the latest, the instant a quote loads.
+  **Consolidated the two separate summary panels from earlier today into one shared area**
+  (`renderSummaryArea()`, replacing both `updateRevisionNav()`'s old inline rendering and the
+  removed `#accepted-config-summary`/`showAcceptedConfigSummary()`/`hideAcceptedConfigSummary()`):
+  it shows the currently-saved/currently-viewed revision as one block, and - only when Accept
+  Configuration produces a real difference from what's saved (`acceptConfiguration()` now
+  compares the new selections' codes against the latest stored revision's) - a second block
+  directly beneath it, separated by a visible dashed divider, showing the new unsaved draft in
+  the identical format. Per the user's explicit clarification: "side by side" meant *same
+  format, immediately adjacent*, not necessarily a left/right column layout - stacking
+  satisfies that. A brand-new quote with nothing saved yet to compare against still shows a
+  single block for the accepted draft, preserving the original "always show after Accept" ask
+  from earlier today.
+  Verified live end-to-end: loading a saved quote (even a single-revision one) shows its
+  summary immediately, fixing the reported gap; unlocking, changing an option, and accepting
+  produces two distinct stacked blocks with genuinely different part numbers, totals, and rows
+  (verified byte-for-byte different, not a duplicate); pressing Save collapses back to a single
+  block reflecting the newly-saved state, per the user ("once save is pressed... the oldest
+  version is no longer shown").
 - **[Claude]** **Reused the revision browser's read-only summary panel for the live,
   not-yet-saved configuration too - shown right after Accept Configuration, per the user
   liking that panel's look and wanting the same treatment there.** Extracted the shared

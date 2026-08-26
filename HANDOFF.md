@@ -599,8 +599,17 @@ will be for quotes that are never touched again. Sales' revision browser (next t
 Opportunity: two arrow buttons + a "Rev N (i/total)" label, plus Up/Down/Left/Right arrow keys
 - Left acts as Down, Right acts as Up, both wrap at either end) fetches this via `GET
 /api/quotes/<opportunity_id>/<quote_number>/revisions` and is purely a read-only look back —
-browsing never touches `loadedQuote` or the live category dropdowns; it only shows a detail
-panel for whichever revision isn't the latest one (the main page already displays the latest).
+browsing never touches `loadedQuote` or the live category dropdowns. It shows a summary panel
+for whichever revision the arrows currently point to, **always, including the latest one**
+(an earlier same-day version hid it at the latest revision on the assumption the main page
+already showed that data — wrong the moment a rep edits something, since the main page then
+shows the new unsaved values instead; the user caught this live and it was corrected the same
+day, see `CHANGELOG.md`). When Accept Configuration produces a real change from what's saved,
+a second block appears directly beneath the first, in the identical format, showing the new
+unsaved draft — the two stacked together are the actual before/after comparison a rep needs
+before deciding whether to Save. `renderSummaryArea()` in `sales.html` is the single function
+behind both blocks; there is deliberately no more than one "read-only config summary"
+implementation on this page.
 
 ### `customers.json` — local customer stand-in (no CRM yet)
 List of:

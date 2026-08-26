@@ -577,6 +577,11 @@ button:hover, .btn:hover { background: #143a6b; }
    (added 2026-08-25) - see buildConfigSummaryHtml() in sales.html. */
 .config-summary-partnum { font-size: 16px; font-weight: bold; color: #0b2545; margin-bottom: 2px; }
 .config-summary-meta { font-size: 12px; color: #6b7688; margin-bottom: 8px; }
+/* Separates the two stacked blocks (currently-saved vs new-unsaved) when
+   both are shown together, added 2026-08-25 - deliberately more visible
+   than a plain border so it reads as "end of one configuration, start of
+   another" rather than just a section rule inside one config. */
+.config-summary-divider { border-top: 3px dashed #4c8dff; margin: 16px 0; }
 
 .lookup-panel {
   background: #f7f8fa;

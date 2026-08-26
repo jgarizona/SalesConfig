@@ -126,7 +126,6 @@
         <button type="button" id="btn-accept-config" class="btn accept-btn" disabled>Accept Configuration</button>
         <span id="config-accept-status" class="config-accept-status">Review your selections above, then Accept to enable Save.</span>
       </div>
-      <div id="accepted-config-summary" class="lookup-panel" style="display:none;"></div>
     </div>
 
     <div id="search-overlay" class="search-overlay" style="display:none;">
@@ -183,6 +182,14 @@
     // whenever loadedQuote changes - see loadQuoteRevisions()/clearQuote().
     let quoteRevisions = [];
     let revisionIndex = -1;
+    // The live unsaved draft once Accept Configuration is clicked and it
+    // actually differs from what's saved (see acceptConfiguration()) -
+    // rendered as a second block in the same summary area, right under
+    // the saved revision it's being compared against. null whenever
+    // there's nothing pending to compare (not yet accepted, edited again
+    // since accepting, no real change, or nothing saved yet to differ
+    // from).
+    let acceptedDraft = null;
     // Requires an explicit "Accept Configuration" click before Save is usable
     // - resets to false on any platform/option change (onUserChange) and
     // after every successful save, so each save is a deliberate confirmation,
@@ -245,7 +252,6 @@
     const btnRevDown = document.getElementById("btn-rev-down");
     const revNavLabel = document.getElementById("rev-nav-label");
     const revisionViewer = document.getElementById("revision-viewer");
-    const acceptedConfigSummary = document.getElementById("accepted-config-summary");
     const btnCustomerLookup = document.getElementById("btn-customer-lookup");
     const btnCustomerNew = document.getElementById("btn-customer-new");
     const btnCustomerClear = document.getElementById("btn-customer-clear");
@@ -458,10 +464,11 @@
       configAccepted = false;
       updateConfigAcceptState();
       markDirty();
-      // Whatever summary was showing no longer reflects the current
+      // Whatever draft was showing no longer reflects the current
       // selections once something's changed - it needs a fresh Accept to
       // come back, same as Save does.
-      hideAcceptedConfigSummary();
+      acceptedDraft = null;
+      renderSummaryArea();
     }
 
     function markDirty() {
@@ -586,7 +593,33 @@
       if (!repVerified) return;
       configAccepted = true;
       setButtonStates();
-      showAcceptedConfigSummary();
+
+      const widgets = categoryContainer.querySelectorAll(".wselect");
+      let floorTotal = 0, msrpTotal = 0;
+      widgets.forEach(w => {
+        const opt = w._getSelected();
+        floorTotal += moneyValue(opt["Floor Price"]);
+        msrpTotal += moneyValue(opt["MSRP"]);
+      });
+      const rows = buildLiveConfigRows();
+      const partNumber = [platformSelect.value, ...rows.map(r => r.code)].join("-");
+
+      // Show the draft whenever there's either nothing saved yet to
+      // compare against (a brand-new quote - still worth showing on its
+      // own, per the original "show a summary after Accept" ask) or it's
+      // a real change from what is saved (the comparison case). Re-
+      // accepting an already-saved quote with nothing actually different
+      // shows nothing new - the single saved block already covers it.
+      const latest = quoteRevisions[quoteRevisions.length - 1];
+      const isRealChange = latest && (
+        JSON.stringify(rows.map(r => r.code)) !== JSON.stringify(latest.selections.map(s => s.code))
+        || brandSelect.value !== latest.brand
+        || platformSelect.value !== latest.platform
+      );
+      acceptedDraft = (!latest || isRealChange)
+        ? { brand: brandSelect.value, platform: platformSelect.value, partNumber, floorTotal, msrpTotal, rows }
+        : null;
+      renderSummaryArea();
     }
 
     function setCustomer(name) {
@@ -689,8 +722,8 @@
       quoteStatus.textContent = `Quote ${q.display_id}${lockedTxt} — saved ${q.updated_at}`;
       quoteStatus.className = "quote-status " + (q.locked ? "locked" : "saved");
       setButtonStates();
+      acceptedDraft = null;
       loadQuoteRevisions(q.opportunity_id, q.quote_number);
-      hideAcceptedConfigSummary();
     }
 
     // Changing the Opportunity ID text means we might be talking about a
@@ -704,8 +737,8 @@
       setButtonStates();
       quoteRevisions = [];
       revisionIndex = -1;
+      acceptedDraft = null;
       updateRevisionNav();
-      hideAcceptedConfigSummary();
     }
 
     // ------------------------------------------------------ revision browser
@@ -746,32 +779,53 @@
       `;
     }
 
+    // Single shared summary area (redesigned 2026-08-25, per the user) -
+    // one block showing whatever revision the arrows point to, always
+    // (including the latest - it used to hide there on the wrong
+    // assumption that the main page already showed it, which stopped
+    // being true the moment a rep edits something), plus a second block
+    // stacked directly beneath it showing the live unsaved draft whenever
+    // one exists and actually differs from what's saved. Both blocks use
+    // the identical buildConfigSummaryHtml() format specifically so they
+    // can be compared line by line, per the user - same format, same
+    // area, not two disconnected boxes.
     function updateRevisionNav() {
       const hasHistory = quoteRevisions.length > 1;
       btnRevUp.disabled = !hasHistory;
       btnRevDown.disabled = !hasHistory;
-      if (quoteRevisions.length === 0) {
-        revNavLabel.textContent = "—";
-        revisionViewer.style.display = "none";
-        return;
-      }
-      const rev = quoteRevisions[revisionIndex];
-      revNavLabel.textContent = `Rev ${rev.rev_number} (${revisionIndex + 1}/${quoteRevisions.length})`;
+      revNavLabel.textContent = quoteRevisions.length === 0
+        ? "—"
+        : `Rev ${quoteRevisions[revisionIndex].rev_number} (${revisionIndex + 1}/${quoteRevisions.length})`;
+      renderSummaryArea();
+    }
 
-      // Only show the detail panel while looking at something other than
-      // the latest revision - the main page already displays the latest
-      // one, so repeating it here would just be noise.
-      const atLatest = revisionIndex === quoteRevisions.length - 1;
-      if (atLatest) {
+    function renderSummaryArea() {
+      const hasSaved = quoteRevisions.length > 0;
+      if (!hasSaved && !acceptedDraft) {
         revisionViewer.style.display = "none";
         return;
       }
+      let html = "";
+      if (hasSaved) {
+        const rev = quoteRevisions[revisionIndex];
+        const atLatest = revisionIndex === quoteRevisions.length - 1;
+        const savedMeta = atLatest
+          ? `Currently saved as ${rev.display_id} — saved ${rev.updated_at} by ${rev.sales_rep || "?"}.`
+          : `Viewing Rev ${rev.rev_number} of ${rev.display_id} — saved ${rev.updated_at} by ${rev.sales_rep || "?"} — read-only, use the arrows to browse.`;
+        html += buildConfigSummaryHtml(
+          savedMeta, rev.brand, rev.platform, rev.part_number, rev.floor_total, rev.msrp_total, rev.selections
+        );
+      }
+      if (acceptedDraft) {
+        if (html) html += '<div class="config-summary-divider"></div>';
+        html += buildConfigSummaryHtml(
+          hasSaved ? "New — not yet saved. Review before pressing Save." : "Accepted configuration — not yet saved.",
+          acceptedDraft.brand, acceptedDraft.platform, acceptedDraft.partNumber,
+          acceptedDraft.floorTotal, acceptedDraft.msrpTotal, acceptedDraft.rows
+        );
+      }
+      revisionViewer.innerHTML = html;
       revisionViewer.style.display = "block";
-      const meta = `Viewing Rev ${rev.rev_number} of ${rev.display_id} — saved ${rev.updated_at} by ${rev.sales_rep || "?"}
-        — read-only, use the arrows or Save's own flow to return to the current revision.`;
-      revisionViewer.innerHTML = buildConfigSummaryHtml(
-        meta, rev.brand, rev.platform, rev.part_number, rev.floor_total, rev.msrp_total, rev.selections
-      );
     }
 
     function navigateRevision(direction) {
@@ -791,26 +845,6 @@
         const opt = w._getSelected();
         return { category: w.dataset.category, code: opt.code, description: opt.description };
       });
-    }
-
-    function showAcceptedConfigSummary() {
-      const widgets = categoryContainer.querySelectorAll(".wselect");
-      let floorTotal = 0, msrpTotal = 0;
-      widgets.forEach(w => {
-        const opt = w._getSelected();
-        floorTotal += moneyValue(opt["Floor Price"]);
-        msrpTotal += moneyValue(opt["MSRP"]);
-      });
-      const rows = buildLiveConfigRows();
-      const partNumber = [platformSelect.value, ...rows.map(r => r.code)].join("-");
-      acceptedConfigSummary.innerHTML = buildConfigSummaryHtml(
-        null, brandSelect.value, platformSelect.value, partNumber, floorTotal, msrpTotal, rows
-      );
-      acceptedConfigSummary.style.display = "block";
-    }
-
-    function hideAcceptedConfigSummary() {
-      acceptedConfigSummary.style.display = "none";
     }
 
     function showMessage(msg, isError) {
