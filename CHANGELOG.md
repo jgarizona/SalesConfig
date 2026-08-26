@@ -26,6 +26,39 @@ Every repository change must be recorded under the date it was made and identify
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
+## 2026-08-26
+
+- **[Claude]** **Add On Options: is now a multi-select on Sales, per the user asking "how can
+  we handle more than one add on?"** Every category dropdown used to be single-select
+  (`createWrappingSelect` in `sales.html`), which was genuinely wrong for Add On Options - a
+  rep might legitimately want several accessories/licenses on one config (the CipherLab
+  license redistribution from yesterday made this obvious immediately: an RK95 can need both
+  a ReMoCloud license and an OS-upgrade license, not just one). Added `createMultiSelect`, a
+  checkbox-panel variant of the same `.wselect` widget family (same trigger/panel classes, so
+  the existing lock-disable loop and click-outside-closes-panel handler both work unmodified;
+  the panel stays open across clicks instead of closing after one, and the trigger shows
+  "N selected" instead of a single label). `MULTI_SELECT_CATEGORIES` (`sales.html`, currently
+  just `{"Add On Options:"}`) is the one place that decides which categories get it.
+  Client-side wire format: `currentSelections()` now sends an array of codes for a
+  multi-select category instead of a bare code; `build_snapshot()` in `app.py` accepts both
+  shapes per category (a bare code or a list) and emits one line item per code either way.
+  Updated every function that used to assume exactly one selection per category:
+  `recalcDisplay()`, `acceptConfiguration()`, and `buildLiveConfigRows()` in `sales.html` now
+  sum/collect across `_getSelectedList()` (added to both widget types - single-select wraps
+  its one choice in a 1-element array) instead of calling `_getSelected()` once;
+  `applyQuoteConfig()` and the copy-to-new-opportunity handler now build a loaded quote's
+  preset selections via a new `buildPresetFromLines()` that groups repeated categories into
+  an array instead of the old forEach-overwrite (which silently kept only the last line of a
+  repeated category - not reachable before this since nothing could produce one). Every other
+  consumer of a quote's `selections` list (revision browser, quote_print.html, the Excel
+  export, Purchasing's action-items check, `quote_part_number()`) already treated it as a
+  flat list of line items with no per-category uniqueness assumption, so none of them needed
+  changes. Verified live end-to-end: checked 2 Add On Options on a CipherLab RK95 (ReMoCloud
+  license + an OS-upgrade license), confirmed both totals and the draft part number updated
+  live, Accept Configuration's summary showed both as separate "Add On Options:" rows, and a
+  real Save round-tripped correctly (both lines present in the saved quote with correct
+  prices) - then deleted that test quote/customer afterward.
+
 ## 2026-08-25
 
 - **[Claude]** **Corrected 904R/90W/90R after the user spotted them rendered as selectable

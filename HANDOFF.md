@@ -379,7 +379,21 @@ The big one. Top-to-bottom:
    Requirements** button (opens the modal described below).
 7. Category dropdowns (Processor, RAM, Storage, Display, ports, Add-Ons, IP Rating, Power
    Cable, Wireless, OS — order fixed by `CATEGORY_ORDER` in `app.py`), live price totals,
-   draft part number.
+   draft part number. Every category is single-select (`createWrappingSelect` in
+   `sales.html`) except **Add On Options:**, which is a checkbox multi-select
+   (`createMultiSelect`, added 2026-08-26 per the user - a rep genuinely might want more
+   than one accessory/license, e.g. a CipherLab RK95 with both a ReMoCloud license and an
+   OS-upgrade license). `MULTI_SELECT_CATEGORIES` (currently just `{"Add On Options:"}`) is
+   the single place that decides which categories get this treatment - add a category there
+   to extend it, nothing else needs touching in the widget-rendering code. The wire format
+   changed to accommodate this: `currentSelections()` sends a bare code for a single-select
+   category (unchanged) but an array of codes for a multi-select one, and `build_snapshot()`
+   in `app.py` accepts both shapes per category, emitting one line item per code. Every
+   downstream consumer of a quote's `selections` list (revision browser, Purchasing action
+   items, the Excel/print exports, `quote_part_number()`) already treated it as a flat list
+   of line items with no per-category uniqueness assumption, so none of them needed changes -
+   only the pieces that used to assume "one selection per category" did (see the same-day
+   CHANGELOG entry for the exact functions touched).
 8. **Accept Configuration** button — Save is disabled until this is clicked; changing any
    option after accepting re-locks Save; the same reset happens after every successful save
    too (each save needs its own fresh Accept).

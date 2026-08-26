@@ -579,19 +579,25 @@ def next_quote_number(quotes, opportunity_id):
 
 
 def build_snapshot(parts, brand, platform, selections):
-    """selections: {category: code} -> list of line items with Floor/MSRP only (never Cost)."""
+    """selections: {category: code} -> list of line items with Floor/MSRP only
+    (never Cost). A category's value can also be a list of codes (added
+    2026-08-26, for MULTI_SELECT_CATEGORIES on the client - e.g. Add On
+    Options:, where a rep may legitimately want more than one) - each code
+    in the list becomes its own line, same shape as a single-code category."""
     lines = []
-    for category, code in selections.items():
-        part = find_part(parts, brand, platform, category, code)
-        if part is None:
-            continue
-        lines.append({
-            "category": category,
-            "code": code,
-            "description": part.get("description"),
-            "Floor Price": part.get("Floor Price"),
-            "MSRP": part.get("MSRP"),
-        })
+    for category, codes in selections.items():
+        code_list = codes if isinstance(codes, list) else [codes]
+        for code in code_list:
+            part = find_part(parts, brand, platform, category, code)
+            if part is None:
+                continue
+            lines.append({
+                "category": category,
+                "code": code,
+                "description": part.get("description"),
+                "Floor Price": part.get("Floor Price"),
+                "MSRP": part.get("MSRP"),
+            })
     lines.sort(key=lambda l: category_sort_key(l["category"]))
     return lines
 

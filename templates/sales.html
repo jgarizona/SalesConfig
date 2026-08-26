@@ -380,9 +380,90 @@
       renderTrigger();
 
       wrapper._getSelected = () => selected;
+      // Uniform contract with createMultiSelect below, so every caller that
+      // walks ".wselect" widgets (currentSelections/recalcDisplay/
+      // acceptConfiguration/buildLiveConfigRows) can treat "one selection"
+      // and "several selections" the same way instead of special-casing
+      // widget type at every call site.
+      wrapper._getSelectedList = () => (selected !== undefined ? [selected] : []);
       wrapper._setDisabled = (d) => { trigger.disabled = d; };
       return wrapper;
     }
+
+    // Checkbox variant of createWrappingSelect, for categories where a rep
+    // can legitimately want more than one (Add On Options: - see
+    // MULTI_SELECT_CATEGORIES below and the 2026-08-26 CHANGELOG entry: a
+    // CipherLab RK95 might need a ReMoCloud license AND an OS-upgrade
+    // license AND a cradle, not just one). Same visual family as
+    // createWrappingSelect (reuses .wselect/-trigger/-panel/-option so the
+    // existing disable-on-lock loop and click-outside-closes-panel handler
+    // both keep working unmodified) but the panel stays open across clicks
+    // - picking several options in one visit is the whole point - and the
+    // trigger summarizes count instead of a single label. Defaults to
+    // nothing selected (no sensible "auto-pick one accessory" default),
+    // unlike createWrappingSelect which always defaults to options[0].
+    function createMultiSelect({ options, getLabel, onChange, presetMatch }) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "wselect";
+
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "wselect-trigger";
+
+      const panel = document.createElement("div");
+      panel.className = "wselect-panel";
+      panel.style.display = "none";
+
+      const selected = new Set(
+        presetMatch ? options.filter(presetMatch).map(o => o.code) : []
+      );
+
+      function renderTrigger() {
+        if (selected.size === 0) trigger.textContent = "None selected";
+        else if (selected.size === 1) trigger.textContent = getLabel(options.find(o => selected.has(o.code)));
+        else trigger.textContent = `${selected.size} selected`;
+      }
+
+      const checkboxes = [];
+      options.forEach(opt => {
+        const row = document.createElement("label");
+        row.className = "wselect-option wselect-option-checkbox";
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = selected.has(opt.code);
+        box.addEventListener("change", () => {
+          if (box.checked) selected.add(opt.code); else selected.delete(opt.code);
+          renderTrigger();
+          onChange();
+        });
+        checkboxes.push(box);
+        const text = document.createElement("span");
+        text.textContent = getLabel(opt);
+        row.appendChild(box);
+        row.appendChild(text);
+        panel.appendChild(row);
+      });
+
+      trigger.addEventListener("click", () => {
+        const isOpen = panel.style.display !== "none";
+        document.querySelectorAll(".wselect-panel").forEach(p => { p.style.display = "none"; });
+        panel.style.display = isOpen ? "none" : "block";
+      });
+
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(panel);
+      renderTrigger();
+
+      wrapper._getSelectedList = () => options.filter(o => selected.has(o.code));
+      wrapper._setDisabled = (d) => { trigger.disabled = d; checkboxes.forEach(b => { b.disabled = d; }); };
+      return wrapper;
+    }
+
+    // Categories where more than one selection is a real thing a rep wants
+    // (currently just Add On Options: - see createMultiSelect above). Every
+    // other category still means "pick exactly one" (Base Unit, Processor,
+    // etc. are genuinely mutually exclusive choices).
+    const MULTI_SELECT_CATEGORIES = new Set(["Add On Options:"]);
 
     function buildCategorySelects(platform, presetSelections) {
       categoryContainer.innerHTML = "";
@@ -400,12 +481,29 @@
         title.textContent = cat;
         block.appendChild(title);
 
-        const widget = createWrappingSelect({
-          options: cats[cat],
-          getLabel: opt => `${opt.code} — ${opt.description}`,
-          presetMatch: opt => presetSelections && presetSelections[cat] === opt.code,
-          onSelect: () => onUserChange(),
-        });
+        // presetSelections[cat] is a bare code for a single-select category,
+        // or (when loaded from a saved quote / another multi-select source)
+        // possibly an array for a multi-select one - presetMatches below
+        // handles both shapes regardless of which widget type renders it.
+        const presetMatches = opt => {
+          const preset = presetSelections && presetSelections[cat];
+          if (preset === undefined) return false;
+          return Array.isArray(preset) ? preset.includes(opt.code) : preset === opt.code;
+        };
+
+        const widget = MULTI_SELECT_CATEGORIES.has(cat)
+          ? createMultiSelect({
+              options: cats[cat],
+              getLabel: opt => `${opt.code} — ${opt.description}`,
+              presetMatch: presetMatches,
+              onChange: () => onUserChange(),
+            })
+          : createWrappingSelect({
+              options: cats[cat],
+              getLabel: opt => `${opt.code} — ${opt.description}`,
+              presetMatch: presetMatches,
+              onSelect: () => onUserChange(),
+            });
         widget.dataset.category = cat;
         block.appendChild(widget);
 
@@ -424,11 +522,17 @@
       buildCategorySelects(platform, presetSelections);
     }
 
+    // A multi-select category (see MULTI_SELECT_CATEGORIES) sends its
+    // codes as an array so build_snapshot() on the server can emit one line
+    // per code instead of just one; a single-select category still sends a
+    // bare code, unchanged from before multi-select existed.
     function currentSelections() {
       const widgets = categoryContainer.querySelectorAll(".wselect");
       const sel = {};
       widgets.forEach(w => {
-        sel[w.dataset.category] = w._getSelected().code;
+        const cat = w.dataset.category;
+        const codes = w._getSelectedList().map(o => o.code);
+        sel[cat] = MULTI_SELECT_CATEGORIES.has(cat) ? codes : codes[0];
       });
       return sel;
     }
@@ -442,10 +546,11 @@
       const codes = [platformSelect.value];
 
       widgets.forEach(w => {
-        const opt = w._getSelected();
-        floorTotal += moneyValue(opt["Floor Price"]);
-        msrpTotal += moneyValue(opt["MSRP"]);
-        codes.push(opt.code);
+        w._getSelectedList().forEach(opt => {
+          floorTotal += moneyValue(opt["Floor Price"]);
+          msrpTotal += moneyValue(opt["MSRP"]);
+          codes.push(opt.code);
+        });
       });
 
       document.getElementById("floor-total").textContent = formatMoney(floorTotal);
@@ -597,9 +702,10 @@
       const widgets = categoryContainer.querySelectorAll(".wselect");
       let floorTotal = 0, msrpTotal = 0;
       widgets.forEach(w => {
-        const opt = w._getSelected();
-        floorTotal += moneyValue(opt["Floor Price"]);
-        msrpTotal += moneyValue(opt["MSRP"]);
+        w._getSelectedList().forEach(opt => {
+          floorTotal += moneyValue(opt["Floor Price"]);
+          msrpTotal += moneyValue(opt["MSRP"]);
+        });
       });
       const rows = buildLiveConfigRows();
       const partNumber = [platformSelect.value, ...rows.map(r => r.code)].join("-");
@@ -841,10 +947,13 @@
     // once per Accept click).
     function buildLiveConfigRows() {
       const widgets = categoryContainer.querySelectorAll(".wselect");
-      return Array.from(widgets).map(w => {
-        const opt = w._getSelected();
-        return { category: w.dataset.category, code: opt.code, description: opt.description };
+      const rows = [];
+      widgets.forEach(w => {
+        w._getSelectedList().forEach(opt => {
+          rows.push({ category: w.dataset.category, code: opt.code, description: opt.description });
+        });
       });
+      return rows;
     }
 
     function showMessage(msg, isError) {
@@ -1261,10 +1370,29 @@
         `"Lookup Saved Quote" above.</span>`;
     }
 
-    function applyQuoteConfig(q) {
+    // A saved quote's `selections` is a flat list of {category, code, ...}
+    // lines - normally one per category, but a multi-select category (see
+    // MULTI_SELECT_CATEGORIES) can have several lines sharing the same
+    // category. Collapses that into the same {category: code | [codes]}
+    // shape buildCategorySelects' presetMatches already understands,
+    // instead of the naive forEach-overwrite that used to silently keep
+    // only the last line of a repeated category.
+    function buildPresetFromLines(lines) {
       const preset = {};
-      q.selections.forEach(l => preset[l.category] = l.code);
-      selectBrandAndPlatform(q.brand || "JLT", q.platform, preset);
+      lines.forEach(l => {
+        if (!(l.category in preset)) {
+          preset[l.category] = l.code;
+        } else if (Array.isArray(preset[l.category])) {
+          preset[l.category].push(l.code);
+        } else {
+          preset[l.category] = [preset[l.category], l.code];
+        }
+      });
+      return preset;
+    }
+
+    function applyQuoteConfig(q) {
+      selectBrandAndPlatform(q.brand || "JLT", q.platform, buildPresetFromLines(q.selections));
     }
 
     async function loadQuote(oppId, quoteNumber) {
@@ -1398,9 +1526,7 @@
       if (!res.ok) { showMessage(data.error || "Copy failed.", true); return; }
       copyPanel.style.display = "none";
       oppInput.value = data.opportunity_id;
-      const preset = {};
-      data.selections.forEach(l => preset[l.category] = l.code);
-      selectBrandAndPlatform(data.brand || "JLT", data.platform, preset);
+      selectBrandAndPlatform(data.brand || "JLT", data.platform, buildPresetFromLines(data.selections));
       showQuote(data);
       showMessage("Copied to new quote " + data.display_id + ".", false);
       refreshExistingQuotes();

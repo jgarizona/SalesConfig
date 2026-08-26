@@ -163,6 +163,12 @@ select {
 .wselect-option:last-child { border-bottom: none; }
 .wselect-option:hover { background: #eef1f6; }
 
+/* Multi-select variant (createMultiSelect in sales.html - currently just
+   Add On Options:) - a <label> wrapping a checkbox + the option text,
+   instead of the single-select's click-anywhere-to-choose-and-close row. */
+.wselect-option-checkbox { display: flex; align-items: flex-start; gap: 8px; }
+.wselect-option-checkbox input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; }
+
 .platform-picker { max-width: 320px; margin-bottom: 20px; }
 .platform-picker-row {
   display: flex;
