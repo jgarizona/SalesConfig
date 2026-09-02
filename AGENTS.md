@@ -5,13 +5,21 @@
 OpenAI Codex must read `CODEX.md` immediately after this file and before reading,
 reviewing, or changing the repository. `AGENTS.md` is the automatic Codex instruction
 entry point; `CODEX.md` contains the required Windows, Box Drive, GitHub, development,
-automatic-merge, and three-way verification procedure for this repository.
+local-review, approved-publication, and three-way verification procedure for this repository.
 
-Codex must open and work from the Box-backed repository project at
+Write requested local changes in the existing Box-backed checkout at
 `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git`.
-If the current task is rooted elsewhere, stop before making changes and direct the user to
-open that folder as the Codex project. Read access to the Box path is not sufficient;
-Codex must be able to write the worktree and Git metadata from the correctly rooted task.
+Prefer opening that folder as the Codex project. If the task was opened elsewhere, an
+explicit user instruction to edit this checkout authorizes local work there through the
+permitted tools; all filesystem and command approvals still apply. Read access alone is
+not proof of write access. Use this checkout as the working directory for repository
+commands, preserve existing changes, and do not create another clone.
+
+For starting or resuming local testing, follow
+[`HANDOFF.md` → Start or resume local testing](HANDOFF.md#start-or-resume-local-testing)
+after the required startup reading. This is the canonical checklist for preserving the
+existing checkout/data, checking and reusing the server, conditional startup, sign-in,
+and Windows/Box troubleshooting. A testing handoff ends by waiting for user feedback.
 
 ## Mandatory changelog attribution
 
@@ -27,13 +35,20 @@ Every repository change must update `CHANGELOG.md` in the same branch or pull re
 - Repository workflow steps that remain outstanding, including an open pull request that still needs to be merged into `main`, must also be tracked in `Pending / TODO`.
 - When a TODO is completed, mark or remove it through a dated, attributed changelog entry so the list does not become stale.
 
-## Automatic merge policy for this repository
+## Local review and approved publication
 
-When the user asks Codex to update this repository, Codex must automatically merge the verified change into `main` without waiting for a separate merge instruction.
+**User clarification, 2026-09-02:** write changes locally in the existing Box checkout,
+verify them, and present the local diff for review. Wait for the user's approval before
+pushing changes to GitHub, opening a pull request, or merging. A request to make a local
+change is not approval to publish it. This supersedes the earlier unconditional
+automatic-push/merge instruction.
 
-A change is verified only when its scope and diff are confirmed, relevant available checks pass, required `CHANGELOG.md` and `Pending / TODO` updates are present, and no unresolved review, permission, conflict, or material uncertainty remains.
-
-Do not auto-merge when the user explicitly requests a draft/unmerged branch, when verification fails, or when a blocker requires user input. After every automatic merge, read `main` back from GitHub and confirm the expected commit and changelog entries are present.
+After publication is approved, commit only intended files, push the working branch, and
+complete the verified PR/merge workflow within that approved scope. Do not merge when
+the user requests a draft/unmerged branch, checks fail, or a blocker remains. Verification
+includes the exact scope/diff, relevant checks, and attributed changelog/TODO updates.
+Read GitHub `main` back after a merge to confirm the expected commit and changelog.
+Until approval, report the update as local and keep publishing in `Pending / TODO`.
 
 ## Post-merge Box synchronization
 

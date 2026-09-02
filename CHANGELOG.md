@@ -6,6 +6,14 @@ Every repository change must be recorded under the date it was made and identify
 
 ## Pending / TODO
 
+- **Publish approved local-testing documentation** — source: the user's 2026-09-02
+  "ok push the updates" approval. Scope: `AGENTS.md`, `CODEX.md`, `CLAUDE.md`,
+  `HANDOFF.md`, and `CHANGELOG.md` only. Next action: commit and push these reviewed
+  documents, create/merge the verified PR, read GitHub `main` back, and check Box cloud.
+  Preserve the pre-existing customer/quote changes, deleted `.gitignore`, and all
+  untracked files. A dirty checkout must not be reset or forced clean for synchronization.
+
+
 - **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: ~~Technical always uses the JLT parser~~ resolved 2026-08-16 (`app.py`'s `PARSERS` dict now routes each brand to its own parser); Getac no longer risks a misleading zero-row success now that it's a real, tested parser. Still open: wrong-vendor uploads can still create unreliable data (no schema/brand validation rejects a mismatched file before parsing it), Purchasing still reads only the active sheet with exact headers, and uploads still have no preflight preview or size limit. Next action: reject unsupported layouts, validate schemas and brands before merging, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
 - **Normalize and validate spreadsheet prices** — source: 2026-08-15 Codex review. Current status: currency strings containing symbols/special spaces and other unknown text can silently calculate as zero; several existing 1514N wireless prices are affected if those options are approved. Next action: normalize currency cells and explicit included/no-charge values, preserve meaningful statuses such as discontinued, and reject unknown price text instead of silently converting it to zero.
 - **Define catalog refresh lifecycle rules** — source: 2026-08-15 Codex review. Current status: exact key changes can create duplicate logical records and rows removed from a workbook remain indefinitely. Next action: detect normalized-key collisions and present renamed, missing, and retired rows for explicit review without silently deleting approved parts.
@@ -27,6 +35,30 @@ Every repository change must be recorded under the date it was made and identify
 - **Architecture decision (§6 of the project brief)** — single-agent vs multi-agent, agents vs skills, still open.
 - **Move off flat JSON files** if data volume/concurrent-editing needs outgrow it — currently `data/*.json`, no database.
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
+
+## 2026-09-02
+
+- **[Codex]** Received the user's approval to publish the five local documentation
+  updates. Moved their TODO from awaiting approval to approved publication; existing
+  runtime-data changes, the deleted `.gitignore`, and credential/config files remain
+  outside this change. Git publication and Box verification are tracked above.
+
+- **[Codex]** Added the "Start or resume local testing" documentation to the local
+  `HANDOFF.md` section 2, with references from `AGENTS.md` and `CLAUDE.md`. Covers the
+  existing Box checkout and shared JSON data, preserving user changes, detecting/reusing
+  a running server, conditional `python -B app.py` startup, existing Python dependencies,
+  browser/PIN/rep verification, waiting for testing feedback, and the observed Windows/Box
+  Git read recovery without claiming a proven crash cause. Corrects the handoff's startup
+  dependency/authentication descriptions and Claude's stale description of Codex's working
+  location. Updated `AGENTS.md`, `CODEX.md`, `CLAUDE.md`, and this handoff's active workflow
+  to record the user's clarification: write requested changes in the existing local Box
+  checkout, present the verified local diff for review, and wait for user approval before
+  pushing or publishing to GitHub. Explicit user authorization to edit that checkout from
+  a task opened elsewhere still requires the normal tool/filesystem approvals; no security
+  settings were changed. Updated the review checkpoint to the reviewed base `2a028c6`;
+  the documentation itself remains an uncommitted local change. No application code,
+  runtime data, `.gitignore`, or Git metadata was changed. Publishing and final
+  synchronization remain tracked under Pending / TODO until the user approves.
 
 ## 2026-08-26
 
