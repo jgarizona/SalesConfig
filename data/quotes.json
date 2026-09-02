@@ -1,1 +1,600 @@
-{}
+{
+  "test1::1": {
+    "opportunity_id": "test1",
+    "customer": "test1",
+    "quote_number": 1,
+    "rev_number": 2,
+    "locked": true,
+    "ever_locked": true,
+    "brand": "JLT",
+    "platform": "1014P",
+    "selections": [
+      {
+        "category": "Base Unit:",
+        "code": "14P",
+        "description": "Rugged Fixed Mount Computer, JLT1014P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+        "Floor Price": 2660,
+        "MSRP": 5320
+      },
+      {
+        "category": "Processor Options",
+        "code": "D",
+        "description": "Intel 6413E Elkhart Lake",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "RAM Memory Options:",
+        "code": "G",
+        "description": "8 GB  RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Storage Drive Options:",
+        "code": "5",
+        "description": "120 GB CFAST",
+        "Floor Price": 160,
+        "MSRP": 320
+      },
+      {
+        "category": "Display options:",
+        "code": "P",
+        "description": "XGA LED Standard Bright with  Capacitive Touch Screen",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Internal Options:",
+        "code": "95",
+        "description": "9-36VDC input range, RS232 Serial Port with 5V power on pin 9",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "IP Rating Options:",
+        "code": "1",
+        "description": "IP-65 with Rubber Plugs",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Power Cable Options:",
+        "code": "O",
+        "description": "No Bare Leads Power Cable",
+        "Floor Price": "NC",
+        "MSRP": "NC"
+      },
+      {
+        "category": "Internal Wireless",
+        "code": "KM",
+        "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "WWAN Card",
+        "code": "REDCAP",
+        "description": "Quectel RedCap RG255C 5G",
+        "Floor Price": null,
+        "MSRP": null
+      },
+      {
+        "category": "WWAN Carrier",
+        "code": "KW",
+        "description": "Verizon",
+        "Floor Price": 360,
+        "MSRP": 540
+      },
+      {
+        "category": "Operating System:",
+        "code": "395",
+        "description": "Windows 11 IoT Enterprise LTSC",
+        "Floor Price": 60,
+        "MSRP": 90
+      }
+    ],
+    "floor_total": 3240.0,
+    "msrp_total": 6270.0,
+    "part_number": "1014P-14P-D-G-5-P-95-1-O-KM-REDCAP-KW-395",
+    "created_by": "Test",
+    "sales_rep": "Test",
+    "created_at": "2026-08-26T22:40:39",
+    "updated_at": "2026-08-26T22:41:39",
+    "revisions": [
+      {
+        "rev_number": 1,
+        "customer": "test1",
+        "brand": "JLT",
+        "platform": "1014P",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "14P",
+            "description": "Rugged Fixed Mount Computer, JLT1014P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+            "Floor Price": 2660,
+            "MSRP": 5320
+          },
+          {
+            "category": "Processor Options",
+            "code": "D",
+            "description": "Intel 6413E Elkhart Lake",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "G",
+            "description": "8 GB  RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "4",
+            "description": "60 GB CFAST",
+            "Floor Price": 110,
+            "MSRP": 220
+          },
+          {
+            "category": "Display options:",
+            "code": "P",
+            "description": "XGA LED Standard Bright with  Capacitive Touch Screen",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Internal Options:",
+            "code": "95",
+            "description": "9-36VDC input range, RS232 Serial Port with 5V power on pin 9",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "IP Rating Options:",
+            "code": "1",
+            "description": "IP-65 with Rubber Plugs",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Power Cable Options:",
+            "code": "O",
+            "description": "No Bare Leads Power Cable",
+            "Floor Price": "NC",
+            "MSRP": "NC"
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "KM",
+            "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "WWAN Card",
+            "code": "EM7411",
+            "description": "Sierra EM7411 4G",
+            "Floor Price": null,
+            "MSRP": null
+          },
+          {
+            "category": "WWAN Carrier",
+            "code": "KA",
+            "description": "AT&T",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "Operating System:",
+            "code": "255",
+            "description": "Windows 10 Pro 64-Bit",
+            "Floor Price": 200,
+            "MSRP": 300
+          }
+        ],
+        "floor_total": 3330.0,
+        "msrp_total": 6380.0,
+        "part_number": "1014P-14P-D-G-4-P-95-1-O-KM-EM7411-KA-255",
+        "sales_rep": "Test",
+        "updated_at": "2026-08-26T22:40:39"
+      },
+      {
+        "rev_number": 2,
+        "customer": "test1",
+        "brand": "JLT",
+        "platform": "1014P",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "14P",
+            "description": "Rugged Fixed Mount Computer, JLT1014P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+            "Floor Price": 2660,
+            "MSRP": 5320
+          },
+          {
+            "category": "Processor Options",
+            "code": "D",
+            "description": "Intel 6413E Elkhart Lake",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "G",
+            "description": "8 GB  RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "5",
+            "description": "120 GB CFAST",
+            "Floor Price": 160,
+            "MSRP": 320
+          },
+          {
+            "category": "Display options:",
+            "code": "P",
+            "description": "XGA LED Standard Bright with  Capacitive Touch Screen",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Internal Options:",
+            "code": "95",
+            "description": "9-36VDC input range, RS232 Serial Port with 5V power on pin 9",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "IP Rating Options:",
+            "code": "1",
+            "description": "IP-65 with Rubber Plugs",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Power Cable Options:",
+            "code": "O",
+            "description": "No Bare Leads Power Cable",
+            "Floor Price": "NC",
+            "MSRP": "NC"
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "KM",
+            "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "WWAN Card",
+            "code": "REDCAP",
+            "description": "Quectel RedCap RG255C 5G",
+            "Floor Price": null,
+            "MSRP": null
+          },
+          {
+            "category": "WWAN Carrier",
+            "code": "KW",
+            "description": "Verizon",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "Operating System:",
+            "code": "395",
+            "description": "Windows 11 IoT Enterprise LTSC",
+            "Floor Price": 60,
+            "MSRP": 90
+          }
+        ],
+        "floor_total": 3240.0,
+        "msrp_total": 6270.0,
+        "part_number": "1014P-14P-D-G-5-P-95-1-O-KM-REDCAP-KW-395",
+        "sales_rep": "Test",
+        "updated_at": "2026-08-26T22:41:39"
+      }
+    ]
+  },
+  "Acme Manufacturing::1": {
+    "opportunity_id": "Acme Manufacturing",
+    "customer": "Acme Manufacturing",
+    "quote_number": 1,
+    "rev_number": 2,
+    "locked": true,
+    "ever_locked": true,
+    "brand": "JLT",
+    "platform": "1214P",
+    "selections": [
+      {
+        "category": "Base Unit:",
+        "code": "AB-P",
+        "description": "Rugged Fixed Mount Computer, JLT1214P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+        "Floor Price": 2070,
+        "MSRP": 4140
+      },
+      {
+        "category": "Processor Options",
+        "code": "D",
+        "description": "Intel 6413E Elkhart Lake",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "RAM Memory Options:",
+        "code": "G",
+        "description": "8GB RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Storage Drive Options:",
+        "code": "5",
+        "description": "120 GB CFAST",
+        "Floor Price": 160,
+        "MSRP": 410
+      },
+      {
+        "category": "Display options:",
+        "code": "P",
+        "description": "XGA LED Standard Bright with Projective Capacitive Touch Screen",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Internal Options:",
+        "code": "65",
+        "description": "18-60VDC input range, RS232 Serial Port with 5V power on pin 9",
+        "Floor Price": "incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "IP Rating Options:",
+        "code": "1",
+        "description": "IP-65 with Rubber Plugs",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "Power Cable Options:",
+        "code": "O",
+        "description": "No Bare Leads Power Cable",
+        "Floor Price": "NC",
+        "MSRP": "NC"
+      },
+      {
+        "category": "Internal Wireless",
+        "code": "KM",
+        "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+        "Floor Price": "Incl",
+        "MSRP": "Incl"
+      },
+      {
+        "category": "WWAN Card",
+        "code": "MC",
+        "description": "Sierra MC7411 4G",
+        "Floor Price": 360,
+        "MSRP": 540
+      },
+      {
+        "category": "WWAN Carrier",
+        "code": "KT",
+        "description": "T-Mobile",
+        "Floor Price": 360,
+        "MSRP": 540
+      },
+      {
+        "category": "Operating System:",
+        "code": "395",
+        "description": "Windows 11 IoT Enterprise LTSC",
+        "Floor Price": 60,
+        "MSRP": 120
+      }
+    ],
+    "floor_total": 3010.0,
+    "msrp_total": 5750.0,
+    "part_number": "1214P-AB-P-D-G-5-P-65-1-O-KM-MC-KT-395",
+    "created_by": "Test",
+    "sales_rep": "Test",
+    "created_at": "2026-09-02T16:30:31",
+    "updated_at": "2026-09-02T16:33:20",
+    "revisions": [
+      {
+        "rev_number": 1,
+        "customer": "Acme Manufacturing",
+        "brand": "JLT",
+        "platform": "1214P",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "AB-P",
+            "description": "Rugged Fixed Mount Computer, JLT1214P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+            "Floor Price": 2070,
+            "MSRP": 4140
+          },
+          {
+            "category": "Processor Options",
+            "code": "D",
+            "description": "Intel 6413E Elkhart Lake",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "G",
+            "description": "8GB RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "4",
+            "description": "60 GB CFAST",
+            "Floor Price": 110,
+            "MSRP": 220
+          },
+          {
+            "category": "Display options:",
+            "code": "P",
+            "description": "XGA LED Standard Bright with Projective Capacitive Touch Screen",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Internal Options:",
+            "code": "65",
+            "description": "18-60VDC input range, RS232 Serial Port with 5V power on pin 9",
+            "Floor Price": "incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "IP Rating Options:",
+            "code": "1",
+            "description": "IP-65 with Rubber Plugs",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Power Cable Options:",
+            "code": "O",
+            "description": "No Bare Leads Power Cable",
+            "Floor Price": "NC",
+            "MSRP": "NC"
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "KM",
+            "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "WWAN Card",
+            "code": "MC",
+            "description": "Sierra MC7411 4G",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "WWAN Carrier",
+            "code": "KW",
+            "description": "Verizon",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "Operating System:",
+            "code": "395",
+            "description": "Windows 11 IoT Enterprise LTSC",
+            "Floor Price": 60,
+            "MSRP": 120
+          }
+        ],
+        "floor_total": 2960.0,
+        "msrp_total": 5560.0,
+        "part_number": "1214P-AB-P-D-G-4-P-65-1-O-KM-MC-KW-395",
+        "sales_rep": "Test",
+        "updated_at": "2026-09-02T16:30:31"
+      },
+      {
+        "rev_number": 2,
+        "customer": "Acme Manufacturing",
+        "brand": "JLT",
+        "platform": "1214P",
+        "selections": [
+          {
+            "category": "Base Unit:",
+            "code": "AB-P",
+            "description": "Rugged Fixed Mount Computer, JLT1214P, with Multiple Options for Storage Drive, Voltage Input Range, Internal Wireless, Operating System, Virtual Keyboard, and IP Sealing, 3 Year Standard Warranty",
+            "Floor Price": 2070,
+            "MSRP": 4140
+          },
+          {
+            "category": "Processor Options",
+            "code": "D",
+            "description": "Intel 6413E Elkhart Lake",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "RAM Memory Options:",
+            "code": "G",
+            "description": "8GB RAM DDR4 (8GB  is default for Intel 6413E Elkhart Lake CPU devices)",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Storage Drive Options:",
+            "code": "5",
+            "description": "120 GB CFAST",
+            "Floor Price": 160,
+            "MSRP": 410
+          },
+          {
+            "category": "Display options:",
+            "code": "P",
+            "description": "XGA LED Standard Bright with Projective Capacitive Touch Screen",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Internal Options:",
+            "code": "65",
+            "description": "18-60VDC input range, RS232 Serial Port with 5V power on pin 9",
+            "Floor Price": "incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "IP Rating Options:",
+            "code": "1",
+            "description": "IP-65 with Rubber Plugs",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "Power Cable Options:",
+            "code": "O",
+            "description": "No Bare Leads Power Cable",
+            "Floor Price": "NC",
+            "MSRP": "NC"
+          },
+          {
+            "category": "Internal Wireless",
+            "code": "KM",
+            "description": "Intel Wireless AX210 (M2) 802.11 ac/a/b/g/n",
+            "Floor Price": "Incl",
+            "MSRP": "Incl"
+          },
+          {
+            "category": "WWAN Card",
+            "code": "MC",
+            "description": "Sierra MC7411 4G",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "WWAN Carrier",
+            "code": "KT",
+            "description": "T-Mobile",
+            "Floor Price": 360,
+            "MSRP": 540
+          },
+          {
+            "category": "Operating System:",
+            "code": "395",
+            "description": "Windows 11 IoT Enterprise LTSC",
+            "Floor Price": 60,
+            "MSRP": 120
+          }
+        ],
+        "floor_total": 3010.0,
+        "msrp_total": 5750.0,
+        "part_number": "1214P-AB-P-D-G-5-P-65-1-O-KM-MC-KT-395",
+        "sales_rep": "Test",
+        "updated_at": "2026-09-02T16:33:20"
+      }
+    ]
+  }
+}
