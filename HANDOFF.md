@@ -6,10 +6,11 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `2a028c6` — by OpenAI Codex — 2026-09-02 14:47 -0500
+**Last reviewed up to:** HEAD `7f44e97` — by OpenAI Codex — 2026-09-02 14:50 -0500
 
-The user approved publication of the 2026-09-02 documentation update. See
-`CHANGELOG.md` → Pending / TODO for its current publication/synchronization status.
+The approved documentation was published and merged through PR #6. The Box
+checkout retains existing user edits; see `CHANGELOG.md` → Pending / TODO for the
+remaining return-to-main/synchronization step.
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can

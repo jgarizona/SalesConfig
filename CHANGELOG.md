@@ -6,12 +6,14 @@ Every repository change must be recorded under the date it was made and identify
 
 ## Pending / TODO
 
-- **Publish approved local-testing documentation** — source: the user's 2026-09-02
-  "ok push the updates" approval. Scope: `AGENTS.md`, `CODEX.md`, `CLAUDE.md`,
-  `HANDOFF.md`, and `CHANGELOG.md` only. Next action: commit and push these reviewed
-  documents, create/merge the verified PR, read GitHub `main` back, and check Box cloud.
-  Preserve the pre-existing customer/quote changes, deleted `.gitignore`, and all
-  untracked files. A dirty checkout must not be reset or forced clean for synchronization.
+- **Return the Box checkout to synchronized `main` after preserving existing edits**
+  — source: 2026-09-02 documentation publication and the mandatory post-merge procedure.
+  Current status: the approved documentation was pushed and merged; the Box checkout
+  remains on `codex/local-testing-instructions` with pre-existing customer/quote edits,
+  deleted `.gitignore`, and untracked local files. Next action: let the user decide how
+  to retain those existing edits, then when the worktree is clean return to `main`,
+  `git pull --ff-only origin main`, compare local HEAD/files with GitHub, and verify Box
+  cloud hashes. Do not discard/stash user work or commit credentials to force this step.
 
 
 - **Harden spreadsheet ingestion** — source: 2026-08-15 Codex review of the repository and the JLT, Winmate, Getac, and CipherLab workbooks in Box. Current status: ~~Technical always uses the JLT parser~~ resolved 2026-08-16 (`app.py`'s `PARSERS` dict now routes each brand to its own parser); Getac no longer risks a misleading zero-row success now that it's a real, tested parser. Still open: wrong-vendor uploads can still create unreliable data (no schema/brand validation rejects a mismatched file before parsing it), Purchasing still reads only the active sheet with exact headers, and uploads still have no preflight preview or size limit. Next action: reject unsupported layouts, validate schemas and brands before merging, treat zero parsed rows as an error, preview changes before saving, and enforce an upload-size limit.
@@ -37,6 +39,13 @@ Every repository change must be recorded under the date it was made and identify
 - **Remove test data before go-live** — the 5 seeded test customers (Acme Manufacturing, Blue Ridge Industrial, Harborview Freight, Northwind Logistics, Sunrise Distribution) need to be cleared via Admin's "Remove All Test Customers" once the HubSpot connector replaces Customer Lookup. Also sanity-check `data/quotes.json`, `data/customers.json`, and `data/sales_reps.json` for any other leftover test entries (e.g. the "Test" sales rep) before real use.
 
 ## 2026-09-02
+
+- **[Codex]** Published the approved startup/workflow documentation in
+  [PR #6](https://github.com/jgarizona/SalesConfig/pull/6) and verified its merge
+  on GitHub `main` at `7f44e97e20a2958f0c3d3a83a76449cbe1021e5c`. Closed the documentation-push TODO; retained a
+  separate TODO for returning the dirty Box checkout to `main` without losing existing
+  user changes. This follow-up updates only publication accounting and the handoff
+  checkpoint; application code, data, and `.gitignore` remain outside the commits.
 
 - **[Codex]** Received the user's approval to publish the five local documentation
   updates. Moved their TODO from awaiting approval to approved publication; existing
