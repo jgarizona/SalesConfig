@@ -4,22 +4,26 @@
 
 This repo is also worked on from a separate Codex session (the user switches to Codex when
 a Claude Code session runs low on budget — see `AGENTS.md`/`CODEX.md`, which is Codex's own
-equivalent of this file). Codex pushes straight to GitHub and does not go through this local
-Box-synced working copy, so **local `main` can fall behind without any local change ever
-happening.** Concretely, before editing anything:
+equivalent of this file). Both agents use the existing Box-backed working copy; GitHub `main` can also advance
+between sessions. Follow
+[`HANDOFF.md` → Start or resume local testing](HANDOFF.md#start-or-resume-local-testing)
+when asked to open or resume the local app. Before editing anything:
 
-1. `git pull --ff-only origin main` — brings in anything Codex (or anyone else) pushed
-   since this working copy was last touched. If this isn't a clean fast-forward, stop and
-   look at what diverged before doing anything else.
+1. Check `git status -sb` and preserve all existing changes. Only with a clean worktree
+   and the intended `main` checkout, use `git pull --ff-only origin main` to bring it
+   current. If dirty or diverged, stop the update and report it; do not overwrite user
+   changes merely to resume testing.
 2. Skim `CHANGELOG.md`'s `Pending / TODO` section — it's the canonical list of open work
    across every agent, not just Claude sessions.
 
 ## Git
 
-You have standing authorization to **commit and push to `origin/main` without asking for
-confirmation first**, as part of normal iterative development on this project. Use your
-judgment on when a change is "done enough" to commit (a working, tested slice — not every
-single file edit). Write clear, specific commit messages describing what changed and why.
+**User clarification, 2026-09-02:** write changes locally in the existing Box checkout,
+verify them, and present the local diff for review. Wait for the user's approval before
+pushing to GitHub, opening a PR, or merging. This replaces the earlier standing
+authorization to push without asking. Record publication under `CHANGELOG.md`'s
+`Pending / TODO` until approved. After approval, commit only intended files and follow
+the verified branch/PR/merge workflow, preserving all unrelated user changes.
 
 This does **not** extend to destructive operations (force-push, `reset --hard`, deleting
 branches, rewriting history) — those still need to be confirmed in chat first, same as any

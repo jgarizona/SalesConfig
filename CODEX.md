@@ -12,10 +12,11 @@ Use the Box Drive working copy as the development workspace:
 C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git
 ```
 
-- Open that exact folder as the Codex project (`Ctrl+O` in the Windows app) and start the
-  task inside that project.
-- Do not develop from a projectless task under `Documents\Codex` and do not create a
-  second working clone unless the user explicitly requests one.
+- Prefer opening that exact folder as the Codex project (`Ctrl+O` in the Windows app).
+  Use this checkout as the working directory for all repository commands and local edits.
+- If a task starts elsewhere, an explicit user instruction to edit this Box checkout
+  authorizes local work through the permitted tools. It does not bypass filesystem or
+  command approvals. Do not create a second working clone.
 - Box Drive is the filesystem/synchronization layer. GitHub remains the Git remote and
   `main` remains the canonical branch.
 - Use only one writing agent/application at a time. Before every edit, confirm the
@@ -56,9 +57,11 @@ Expected results:
 - The active branch and any worktree changes are understood before work begins.
 - `origin` is `https://github.com/jgarizona/SalesConfig.git`.
 
-If the task is rooted somewhere else, stop before writing and tell the user to open the
-`Git` project. A task can read outside its project while still being unable to update
-`.git/FETCH_HEAD`; read access is not proof that Git writes will work.
+A task can read outside its project while still being unable to update the worktree or
+`.git/FETCH_HEAD`; read access is not proof that writes will work. For user-authorized
+local edits in this checkout, use the normal approval mechanism when required. If access
+is denied, preserve the files and report the exact blocker; do not bypass the denial or
+silently weaken sandbox settings.
 
 ## 3. How Box and GitHub are used
 
@@ -81,45 +84,41 @@ Before changing anything, read in this order:
 1. `AGENTS.md`
 2. `CODEX.md` (this file)
 3. `CHANGELOG.md`, especially `Pending / TODO`
-4. `HANDOFF.md`
+4. `HANDOFF.md`, including [Start or resume local testing](HANDOFF.md#start-or-resume-local-testing)
 5. Current GitHub `main` and open pull requests
 
 Every repository change, including documentation and maintenance, must receive a dated
 `**[Codex]**` entry in `CHANGELOG.md` in the same branch or pull request. Record necessary
 unfinished work under `Pending / TODO` with its source, status, and exact next action.
 
-## 5. Development and automatic-merge workflow
+## 5. Local development, review, and approved publication
 
-1. Confirm the Box worktree is clean and up to date:
+The user's 2026-09-02 instruction is to write changes locally in Box and push only
+after approval. It supersedes the earlier unconditional automatic-publication policy.
 
-   ```powershell
-   git status --porcelain
-   git pull --ff-only origin main
-   ```
-
-2. Create or use an intentional working branch. Do not make feature commits directly on
-   `main` when a branch/PR workflow is available.
-3. Make the requested changes inside this Box-backed working copy.
-4. Update `CHANGELOG.md` in the same change and update `Pending / TODO` for anything left
-   incomplete.
-5. Review the exact diff and run checks proportional to the change.
-6. Commit only the intended files, push the branch, and create a pull request.
-7. Under the standing repository policy, merge the verified pull request into `main`
-   automatically unless the user requested a draft or verification is blocked.
-8. Read GitHub `main` back and verify the merge commit and expected changelog entry.
-9. Return this Box working copy to `main` and fast-forward it:
-
-   ```powershell
-   git switch main
-   git pull --ff-only origin main
-   ```
-
-10. Do not force, reset, or overwrite a dirty/diverged worktree. Record and report the
-    blocker instead.
+1. Check the Box worktree with `git status --porcelain`. Identify and preserve existing
+   changes. Pull only when clean and on the intended branch with a safe fast-forward;
+   do not pull, stash, reset, or switch branches over unrelated user work.
+2. Make the requested local changes in this checkout. Use an intentional working branch
+   when safely available; existing dirty state may require leaving edits uncommitted on
+   the current branch while preserving all user work.
+3. Update `CHANGELOG.md` and `Pending / TODO`, review the exact diff, and run checks
+   proportional to the change.
+4. Present the concrete local result for review. Wait for the user's approval before
+   pushing to GitHub, creating a PR, or merging. A local edit request alone is not that
+   approval. Track publication as pending and make the local-only status explicit.
+5. After approval, commit only the intended files on an appropriate working branch,
+   push it, and create a PR. Never include unrelated runtime-data or credential files.
+6. Complete the verified merge within the approved scope unless the user requests an
+   unmerged draft or a blocker remains. Read GitHub `main` back to confirm the result.
+7. Return the Box checkout to `main` and fast-forward only when its worktree is clean.
+   If existing user edits prevent that, preserve them and record the blocker rather
+   than forcing synchronization. Complete section 6 before claiming synchronization.
 
 ## 6. Final three-way verification
 
-Do not report completion until all three layers agree:
+After approved publication, do not report GitHub/Box synchronization complete until
+all three layers agree. Local work awaiting approval must be reported as local only:
 
 1. **GitHub:** the pull request is merged and GitHub `main` is at the expected commit.
 2. **Local Box checkout:** `HEAD` and `origin/main` equal the GitHub commit, the worktree is
@@ -150,6 +149,7 @@ passes.
   Box API token merely to work with the local repository.
 - Never disable TLS verification, force-push, hard-reset, or overwrite user changes to
   work around an access problem.
-- If the required identity, project root, network access, or clean Git state cannot be
-  established, stop the mutation, preserve files, add a `Pending / TODO` entry when a
-  repository change is already in progress, and report the exact blocker.
+- If the required identity, authorized checkout access, or a safe Git operation cannot
+  be established, stop that operation, preserve files, and record/report the blocker.
+  Missing network access or unrelated user edits do not alone prevent authorized local
+  documentation/code work; they can prevent publication or final synchronization.

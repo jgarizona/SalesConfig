@@ -6,7 +6,10 @@ conversation that built it.
 
 ## 0a. Review checkpoint — read and act on this before anything else
 
-**Last reviewed up to:** HEAD `a0b6e8c` — by Claude Code — 2026-08-26 16:45 -0500
+**Last reviewed up to:** HEAD `2a028c6` — by OpenAI Codex — 2026-09-02 14:47 -0500
+
+The user approved publication of the 2026-09-02 documentation update. See
+`CHANGELOG.md` → Pending / TODO for its current publication/synchronization status.
 
 This line is the answer to "has anyone else touched this repo since I was last here?" —
 don't skip it because `CHANGELOG.md` looks like it covers everything; changelog entries can
@@ -21,7 +24,9 @@ be incomplete or written after the fact, the commit graph can't lie.
    commit's diff (`git show <hash>`) — not just the subject lines — before starting new
    work. Cross-check the commits against `CHANGELOG.md` for the same range and flag any
    change that wasn't logged.
-4. `git pull --ff-only origin main` to bring the local Box-backed worktree current.
+4. With a clean worktree and the intended `main` checkout, `git pull --ff-only origin main`
+   brings the local Box-backed worktree current. If dirty, preserve all existing changes
+   and defer the pull; do not overwrite user work to begin local testing or requested edits.
 
 **Every agent, before ending a session's work, must:** update the line above — your own
 agent name (or "the user" if a human made the change directly), the current `git rev-parse
@@ -41,9 +46,10 @@ Before starting work:
    automatically as its own entry point instead** — same role as `AGENTS.md`, agent-specific
    file. A human or a third agent picking this up cold should check both.
 2. **If the acting agent is OpenAI Codex, read `CODEX.md` next and follow its complete
-   Box-backed project, Windows identity, Git/GitHub, automatic-merge, and three-way
-   verification procedure.** Codex must work from the Box repository project itself, not a
-   projectless task under `Documents\Codex`.
+   Box checkout, Windows identity, local-review/approved-publication, and three-way
+   verification procedure.** Local edits target the existing Box repository. A task opened
+   elsewhere can perform explicitly user-authorized edits there through permitted tools;
+   it must still respect filesystem approvals and must not create another clone.
 3. Read `CHANGELOG.md`, especially `Pending / TODO`, before choosing or beginning work.
 4. Check `main` and open pull requests so work already in progress is not duplicated.
 
@@ -57,10 +63,17 @@ For every repository change:
    source, current status, and next action. This includes a pull request still awaiting
    merge into `main`.
 5. When a TODO is completed, close or update it with another dated, attributed entry.
-6. After the change is verified, automatically merge it into `main` without waiting for a separate merge instruction, unless the user explicitly requests a draft/unmerged branch or verification is blocked.
+6. Present the verified local change for review and wait for the user's approval before
+   pushing, opening a PR, or merging. After approval, complete the verified publication
+   workflow within that scope unless a draft/unmerged branch was requested or a blocker remains.
 7. Read `main` back after the merge and confirm the expected commit and changelog entries are present.
 
-**Standing automatic-merge instruction (added 2026-08-15 by Codex):** for this repository, a user request to update the repository authorizes Codex to merge the verified change into `main` automatically. A separate “merge it” instruction is not required. Codex must stop before merging only if the user asks to keep the work as a draft, verification fails, or an unresolved blocker requires user input.
+**Current publication instruction (user clarification, 2026-09-02):** write requested
+changes locally in the existing Box checkout, verify them, and wait for user approval
+before pushing them to GitHub or creating/merging a PR. A request for local changes does
+not by itself approve publication. This supersedes the earlier 2026-08-15 unconditional
+automatic-merge instruction. Track the pending approval in `CHANGELOG.md`; after approval,
+complete the verified branch/PR/merge and Box synchronization workflow within its scope.
 
 **Standing post-merge Box synchronization instruction (added 2026-08-15 by Codex):** after every successful merge into `main`, confirm the Box worktree at `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git` is clean, fast-forward it with `git pull --ff-only origin main`, verify its `HEAD` and expected files match GitHub `main`, and wait for Box Desktop to synchronize the changes to Box cloud. Never overwrite a dirty or diverged worktree or bypass Git by uploading over tracked files. If permissions, network access, Git state, or Box synchronization blocks the update, leave Box unchanged and record the exact blocker and next action in `CHANGELOG.md` → `Pending / TODO`.
 
@@ -68,11 +81,10 @@ For every repository change:
 the lead developer on this project. Codex is used only as a fallback when a Claude Code
 session runs out of budget, not as an independent co-equal decision-maker. Practically:
 
-- Codex's standing automatic-merge-to-`main` policy (above) **stays in place** —
-  requiring Claude's approval before every Codex merge was considered and explicitly
-  rejected, because it would block Codex's work until a Claude session is available again,
-  defeating the point of the fallback. This is a live tool with real quote/pricing data, not
-  a repo where an unmerged PR can sit indefinitely.
+- The earlier automatic-merge policy was superseded by the user's 2026-09-02
+  clarification above: prepare and verify changes locally, then obtain the user's
+  approval before publication. This is user review; a separate Claude session is not
+  required to approve each Codex change.
 - **In exchange, every time a Claude Code session resumes work on this project, its first
   action must be a real diff-level review of everything merged into `main` since it was
   last active** — not a skim of `CHANGELOG.md` entries taken at face value. This is the
@@ -86,7 +98,7 @@ session runs out of budget, not as an independent co-equal decision-maker. Pract
 **Codex-specific operating guide (added 2026-08-15 by Codex):** `CODEX.md` is the
 required detailed guide for OpenAI Codex. It records the exact Box project path, the
 Windows execution context needed for Box Drive reparse points and Git Credential Manager,
-startup checks, the rule against connector-based Git bypasses, the automatic branch/PR/
+startup checks, the rule against connector-based Git bypasses, the user-approved branch/PR/
 merge sequence, and the final GitHub/local Box/Box-cloud verification. `AGENTS.md` remains
 the automatic discovery entry point and explicitly requires Codex to read `CODEX.md`.
 
@@ -117,8 +129,9 @@ what currently stands in for that.
 
 **Current status:** rough working prototype. All 4 screens (Technical, Sales, Purchasing,
 Admin) are functional against real pricing data for all 4 brands (JLT/Winmate/Getac/
-CipherLab, 2,536 parts total as of 2026-08-25, see §7). No database, no auth, no HubSpot — all
-noted below.
+CipherLab, 2,536 parts total as of 2026-08-25, see §7). Storage is flat JSON. Site and
+Purchasing PIN gates plus Sales rep verification exist (§8). HubSpot integration code is
+partly wired to lookup controls but still needs credentials and live verification (§9).
 
 ---
 
@@ -131,22 +144,181 @@ noted below.
 | **Source vendor spreadsheets (Box, human-edited)** | `C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\` (one level up from the repo) — contains `JLT VMT Q1 2026 Updated final 02192026 Release.xlsx`, `JLT Winmate Master Price Book 03062026.xlsx`, `GetacSelectMSRP_2026-01-20.xlsx`, `CipherLab Price Increase effective 4_10_2026 Product List.xlsx` |
 | **Runtime data (JSON, working state)** | `Git\data\*.json` — see §6 |
 
-Run it with:
-```bash
-cd "C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git"
-pip install -r requirements.txt
-python app.py
+### Start or resume local testing
+
+#### 1. Use the existing checkout and preserve its data
+
+Open this exact folder as the development project:
+
+```text
+C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git
 ```
-Flask dev server on `http://127.0.0.1:5000`, debug mode on (auto-reloads on file change).
-**This is a dev server, not production-ready** — no WSGI server, no HTTPS, no auth beyond
-the rep-code gimmick described in §8.
+
+Use the existing application, Python environment, and catalog. Do not rebuild, clone,
+re-ingest spreadsheets, seed customers, or clear quotes merely to begin testing.
+Local testing uses the real `data/*.json` files in this checkout: saving a quote,
+accepting a new customer, changing approvals, or confirming an import changes that data.
+There is no separate disposable test database.
+
+Codex reads `AGENTS.md`, then `CODEX.md`, then `CHANGELOG.md` and `HANDOFF.md`.
+Claude reads `CLAUDE.md`, `CHANGELOG.md`, and `HANDOFF.md`. Preserve the required reading
+order and review checkpoint in sections 0/0a. Use this Box checkout as the working
+directory for repository commands and the target of local edits. If the task was
+opened elsewhere, an explicit user instruction to edit this checkout can authorize
+that work through the permitted tools; it does not bypass filesystem approvals.
+Prefer opening the Box folder as the project, and never create a second clone.
+
+In PowerShell, record the current repository state:
+
+```powershell
+Set-Location -LiteralPath 'C:\Users\Admin\Box\My Libraries\JLT\temp\Jeff temp\claude code\configurator\Git'
+whoami
+git rev-parse --show-toplevel
+git --no-optional-locks status -sb
+git remote -v
+```
+
+The expected Windows account is `RTG99\Admin`, the top level is the folder above, and
+`origin` is `https://github.com/jgarizona/SalesConfig.git`. Check GitHub `main` and open
+PRs when network access permits. Follow the existing Git review/update procedure in
+this Box checkout; pull only when the worktree is clean and a fast-forward
+is appropriate. If it is dirty, preserve and report every existing change. Do not reset,
+stash, restore, switch branches, or pull over the user's work just to open the app.
+A read-only resume of an already-running app can continue while those changes remain.
+
+Requested development and documentation changes are written locally in this Box
+checkout and verified for the user to review. Wait for the user to approve publication
+before pushing to GitHub, opening a PR, or merging. A request to make a local change
+does not by itself approve publication. Track that approval under Pending / TODO.
+
+Check `.gitignore` before staging anything. `data/site_access.json` contains the site
+PIN and session secret; `data/hubspot_config.json` can contain a HubSpot token. Neither
+belongs in Git. A missing/deleted `.gitignore` can expose them as untracked files.
+Do not print their contents, use blanket staging, or restore the deleted file without
+first understanding the existing change.
+
+#### 2. Check for the running app before launching anything
+
+Make one bounded HTTP check:
+
+```powershell
+try {
+    $jltResponse = Invoke-WebRequest -Uri 'http://127.0.0.1:5000/' -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+    $jltResponse.StatusCode
+    [regex]::Match($jltResponse.Content, '<title>(.*?)</title>').Groups[1].Value
+} catch {
+    Write-Output $_.Exception.Message
+}
+```
+
+HTTP 200 with the JLT configurator sign-in page is a successful startup check. A redirect
+to `/login?next=/` is expected without a signed-in session. A valid signed-in JLT page
+also confirms the app is running. Reuse that server; do not restart it or launch another.
+
+If HTTP fails, returns an error, or shows a different application, inspect port 5000:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5000 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object LocalAddress, LocalPort, OwningProcess
+```
+
+For a reported PID, inspect that specific process with `Get-Process -Id <PID>` or
+`Get-CimInstance Win32_Process -Filter "ProcessId=<PID>"` in the permitted Windows
+context. `netstat -ano` is an alternative if the networking cmdlet is unavailable.
+An access-denied result does not prove the port is free. If a listener exists, diagnose
+it before launching; do not kill an unknown process or silently choose another port.
+
+#### 3. Start only if no server is listening
+
+Reuse the project's existing Python 3.12 interpreter/environment. Check it without
+importing `app.py` (importing the app can create missing runtime configuration files):
+
+```powershell
+python --version
+python -m pip show flask openpyxl requests
+```
+
+If dependencies are actually missing, install them into that same environment with
+`python -m pip install -r requirements.txt`. Do not recreate the environment or upgrade
+packages merely to resume an already-working setup.
+
+From the repository root, launch in a terminal/session that remains running:
+
+```powershell
+python -B app.py
+```
+
+`-B` prevents new Python bytecode cache writes; it does not stop application data writes.
+The existing entry point serves localhost on port 5000 with debug reload and threading.
+Debug reload can produce a parent and child Python process; that alone is not evidence
+of two independently started servers. Record the session or PID you started. If an agent
+uses `Start-Process` for a background launch, use `-WindowStyle Hidden`, the exact
+repository working directory, and retain its process handle and diagnostic output.
+
+Repeat the HTTP check, then inspect the page in the browser. A startup failure requires
+reading the error before retrying; do not spawn repeated servers. This checklist is for
+local testing. Public access uses the separate tunnel procedure in `CLAUDE.md`, including
+its requirement to disable the Flask debugger first.
+
+#### 4. Open the app and use the existing sign-in flow
+
+Open `http://127.0.0.1:5000/` in the user's browser and keep the tab available for testing.
+Reuse an existing matching tab, preserving unsaved form state; do not force a reload
+merely to show it. Confirm that the JLT page is visible.
+
+- **Site access:** enter the existing site PIN. The sign-in page is expected and is not
+  a server failure. The authorized user/Admin supplies or manages the PIN; do not guess,
+  reset, or publish credentials to make a startup check pass.
+- **Sales:** select an existing unlocked rep and verify that rep's four-digit code.
+  The rest of Sales remains disabled until verification. For saving a configuration,
+  select/accept a customer, supply an Opportunity ID, and click Accept Configuration.
+  Search by Requirements becomes available after rep verification.
+- **Purchasing:** enter its separate Purchasing PIN after site sign-in. It is distinct
+  from the site PIN and the sales-rep code.
+
+For a requested testing handoff, report the URL, whether the server was reused or newly
+started, the visible page, current branch/commit, existing changes, and any blocker.
+Then wait for the user's feedback before feature changes or data-changing tests. Do not
+create quotes/customers, print a quote (which can lock it), or confirm imports merely
+to prove the sign-in page works. Keep the running app and browser available.
+
+#### 5. Windows/Box Git troubleshooting
+
+Box Drive uses Windows Cloud Files for this checkout, including Git metadata. Follow
+`CODEX.md` section 2 and use the logged-in Windows context that can service those files.
+Use the environment's approval mechanism for a specific command if required; do not
+silently change sandbox settings or disable security checks globally.
+
+If Git reports dubious ownership, verify the exact user-designated checkout and account
+first. For that verified checkout, a command-scoped trust setting permits a read-only
+check without changing global Git configuration:
+
+```powershell
+& 'C:\Program Files\Git\cmd\git.exe' -c 'safe.directory=C:/Users/Admin/Box/My Libraries/JLT/temp/Jeff temp/claude code/configurator/Git' --no-optional-locks status -sb
+```
+
+Do not use `safe.directory=*`. This setting addresses Git's ownership check only;
+it does not grant filesystem access or fix an I/O failure.
+
+During the 2026-09-02 handoff, some initial Git reads stalled/failed and the user saw a
+`git.exe` I/O-error dialog containing `0xC0000098`. Subsequent read-only status/history
+checks succeeded with the installed Git in the permitted Windows user context. No crash
+event established the exact cause, so this is an observed recovery, not a proven diagnosis.
+The Flask app remained reachable throughout. If this recurs, stop repeated Git retries,
+record the error/time, verify the app independently by HTTP, and retry a read-only Git
+check in the correct context. Do not reclone, reset, replace `.git`, or reinstall Git
+as an automatic response.
+
+The UI version label is captured at app startup and may show an older hash or `dev`
+when Git cannot resolve it. Confirm actual Git state separately; that label alone does
+not show that the app is broken or that a restart is needed.
 
 ---
 
 ## 3. Tech stack
 
-- **Backend:** Python 3.12, Flask. No ORM, no database — see `requirements.txt` (just
-  `flask` and `openpyxl`).
+- **Backend:** Python 3.12, Flask. No ORM, no database — `requirements.txt` lists
+  `flask`, `openpyxl`, and `requests` (used by the HubSpot client).
 - **Frontend:** server-rendered Jinja2 templates + vanilla JavaScript (no build step, no
   framework, no npm). All JS is inline `<script>` in each template.
 - **Data storage:** flat JSON files under `data/`. Chosen deliberately (see brief's original
@@ -163,7 +335,7 @@ the rep-code gimmick described in §8.
 ```
 Git/
 ├── app.py                    # The entire Flask app — routes, data access, business logic (~1020 lines)
-├── requirements.txt          # flask, openpyxl
+├── requirements.txt          # flask, openpyxl, requests
 ├── CHANGELOG.md              # Dated changelog + "Pending / TODO" section — READ THIS TOO
 ├── HANDOFF.md                # This file
 ├── AGENTS.md                 # Mandatory repository instructions for AI/coding agents
